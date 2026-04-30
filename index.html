@@ -1,0 +1,2833 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pronos World Cup 2026</title>
+    <style>
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 20px; /* Évite que le titre soit collé au haut de l'écran */
+        }
+
+        :root { 
+            --gold: #d4af37; 
+            --dark-green: #0a1a0a; 
+            --pitch-green: #152b15;
+            --card: rgba(30, 30, 30, 0.9); 
+        }
+
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background: radial-gradient(circle at center, var(--pitch-green) 0%, var(--dark-green) 100%);
+            background-attachment: fixed;
+            color: white; margin: 0; padding: 20px; 
+        }
+
+        header { text-align: center; padding: 40px 0; border-bottom: 3px solid var(--gold); margin-bottom: 30px; }
+        h1 { margin: 0; color: var(--gold); letter-spacing: 3px; font-weight: 900; }
+        
+        .container { max-width: 900px; margin: auto; }
+
+        .match-card { 
+            background: var(--card); border-radius: 12px; padding: 15px 25px; margin-bottom: 10px;
+            display: flex; align-items: center; 
+            justify-content: space-between; /* Aligne les 3 blocs : Gauche, Centre, Droite */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.7);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .team { flex: 1; font-weight: bold; font-size: 1.2em; text-transform: uppercase; }
+        .team-home { text-align: right; padding-right: 20px; }
+        .team-away { text-align: left; padding-left: 20px; }
+
+        .score-inputs input {
+            width: 45px;
+            height: 45px;
+            text-align: center;
+            line-height: 45px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            border-radius: 8px;
+            border: 2px solid var(--gold);
+            background: #111;
+            color: white;
+            padding: 0;
+            outline: none;
+            
+            /* Suppression des flèches - Standard et Préfixes */
+            -webkit-appearance: none; /* Safari et Chrome */
+            -moz-appearance: textfield; /* Firefox */
+            appearance: none;           /* Propriété Standard */
+        }
+
+        /* Suppression spécifique des flèches pour Chrome/Edge/Safari/Opera */
+        .score-inputs input::-webkit-outer-spin-button,
+        .score-inputs input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Optionnel : Améliore le focus pour l'accessibilité sur tous supports */
+        .score-inputs input:focus {
+            border-color: #ffffff;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+
+        .date { font-size: 0.85em; color: var(--gold); text-align: center; margin-top: 15px; font-weight: bold; }
+
+        #zone-16emes, #zone-8emes, #zone-4emes, #zone-2emes, #zone-1emes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        /* Sortir du container de 900px pour les classements uniquement */
+        /* 1. On applique LA MÊME grille que tes phases finales */
+        #zone-classements {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        /* 2. On oblige la carte à remplir tout l'espace que la grille lui donne */
+        .group-card {
+            background: var(--card); 
+            border: 1px solid var(--gold); 
+            border-radius: 8px; 
+            padding: 15px; 
+            width: 100%; /* Très important */
+            box-sizing: border-box;
+        }
+
+        /* 3. L'ASTUCE : Forcer le tableau à s'écarter à l'intérieur de la carte */
+        .group-card table {
+            width: 100%; /* C'est ça qui va séparer tes colonnes Pts, V, N, D... */
+            border-collapse: collapse;
+        }
+
+        /* Optionnel : On aère un peu le texte dans le tableau */
+        .group-card th, .group-card td {
+            padding: 5px 2px;
+            text-align: center;
+        }
+        .group-card th:nth-child(2), .group-card td:nth-child(2) {
+            text-align: left; /* Pour que le nom du pays reste à gauche */
+        }
+
+        /* Les qualifiés brillent légèrement */
+        .qualifie { 
+            color: #4ade80 !important; 
+            font-weight: bold !important;
+            text-shadow: 0 0 8px rgba(74, 222, 128, 0.2); /* Effet néon discret */
+        }
+
+        /* On grise légèrement les lignes des éliminés pour faire ressortir le reste */
+        tr:has(.qualifie) {
+            background: rgba(74, 222, 128, 0.03);
+        }
+
+        /* Ligne de séparation entre les qualifiés potentiels et les éliminés (optionnel) */
+        .group-card tr:nth-child(2) {
+            border-bottom: 1px dashed rgba(212, 175, 55, 0.4);
+        }
+
+        /* Responsive mobile */
+        @media (max-width: 1000px) {
+            #zone-classements {
+                width: 100% !important;
+                grid-template-columns: 1fr !important;
+                transform: none;
+                left: 0;
+            }
+        }
+
+        button#save { 
+            display: block; width: 100%; padding: 20px; background: linear-gradient(to bottom, var(--gold), #b8962d);
+            border: none; border-radius: 50px; font-weight: bold; cursor: pointer; font-size: 1.2em;
+            margin: 40px 0; box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+        }
+
+        /* La carte de match reste une ligne fixe */
+        .match-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #1e1e1e;
+            padding: 10px;
+            border-radius: 8px;
+            gap: 10px;
+        }
+
+        /* Structure fixe pour les matchs */
+        .match-card {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            gap: 10px;
+            padding: 10px;
+            min-width: 320px; /* Sécurité pour mobile */
+        }
+
+        .team {
+            flex: 1; /* Chaque équipe prend exactement le même espace */
+            min-width: 0; /* Important pour l'ellipsis */
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .team-home { justify-content: flex-end; text-align: right; }
+        .team-away { justify-content: flex-start; text-align: left; }
+
+        /* Pour que les noms longs ne cassent pas tout */
+        .team-name {
+            width: 120px;         /* Largeur fixe pour le nom */
+            white-space: nowrap;  /* Pas de retour à la ligne */
+            overflow: hidden;     /* On coupe ce qui dépasse */
+            text-overflow: ellipsis; /* On met des "..." si c'est trop long */
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        /* Pour que le bloc score reste TOUJOURS au milieu */
+        .score-zone {
+            display: inline-flex;
+            justify-content: center;
+            width: 80px;
+        }
+
+        /* L'effet doré sans casser la mise en forme */
+        .team:has(input:checked) {
+            background: rgba(255, 215, 0, 0.15) !important;
+            border: 1px solid var(--gold) !important;
+            color: var(--gold);
+            font-weight: bold;
+        }
+
+        .side-nav {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(30, 30, 30, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid var(--gold);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .nav-title {
+            color: var(--gold);
+            font-size: 0.7em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        .nav-item {
+            color: #fff;
+            text-decoration: none;
+            font-size: 0.9em;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 215, 0, 0.2);
+            color: var(--gold);
+            padding-left: 18px; /* Petit effet de décalage au survol */
+        }
+
+        .nav-top {
+            margin-top: 10px;
+            background: none;
+            border: 1px solid #555;
+            color: #aaa;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+
+        .nav-subtitle {
+            font-size: 0.6em;
+            color: #666;
+            text-transform: uppercase;
+            margin-top: 10px;
+            padding-left: 12px;
+        }
+
+        .nav-days {
+            display: flex;
+            justify-content: space-around;
+            padding: 5px;
+            gap: 5px;
+        }
+
+        .day-link {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            text-decoration: none;
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            border: 1px solid #444;
+            transition: 0.2s;
+        }
+
+        .day-link:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        /* Important : Évite que le scroll tombe trop bas sous le titre */
+        .anchor-offset {
+            display: block;
+            position: relative;
+            top: -100px; /* Ajuste selon la hauteur de ton header si tu en as un */
+            visibility: hidden;
+        }
+
+        /* Effet pour les lignes du menu Reset */
+        .reset-btn {
+            display: block; width: 100%; background: none; border: none; color: #ccc; 
+            padding: 8px; text-align: left; cursor: pointer; font-size: 0.85em;
+            transition: all 0.2s ease;
+            border-radius: 4px;
+        }
+        .reset-btn:hover { 
+            background: rgba(231, 76, 60, 0.2); 
+            color: #ff4d4d; 
+            padding-left: 15px; /* Petit décalage élégant au survol */
+        }
+
+        /* Effet pour les lignes du menu Lucky */
+        .lucky-btn {
+            display: block; width: 100%; background: none; border: none; color: #ddd; 
+            padding: 8px; text-align: left; cursor: pointer; font-size: 0.85em; 
+            transition: all 0.2s ease;
+            border-radius: 4px;
+        }
+        .lucky-btn:hover { 
+            background: rgba(212, 175, 55, 0.15); 
+            color: var(--gold);
+            padding-left: 15px;
+        }
+
+        /* Le bouton Lucky (Or) */
+        #lucky:hover {
+            background: var(--gold) !important;
+            color: #000 !important;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.6);
+            transform: translateY(-2px);
+        }
+
+        /* On force le menu à sortir du calcul de hauteur de la side-nav */
+        #lucky-menu {
+            position: fixed; /* Très important : il se repère par rapport à l'écran, pas à la nav */
+            right: 80px;    /* Ajuste pour qu'il apparaisse à gauche de ta nav */
+            top: 50%;
+            transform: translateY(-50%);
+            width: 280px;   /* Largeur fixe pour la cohérence */
+            max-height: 90vh; /* Il ne dépassera jamais 90% de la hauteur de l'écran */
+            overflow-y: auto; /* Active le scroll interne */
+            background: rgba(20, 20, 20, 0.98);
+            backdrop-filter: blur(15px);
+            border: 2px solid var(--gold);
+            border-radius: 12px;
+            padding: 15px;
+            z-index: 2000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+
+        /* Style de la scrollbar interne pour qu'elle soit discrète */
+        #lucky-menu::-webkit-scrollbar {
+            width: 4px;
+        }
+        #lucky-menu::-webkit-scrollbar-thumb {
+            background: var(--gold);
+            border-radius: 4px;
+        }
+
+        /* Le bouton Reset principal (Rouge Glow) */
+        .btn-reset-main:hover {
+            background: #e74c3c !important;
+            color: #fff !important;
+            border-color: #ff4d4d !important;
+            box-shadow: 0 0 20px rgba(231, 76, 60, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .btn-reset-main:active, #lucky:active {
+            transform: translateY(1px);
+        }
+
+        /* Supprime les flèches pour Chrome, Safari, Edge et Opera */
+            input::-webkit-outer-spin-button,
+            input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+            }
+        /* Container global une fois connecté */
+        .auth-logged-in-container {
+            display: flex;
+            flex-direction: column; /* On empile aussi pour être sûr */
+            align-items: flex-start; /* Aligné à gauche, loin de la side-nav */
+            gap: 8px;
+        }
+
+        .welcome-msg {
+            color: #4ade80;
+            font-size: 1rem;
+            display: block;
+        }
+
+        .btn-logout {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            width: fit-content; /* Le bouton ne prend que la place nécessaire */
+        }
+
+        /* On s'assure que le conteneur global ne se laisse pas écraser */
+        .auth-container {
+            background: rgba(26, 26, 26, 0.9); /* Un peu de transparence */
+            border: 1px solid #333;
+            border-radius: 0 0 8px 0; /* Arrondi seulement en bas à droite */
+            padding: 12px;
+            position: fixed; /* Flotte au-dessus du contenu */
+            top: 0;
+            left: 0;
+            width: fit-content; /* Ne prend que la place nécessaire */
+            z-index: 10000;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .auth-inputs input {
+            background: #000;
+            border: 1px solid #444;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            margin-right: 5px;
+            width: 140px;
+        }
+        .auth-buttons button {
+            padding: 8px 15px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .btn-login { background: #4ade80; color: #000; }
+        .btn-signup { background: #333; color: #fff; margin-left: 5px; }
+        .btn-logout { background: #ef4444; color: white; }
+        .welcome-msg { color: #4ade80; font-size: 0.9rem; }
+
+        @media (max-width: 600px) {
+            .auth-flex { justify-content: center; }
+        }
+
+        .classement-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.03);
+            color: white;
+            font-family: sans-serif;
+            margin-top: 20px;
+        }
+        .classement-table th, .classement-table td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #333;
+        }
+        .classement-table th {
+            background: #111;
+            color: #888;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+        .total-pts {
+            color: #4ade80;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .highlight-me {
+            background: rgba(74, 222, 128, 0.1) !important;
+        }
+        .highlight-me td:first-child {
+            border-left: 3px solid #4ade80;
+        }
+
+        #section-classement {
+            display: none; /* Caché par défaut */
+        }
+
+    </style>
+</head>
+<body>
+<div id="auth-bar" class="auth-container">
+    <div id="auth-logged-out" class="auth-column">
+        <div class="auth-input-group">
+            <input type="text" id="login-user" placeholder="Pseudo">
+            <input type="password" id="login-pass" placeholder="Mot de passe">
+        </div>
+        <div class="auth-button-group">
+            <button onclick="handleConnexion()" class="btn-login">Connexion</button>
+            <button onclick="handleInscription()" class="btn-signup">Créer un compte</button>
+        </div>
+    </div>
+    <div id="auth-logged-in" class="auth-logged-in-container" style="display:none;">
+        <div class="user-info">
+            <span class="welcome-msg">⚽ Joueur : <strong id="display-username"></strong></span>
+        </div>
+        <button onclick="deconnexion()" class="btn-logout">Déconnexion</button>
+    </div>
+</div>
+
+<header>
+    <h1>🏆 WORLD CUP 2026 PRONOS</h1>
+    <p>Saisissez vos scores pour simuler les phases de groupe</p>
+</header>
+
+<div class="container" id="app"></div>
+
+<div class="container">
+    <h2 style="color: var(--gold); text-align: center; margin-top: 60px;">📊 CLASSEMENTS DES GROUPES</h2>
+    <div id="zone-classements"></div>
+
+    <h2 style="color: var(--gold); text-align: center; margin-top: 60px;">⚔️ 1/16es DE FINALE</h2>
+    <div id="zone-16emes"></div>
+
+    <h2 style="color: var(--gold); text-align: center; margin-top: 60px;">🛡️ 1/8es DE FINALE</h2>
+    <div id="zone-8emes"></div>
+
+    <h2 style="color: var(--gold); text-align: center; margin-top: 60px;">🏆 QUARTS DE FINALE</h2>
+    <div id="zone-4emes"></div>
+
+    <h2 style="color: var(--gold); text-align: center; margin-top: 60px;">🏟️ DEMI-FINALES</h2>
+    <div id="zone-2emes"></div>
+
+    <h2 style="color: var(--gold); text-align: center; margin-top: 60px;">✨ FINALE</h2>
+    <div id="zone-1emes"></div>
+</div>
+
+<div class="container">
+    <button id="save" onclick="savePronos()">💾 ENREGISTRER L'EXPORT JSON</button>
+</div>
+
+<section id="section-classement" style="margin-top: 50px; padding: 20px; color: white;">
+    <h2 style="color: #4ade80; text-align: center;">🏆 Classement Général</h2>
+    
+    <div id="classement-container">
+        <p style="text-align:center; color: #888;">Chargement du classement...</p>
+    </div>
+</section>
+
+<div id="test-date-picker" style="position:fixed; bottom:10px; right:10px; background:rgba(0,0,0,0.8); padding:10px; border-radius:5px; z-index:9999; color:white; font-size:10px;">
+    Date Test : <br>
+    <button onclick="
+        console.log('--- RETOUR EN PHASE 1 ---');
+        localStorage.removeItem('mes_fantomes_verrouilles'); // On casse le verrou
+        SIMULATED_DATE='2026-05-15T10:00:00'; 
+        updateAll();
+    ">Mode Phase 1 (Reset Verrou)</button><br>
+    <button onclick="
+        console.log('--- PASSAGE EN PHASE 2 ---');
+        // On prend ce qui est à l'écran et on le verrouille définitivement
+        const projections = localStorage.getItem('mes_projections_fantomes');
+        if (projections) {
+            localStorage.setItem('mes_fantomes_verrouilles', projections);
+            //console.log('🔒 Projections verrouillées pour la Phase 2');
+        }
+        SIMULATED_DATE='2026-06-11T21:01:00'; 
+        updateAll();
+    ">Mode Phase 2 (Sauvegarde Verrouillée)</button><br>
+    <button onclick="SIMULATED_DATE='2026-06-26T10:00:00'; updateAll();">Mode Phase 3 (26 Juin)</button><br>
+    <button onclick="SIMULATED_DATE=null; updateAll();">Vraie Date</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="cotes_matchs_poules.js"></script>
+<script src="cotes_phase_finale.js"></script>
+<script src="liste_matches.js"></script>
+
+<script>
+    // --- CONFIGURATION ---
+    const paysCodes = {
+        "Mexique": "mx", "États-Unis": "us", "Canada": "ca", "Curaçao": "cw", "Panama": "pa",
+        "France": "fr", "Allemagne": "de", "Espagne": "es", "Italie": "it", "Angleterre": "gb-eng",
+        "Portugal": "pt", "Belgique": "be", "Pays-Bas": "nl", "Croatie": "hr", "Suisse": "ch",
+        "Danemark": "dk", "Pologne": "pl", "Écosse": "gb-sct", "Autriche": "at", "Norvège": "no",
+        "Brésil": "br", "Argentine": "ar", "Uruguay": "uy", "Colombie": "co", "Equateur": "ec",
+        "Paraguay": "py", "Chili": "cl", "Pérou": "pe", "Haïti": "ht", "Afrique du Sud": "za",
+        "Maroc": "ma", "Sénégal": "sn", "Tunisie": "tn", "Cameroun": "cm", "Ghana": "gh",
+        "Algérie": "dz", "Egypte": "eg", "Nigéria": "ng", "Côte d'Ivoire": "ci", "Cap-Vert": "cv",
+        "Égypte": "eg", "Japon": "jp", "Corée du Sud": "kr", "Australie": "au", "Arabie Saoudite": "sa",
+        "Qatar": "qa", "Iran": "ir", "Irak": "iq", "Chine": "cn", "Ouzbékistan": "uz",
+        "Nouvelle-Zélande": "nz", "Jordanie": "jo", "Macédoine du Nord": "mk", "Grèce": "gr",
+        "Irlande": "ie", "Islande": "is", "Pays de Galles": "gb-wls", "Bosnie-Herzégovine": "ba",
+        "Turquie": "tr", "Roumanie": "ro", "Slovaquie": "sk", "Kosovo": "xk", "Ukraine": "ua",
+        "Suède": "se", "Albanie": "al", "Bolivie": "bo", "Suriname": "sr", "RDC": "cd",
+        "République démocratique du Congo": "cd", "Nicaragua": "ni", "Jamaïque": "jm"
+    };
+
+    // RÉFÉRENCE UNIQUE POUR LES PHASES
+    const CONFIG_PHASES = {
+        "16": { tiroir: "16EMES", label: "1/16èmes" },
+        "8":  { tiroir: "8EMES",  label: "1/8èmes"  },
+        "4":  { tiroir: "QUARTS", label: "Quarts"   },
+        "2":  { tiroir: "DEMIS",  label: "Demies"   },
+        "pf": { tiroir: "PETITE_FINALE", label: "Petite Finale" },
+        "f":  { tiroir: "FINALE", label: "Finale"   }
+    };
+
+    // Au chargement de la page, on nettoie le verrou pour repartir sur du "Live"
+    localStorage.removeItem('mes_fantomes_verrouilles');
+
+    //########################################################################################################//
+    // Fonction UTILITAIRES
+    //########################################################################################################//
+    // --- CONFIGURATION TEST DATE ---
+    // Mettre à null pour utiliser la vraie date, ou mettre une date précise pour tester
+    // Exemple Phase 1 (Avant compèt) : "2026-05-15T12:00:00"
+    // Exemple Phase 2 (Pendant 16èmes) : "2026-06-26T10:00:00"
+    // --- CONFIGURATION DU CALENDRIER ---
+
+    let CACHE_PRONOS = null; 
+    let CURRENT_USER = localStorage.getItem('current_user') || null;
+
+    function getKey(baseKey) {
+        // Récupère l'utilisateur actuel (mis à jour par ta fonction connexion)
+        const user = localStorage.getItem('current_user');
+        return user ? `${user}_${baseKey}` : `invite_${baseKey}`;
+    }
+
+    // Fonction unique pour charger les données
+    function getPronos() {
+        // On vérifie si le cache est vide
+        if (CACHE_PRONOS === null) {
+            const key = getKey('mes_pronos_2026');
+            const raw = localStorage.getItem(key);
+            console.log("📂 Chargement des données pour : " + key);
+            try {
+                CACHE_PRONOS = raw ? JSON.parse(raw) : {};
+            } catch (e) {
+                console.error("Erreur de lecture, reset du cache");
+                CACHE_PRONOS = {};
+            }
+        }
+        return CACHE_PRONOS;
+    }
+
+    // Fonction unique pour sauvegarder
+    function savePronosGlobal() {
+        if (CACHE_PRONOS) {
+            // On utilise getKey pour savoir dans quel fichier enregistrer
+            localStorage.setItem(getKey('mes_pronos_2026'), JSON.stringify(CACHE_PRONOS));
+        }
+    }
+
+    let SIMULATED_DATE = "2026-05-15T12:00:00"; // À modifier pour tes tests
+
+    function getAppState() {
+        const maintenant = SIMULATED_DATE ? new Date(SIMULATED_DATE) : new Date();
+        const debutCompete = new Date("2026-06-11T21:01:00");
+        const ouverturePhase2 = new Date("2026-06-25T06:00:00");
+
+        if (maintenant < debutCompete) return "AVANT";       // Phase 1 : Spéculation
+        if (maintenant < ouverturePhase2) return "PENDANT";  // Entre-deux : Verrouillage total
+        return "PHASE_FINALE";                               // Phase 2 : Scores réels
+    }
+
+    function getCurrentDate() {
+        if (SIMULATED_DATE) {
+            return new Date(SIMULATED_DATE);
+        }
+        return new Date();
+    }
+
+    function getTiroirFromPhase(phaseId) {
+        const mapping = {
+            '1': 'POULES',
+            'poules': 'POULES',
+            '16': '16EMES',
+            '8': '8EMES',
+            '4': '4EMES',
+            '2': 'DEMI_FINALES',
+            'pf': 'PETITE_FINALE',
+            'f': 'FINALE'
+        };
+        return mapping[phaseId] || null;
+    }
+
+    function isMatchPronosticable(matchDateStr, phaseId) {
+        const maintenant = getCurrentDate(); 
+        const dateMatch = new Date(matchDateStr);
+        
+        // Condition spécifique pour les phases finales (Phase 2)
+        // Ne devient pronosticable qu'à partir du 25 juin 2026 à 6h00
+        const dateOuverturePhase2 = new Date("2026-06-25T06:00:00");
+
+        if (phaseId !== 'poule') { // Si c'est un match de phase finale
+            // Il faut être APRES le 25 juin ET AVANT le coup d'envoi du match
+            return maintenant >= dateOuverturePhase2 && maintenant < dateMatch;
+        }
+
+        // Pour les poules, simple vérification avant-match
+        return maintenant < dateMatch;
+    }
+
+    function syncProno(key, value) {
+        if (!key) return;
+        let data = getPronos(); // On récupère l'objet en mémoire
+        
+        if (value === "" || value === null) {
+            delete data[key];
+        } else {
+            data[key] = value;
+        }
+        
+        // On écrit sur le disque immédiatement pour ne rien perdre
+        savePronosGlobal(); 
+    }
+
+    function saveScore(matchId, team, value) {
+        // 1. Sauvegarde du score
+        const key = `score${team}_${matchId}`;
+        const val = (value === "") ? "" : parseInt(value);
+        syncProno(key, val);
+
+        // 2. Vérifier si c'est un match de poule (ID < 687045 par exemple)
+        // Les 16èmes commencent à 687045.
+        if (parseInt(matchId) < 687045) {
+            autoResetPhaseFinale();
+        }
+
+        // 3. Relance le calcul global
+        if (typeof updateAll === "function") {
+            updateAll(); 
+        }
+    }
+
+    function saveScorePhase(phaseId, matchId, team, val) {
+        // 1. Récupérer l'objet global tel qu'il est
+        let data = getPronos();
+        
+        // 2. Déterminer le tiroir cible (ex: 16EMES)
+        const conf = (typeof CONFIG_PHASES !== 'undefined') ? CONFIG_PHASES[phaseId] : null;
+        
+        if (phaseId === 'poule') {
+            // Cas particulier des poules : on reste sur ton format plat actuel
+            const key = `score${team}_${matchId}`; // scoreA_686902
+            data[key] = val;
+        } else if (conf && conf.tiroir) {
+            // Cas Phase Finale : On range dans le tiroir (ex: data["16EMES"])
+            const nomTiroir = conf.tiroir;
+            
+            // Créer le tiroir s'il n'existe pas encore dans data
+            if (!data[nomTiroir]) data[nomTiroir] = {};
+            
+            // On stocke le score à l'intérieur du tiroir
+            const key = `score_${phaseId}_${matchId}_${team}`;
+            data[nomTiroir][key] = val;
+            
+            // OPTIONNEL : Si tu veux être ultra-prudent, on peut supprimer l'ancienne 
+            // clé "plate" à la racine pour éviter les doublons
+            delete data[key]; 
+        } else {
+            // Cas de secours (si phaseId est inconnu)
+            const key = `score_${phaseId}_${matchId}_${team}`;
+            data[key] = val;
+        }
+
+        // 3. Sauvegarder l'objet global mis à jour
+        CACHE_PRONOS = data;
+        savePronosGlobal();
+        
+        // 4. Synchroniser (si la fonction existe)
+        if (typeof syncProno === 'function') {
+            syncProno(`score_${phaseId}_${matchId}_${team}`, val);
+        }
+
+        // 5. Relancer les calculs de points et de classement
+        if (typeof updateAll === 'function') {
+            updateAll();
+        }
+    }
+
+    function getFlag(nomPays) {
+        if (!nomPays || typeof nomPays !== 'string' || nomPays.includes("En attente")) {
+            return "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+        }
+        
+        // On nettoie les espaces et les reliquats éventuels
+        const paysNettoyé = nomPays.trim();
+        const code = paysCodes[paysNettoyé];
+        
+        return code ? `https://flagcdn.com/w40/${code}.png` : `https://flagcdn.com/w40/un.png`;
+    }
+
+    function autoNext(currentInput) {
+        if (!currentInput || currentInput.value.length < 1) return;
+        
+        // Si tu veux autoriser les scores à 2 chiffres sans sauter trop vite,
+        // on peut attendre un tout petit peu plus longtemps.
+        setTimeout(() => {
+            // On ne change de case que si l'utilisateur n'est pas en train d'effacer
+            if (currentInput.value === "") return;
+
+            const allInputs = Array.from(document.querySelectorAll('input[type="number"]'));
+            const currentIndex = allInputs.findIndex(inp => inp.id === currentInput.id);
+
+            if (currentIndex !== -1 && currentIndex < allInputs.length - 1) {
+                const next = allInputs[currentIndex + 1];
+                next.focus();
+                if (next.value !== "") next.select();
+            }
+        }, 600); // Augmenté à 600ms pour te laisser le temps de taper "10"
+    }
+
+    function genererAffiches16emes(resultatsGroupes, qualifies3es) {
+        const dejaPris = new Set();
+        const liste3es = Array.isArray(qualifies3es) ? qualifies3es : [];
+
+        const creerEquipe = (nom, meta) => ({
+            nom: nom || "En attente",
+            meta: meta || ""
+        });
+
+        const G = (groupe, pos) => {
+            const nomMeta = `${pos === 0 ? '1er' : '2e'} Gr.${groupe}`;
+            let nomEquipe = nomMeta; 
+            const lesEquipesDuGroupe = resultatsGroupes[groupe];
+            if (lesEquipesDuGroupe && lesEquipesDuGroupe[pos]) {
+                const aJoue = lesEquipesDuGroupe.some(e => e.mj > 0); 
+                if (aJoue) nomEquipe = lesEquipesDuGroupe[pos].nom;
+            }
+            return creerEquipe(nomEquipe, nomMeta);
+        };
+
+        const P = (groupesPossibles) => {
+            const nomMeta = "3e Gr." + groupesPossibles.join('/');
+            const nomEquipe = piocher3e(liste3es, groupesPossibles, dejaPris);
+            return creerEquipe(nomEquipe === "En attente" ? nomMeta : nomEquipe, nomMeta);
+        };
+
+        return [
+            { id: 687045, label: "Match 73 - Dimanche 28 juin à 21h00", t1: G('A', 1), t2: G('B', 1) },
+            { id: 687046, label: "Match 76 - Lundi 29 juin à 19h00", t1: G('C', 0), t2: G('F', 1) },
+            { id: 687047, label: "Match 74 - Lundi 29 juin à 22h30", t1: G('E', 0), t2: P(['A','B','C','D','F']) },
+            { id: 687048, label: "Match 75 - Mardi 30 juin à 03h00", t1: G('F', 0), t2: G('C', 1) },
+            { id: 687049, label: "Match 78 - Mardi 30 juin à 19h00", t1: G('E', 1), t2: G('I', 1) },
+            { id: 687050, label: "Match 77 - Mardi 30 juin à 23h00", t1: G('I', 0), t2: P(['C','D','F','G','H']) },
+            { id: 687051, label: "Match 79 - Mercredi 1er juillet à 03h00", t1: G('A', 0), t2: P(['C','E','F','H','I']) },
+            { id: 687052, label: "Match 80 - Mercredi 1er juillet à 18h00", t1: G('L', 0), t2: P(['E','H','I','J','K']) },
+            { id: 687053, label: "Match 82 - Mercredi 1er juillet à 22h00", t1: G('G', 0), t2: P(['A','E','H','I','J']) },
+            { id: 687054, label: "Match 81 - Jeudi 2 juillet à 02h00", t1: G('D', 0), t2: P(['B','E','F','I','J']) },
+            { id: 687055, label: "Match 84 - Jeudi 2 juillet à 21h00", t1: G('H', 0), t2: G('J', 1) },
+            { id: 687056, label: "Match 83 - Vendredi 3 juillet à 01h00", t1: G('K', 1), t2: G('L', 1) },            
+            { id: 687057, label: "Match 85 - Vendredi 3 juillet à 05h00", t1: G('B', 0), t2: P(['E','F','G','I','J']) },
+            { id: 687058, label: "Match 88 - Vendredi 3 juillet à 20h00", t1: G('D', 1), t2: G('G', 1) },
+            { id: 687059, label: "Match 86 - Samedi 4 juillet à 00h00", t1: G('J', 0), t2: G('H', 1) },
+            { id: 687060, label: "Match 87 - Samedi 4 juillet à 03h30", t1: G('K', 0), t2: P(['D','E','I','J','L']) }
+        ];
+    }
+
+    function piocher3e(qualifies3es, groupesAdmissibles, dejaPris) {
+        const vraisQualifies = qualifies3es.filter(q => q.mj > 0 || q.pts > 0);
+        for (let groupe of groupesAdmissibles) {
+            let trouve = vraisQualifies.find(q => q.groupe === groupe && !dejaPris.has(q.nom));
+            if (trouve) {
+                dejaPris.add(trouve.nom);
+                return trouve.nom;
+            }
+        }
+        let secours = vraisQualifies.find(q => !dejaPris.has(q.nom));
+        if (secours) {
+            dejaPris.add(secours.nom);
+            return secours.nom;
+        }
+        return "En attente";
+    }
+
+    function renderMatchCard(m, phaseId, labelPhase, color) {
+        const state = getAppState();
+        const maintenant = getCurrentDate();
+        const dateMatch = new Date(m.date);
+        const isPoule = (phaseId === 'poule');
+
+        // --- 1. LOGIQUE DE VERROUILLAGE ---
+        let canEditScore = false;
+        if (isPoule) {
+            if (state === "AVANT" && maintenant < dateMatch) canEditScore = true;
+        } else {
+            const dateOuverturePhase2 = new Date("2026-06-25T06:00:00");
+            if (maintenant >= dateOuverturePhase2 && maintenant < dateMatch) canEditScore = true;
+        }
+
+        let poulesFinies = isToutesPoulesTerminees();
+        let canClickWinner = false;
+        if (!isPoule) {
+            if (state === "AVANT" && poulesFinies) canClickWinner = true;
+            if (state === "PHASE_FINALE" && maintenant < dateMatch) canClickWinner = true;
+        }
+
+        // --- 2. RÉCUPÉRATION DES DONNÉES (MODE FANTÔME INCLUS) ---
+        const savedData = getPronos() || {};
+        const keyGhost = getKey('mes_projections_fantomes');
+        let memoireFantome = JSON.parse(localStorage.getItem(keyGhost)) || {};
+
+        const phaseConfig = (typeof CONFIG_PHASES !== 'undefined') ? CONFIG_PHASES[phaseId] : null;
+        const nomTiroir = phaseConfig ? phaseConfig.tiroir : null;
+
+        // On garde le nom 'getDeep' pour éviter l'erreur ReferenceError
+        // Définition sécurisée
+        const estGenerique = (n) => {
+            if (!n || typeof n !== 'string') return true; // Si vide ou pas du texte, on considère ça comme générique
+            return n.startsWith("Match") || n.startsWith("V.") || n.startsWith("P.");
+        };
+
+        const getDeep = (key) => {
+            // 1. Recherche normale
+            let current = (nomTiroir && savedData[nomTiroir] ? savedData[nomTiroir][key] : null) || savedData[key];
+            
+            // 2. Si c'est générique ou vide, on va voir le fantôme
+            if (estGenerique(current)) {
+                let ghost = memoireFantome[key];
+                if (!estGenerique(ghost)) return ghost;
+            }
+            return current;
+        };
+
+        let pronoNomA = "";
+        let pronoNomB = "";
+
+        // 1. Noms officiels (Titre de la carte)
+        let nomA = m.equipeA || (m.t1 ? m.t1.nom : "En attente");
+        let nomB = m.equipeB || (m.t2 ? m.t2.nom : "En attente");
+
+        // --- LOGIQUE DE SECOURS POUR PHASE 2 ---
+        if (!isPoule) {
+            const isReal = (n) => n && typeof n === 'string' && !n.startsWith("Match") && !n.startsWith("V.") && !n.startsWith("P.") && !n.includes("Gr.");
+
+            // 1. On regarde d'abord si on a des données VERROUILLÉES (Phase 2 active)
+            const keyVerrou = getKey('mes_fantomes_verrouilles');
+            let verrou = localStorage.getItem(keyVerrou);
+            let sourceDonnees = verrou ? JSON.parse(verrou) : memoireFantome;
+
+            // 2. 📸 CAPTURE (Uniquement si on n'est PAS verrouillé)
+            if (!verrou) {
+                let updated = false;
+                if (isReal(nomA)) { memoireFantome[`team_${phaseId}_${m.id}_A`] = nomA; updated = true; }
+                if (isReal(nomB)) { memoireFantome[`team_${phaseId}_${m.id}_B`] = nomB; updated = true; }
+                
+                if (updated) {
+                    // CORRECTION : On utilise keyGhost (qui contient le préfixe du user)
+                    localStorage.setItem(keyGhost, JSON.stringify(memoireFantome));
+                }
+            }
+
+            // 3. 🎯 AFFICHAGE (On puise dans sourceDonnees qui est soit le verrou, soit le live)
+            let displayA = sourceDonnees[`team_${phaseId}_${m.id}_A`];
+            let displayB = sourceDonnees[`team_${phaseId}_${m.id}_B`];
+
+            // DÉDUCTION POUR LES 8ÈMES (si le match lui-même n'était pas encore calculé au moment du verrou)
+            if (!isReal(displayA) && phaseId === '8' && m.t1) {
+                displayA = sourceDonnees[`team_16_${m.t1.id}_A`] || sourceDonnees[`team_16_${m.t1.id}_V`];
+            }
+            if (!isReal(displayB) && phaseId === '8' && m.t2) {
+                displayB = sourceDonnees[`team_16_${m.t2.id}_B`] || sourceDonnees[`team_16_${m.t2.id}_V`];
+            }
+
+            // Rendu final
+            if (isReal(displayA) && displayA !== nomA) {
+                pronoNomA = `<div style="font-size: 0.72rem; color: #888; font-style: italic; margin-top: 2px; line-height: 1;">(${displayA})</div>`;
+            }
+            if (isReal(displayB) && displayB !== nomB) {
+                pronoNomB = `<div style="font-size: 0.72rem; color: #888; font-style: italic; margin-top: 2px; line-height: 1;">(${displayB})</div>`;
+            }
+        }
+
+        // Récupération des scores
+        const keyScoreA = isPoule ? `scoreA_${m.id}` : `score_${phaseId}_${m.id}_A`;
+        const keyScoreB = isPoule ? `scoreB_${m.id}` : `score_${phaseId}_${m.id}_B`;
+
+        const valA_final = getDeep(keyScoreA) ?? "";
+        const valB_final = getDeep(keyScoreB) ?? "";
+
+        // Utilisation de Number.isInteger ou test de chaîne non vide pour préserver les "0"
+        const scoreA = (valA_final !== "") ? parseInt(valA_final) : null;
+        const scoreB = (valB_final !== "") ? parseInt(valB_final) : null;
+
+        // --- CALCUL DES COULEURS DE VICTOIRE ---
+        const hasScores = (scoreA !== null && scoreB !== null);
+        const isDraw = (hasScores && scoreA === scoreB);
+
+        // CORRECTION ICI : On cherche le vainqueur aussi dans le tiroir !
+        const manualWin = getDeep(`winner_${phaseId}_${m.id}`);
+
+        const isWinnerA = (hasScores && scoreA > scoreB) || (manualWin === 'A' && (isDraw || state === "AVANT"));
+        const isWinnerB = (hasScores && scoreB > scoreA) || (manualWin === 'B' && (isDraw || state === "AVANT"));
+
+        const colorNameA = isWinnerA ? '#4ade80' : 'white';
+        const colorNameB = isWinnerB ? '#4ade80' : 'white';
+        
+        // --- 3. LOGIQUE DES GAINS (Réintégrée) ---
+        let gainsHtml = "";
+        const clean = (str) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() : "";
+
+        if (typeof COTES_MATCHS !== 'undefined' && nomA && nomB) {
+            let odds = COTES_MATCHS.find(c => c.id && String(c.id) === String(m.id));
+            if (!odds) {
+                const tA = clean(nomA);
+                const tB = clean(nomB);
+                odds = COTES_MATCHS.find(c => {
+                    const mLabel = clean(c.match || "");
+                    return mLabel.includes(tA) && mLabel.includes(tB);
+                });
+            }
+
+            if (odds && odds.details) {
+                const parseOdds = (val) => val ? parseFloat(val.toString().replace(',', '.')) : 0;
+                const p1 = Math.round(parseOdds(odds.details.domicile.value) * 10);
+                const pN = Math.round(parseOdds(odds.details.nul.value) * 10);
+                const p2 = Math.round(parseOdds(odds.details.exterieur.value) * 10);
+
+                let s1 = "color:#666;", sN = "color:#666;", s2 = "color:#666;";
+                if (hasScores) {
+                    if (scoreA > scoreB) s1 = "color:#4ade80; font-weight:bold;";
+                    else if (scoreA < scoreB) s2 = "color:#4ade80; font-weight:bold;";
+                    else sN = "color:#4ade80; font-weight:bold;";
+                }
+
+                gainsHtml = `
+                    <div style="font-size: 0.65rem; font-family: monospace; margin-top: 4px; opacity: 0.8;">
+                        Gains : <span style="${s1}">${p1}</span> | <span style="${sN}">${pN}</span> | <span style="${s2}">${p2}</span> pts
+                    </div>`;
+            }
+        }
+
+        // Styles dynamiques pour les inputs
+        const inputStyle = (active) => `
+            width: 38px; height: 32px; text-align: center; background: ${active ? '#000' : '#1a1a1a'}; 
+            border: 1px solid #444; color: ${active ? '#fff' : '#666'}; border-radius: 4px; 
+            font-weight: bold; font-size: 1rem; cursor: ${active ? 'text' : 'not-allowed'};
+        `;
+
+        // --- LOGIQUE D'ARBITRAGE : RÉEL vs PRONO ---
+        const idStr = String(m.id);
+        const officiel = (typeof OFFICIEL_2026 !== 'undefined' && OFFICIEL_2026.scores) ? OFFICIEL_2026.scores[idStr] : null;
+        
+        // Debug spécifique pour le match du Mexique
+        if (idStr === "686902") {
+            console.error("DEBUG RENDU MEXIQUE:");
+            console.log("- m.id:", idStr);
+            console.log("- Objet Officiel trouvé:", officiel);
+            console.log("- Prono récupéré (valA_final):", valA_final);
+        }
+
+        // 1. Valeur à afficher dans l'input
+        let affichageInputA = (officiel && officiel.termine) ? officiel.sA : (valA_final || 0);
+        let affichageInputB = (officiel && officiel.termine) ? officiel.sB : (valB_final || 0);
+
+        // 2. Création du rappel du prono
+        let rappelPronoHtml = "";
+        if (officiel && officiel.termine) {
+            rappelPronoHtml = `
+                <div style="font-size: 0.72rem; color: #fbbf24; margin-top: 4px; font-style: italic; font-weight: bold; line-height: 1;">
+                    Mon prono : ${valA_final || 0} - ${valB_final || 0}
+                </div>
+            `;
+        }
+
+        // --- 4. RENDU FINAL ---
+        return `
+            <div class="match-wrapper" style="margin: 10px auto; max-width: 500px; opacity: ${canEditScore || canClickWinner ? '1' : '0.7'}">
+                <div class="match-meta" style="font-size: 0.75rem; color: #888; display: flex; justify-content: space-between; padding: 0 5px; margin-bottom: 4px;">
+                    <span style="color: ${color}; font-weight:bold;">
+                        ${isPoule ? 'Groupe ' + labelPhase : labelPhase}
+                    </span>
+                    <span>${m.date || m.label || ''}</span>
+                </div>
+                
+                <div class="match-card" style="background: rgba(255,255,255,0.03); border-radius: 8px; display: flex; align-items: center; padding: 12px; gap: 10px; border: 1px solid rgba(255,255,255,0.05);">
+                    
+                    <div style="flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 10px; cursor: ${canClickWinner ? 'pointer' : 'default'}; overflow: hidden;" 
+                        onclick="${canClickWinner ? `toggleWinnerUniversal('${phaseId}', ${m.id}, 'A')` : ''}">
+                        
+                        <div style="text-align: right;"> 
+                            <span id="team_name_${phaseId}_${m.id}_A" style="font-weight: 600; color: ${colorNameA}; font-size: 0.9rem;">${nomA}</span>
+                            ${pronoNomA} 
+                        </div>
+
+                        <img src="${getFlag(nomA)}" style="width:24px; border-radius: 2px; flex-shrink:0; border: ${isWinnerA ? '2px solid #4ade80' : '2px solid transparent'}" onerror="this.style.visibility='hidden'">
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; align-items: center; min-width: 110px;">
+                        <div style="display: flex; gap: 4px; align-items: center;">
+                            <input type="number" 
+                                id="score_${phaseId}_${m.id}_A" 
+                                value="${affichageInputA}"  /* REMPLACE valA_final ICI */
+                                ${!canEditScore ? 'readonly' : ''}
+                                style="${inputStyle(canEditScore && !(officiel && officiel.termine))}">
+                            
+                            <span style="font-weight: bold; color: ${isDraw ? '#fbbf24' : color};">${isDraw ? 'TAB' : ':'}</span>
+                            
+                            <input type="number" 
+                                id="score_${phaseId}_${m.id}_B" 
+                                value="${affichageInputB}" /* REMPLACE valB_final ICI */
+                                ${!canEditScore ? 'readonly' : ''}
+                                style="${inputStyle(canEditScore && !(officiel && officiel.termine))}">
+                        </div>
+
+                        ${rappelPronoHtml} ${gainsHtml}
+                        
+                    </div>
+
+                    <div style="flex: 1; display: flex; align-items: center; justify-content: flex-start; gap: 10px; cursor: ${canClickWinner ? 'pointer' : 'default'}; overflow: hidden;"
+                        onclick="${canClickWinner ? `toggleWinnerUniversal('${phaseId}', ${m.id}, 'B')` : ''}">
+                        
+                        <img src="${getFlag(nomB)}" style="width:24px; border-radius: 2px; flex-shrink:0; border: ${isWinnerB ? '2px solid #4ade80' : '2px solid transparent'}" onerror="this.style.visibility='hidden'">
+                        
+                        <div style="text-align: left;"> 
+                            <span id="team_name_${phaseId}_${m.id}_B" style="font-weight: 600; color: ${colorNameB}; font-size: 0.9rem;">${nomB}</span>
+                            ${pronoNomB}
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function getCotePhaseFinale(nomEquipe, typeQualif) {
+        // On pointe sur le bon nom de variable : PHASE_FINALE
+        const sourceCotes = (typeof PHASE_FINALE !== 'undefined') ? PHASE_FINALE : null;
+
+        if (!sourceCotes) {
+            console.warn("Source PHASE_FINALE introuvable.");
+            return 0;
+        }
+
+        // Le reste ne change pas, mais on sécurise le nettoyage des virgules
+        const equipe = sourceCotes.find(e => 
+            e.selection && nomEquipe && e.selection.toLowerCase().trim() === nomEquipe.toLowerCase().trim()
+        );
+
+        if (equipe && equipe.cotes_qualifs && equipe.cotes_qualifs[typeQualif]) {
+            let coteRaw = equipe.cotes_qualifs[typeQualif];
+            // Transformation de "1,08" en 1.08
+            let coteClean = parseFloat(coteRaw.toString().replace(',', '.'));
+            return isNaN(coteClean) ? 0 : coteClean;
+        }
+
+        return 0;
+    }
+
+    function nettoyerStorage() {
+        //console.log("🔍 Vérification du nettoyage...");
+        let data = getPronos();
+        if (Object.keys(data).length === 0) return;
+        
+        let propre = {};
+        let aEteNettoye = false;
+
+        Object.keys(data).forEach(key => {
+            // --- SÉCURITÉ 1 : On garde toujours les tiroirs (objets) ---
+            if (typeof data[key] === 'object' && data[key] !== null) {
+                propre[key] = data[key];
+                return;
+            }
+
+            // --- SÉCURITÉ 2 : Analyse des clés à plat ---
+            const parts = key.split('_');
+            const lastPart = parts[parts.length - 1];
+            const idMatch = parseInt(lastPart);
+
+            if (key.startsWith('scoreA_') || 
+                key.startsWith('scoreB_') || 
+                key.startsWith('winner_poule_') || 
+                (!isNaN(idMatch) && idMatch > 1000)) {
+                propre[key] = data[key];
+            } else {
+                // Si on arrive ici, c'est une vieille clé inutile
+                //console.log(`🗑️ Suppression de la vieille clé : ${key}`);
+                aEteNettoye = true;
+            }
+        });
+
+        if (aEteNettoye) {
+            CACHE_PRONOS = propre; // On met à jour le cache
+            savePronosGlobal();    // On enregistre
+            //console.log("🧹 LocalStorage nettoyé des anciens IDs !");
+        } else {
+            //console.log("✅ Rien à nettoyer.");
+        }
+    }
+
+    // 1. Créer une fonction de synchronisation globale
+    /**
+     * Synchronise les noms d'équipes calculés avec le calendrier global
+     * @param {Array} affiches - Liste des matches d'une phase (ex: les16emes)
+     */
+    function synchroniserCalendrier(affiches) {
+        if (!affiches || !Array.isArray(affiches)) return;
+
+        affiches.forEach(m => {
+            // 1. Trouver le match dans le calendrier global
+            const matchCal = (typeof CALENDRIER_CDM !== 'undefined') 
+                ? CALENDRIER_CDM.find(item => item.id == m.id) 
+                : null;
+
+            // 2. Extraire les noms proprement
+            const nomA = m.equipeA || (m.t1 && typeof m.t1 === 'object' ? m.t1.nom : m.t1) || "";
+            const nomB = m.equipeB || (m.t2 && typeof m.t2 === 'object' ? m.t2.nom : m.t2) || "";
+
+            // 3. Injecter dans le calendrier
+            if (matchCal) {
+                matchCal.equipeA = nomA;
+                matchCal.equipeB = nomB;
+            }
+
+            // 4. Injecter dans l'objet de phase pour le rendu HTML immédiat
+            m.nomA = nomA;
+            m.nomB = nomB;
+        });
+    }
+
+    /**
+     * @param {Object} resultats - resGroupesTriés
+     * @param {String} codeGroupe - 'A', 'B', etc.
+     * @param {Number} rang - 1 pour le premier, 2 pour le deuxième
+     */
+    function G(resultats, codeGroupe, rang) {
+        const groupe = resultats[codeGroupe];
+        const index = rang - 1; // Conversion rang humain (1,2) vers index JS (0,1)
+
+        if (groupe && groupe[index]) {
+            return groupe[index].nom;
+        }
+
+        // Si pas encore calculé, renvoie un label propre
+        return `${rang}${rang === 1 ? 'er' : 'e'} Gr.${codeGroupe}`;
+    }
+
+    function injecterEquipesDynamiques() {
+        const matchesCalcules = construireTableau16emes(); 
+
+        matchesCalcules.forEach(matchCalcule => {
+            const matchCalendrier = CALENDRIER_CDM.find(m => m.id == matchCalcule.id);
+
+            if (matchCalendrier) {
+                // On injecte les noms (C'est ce qu'on veut)
+                matchCalendrier.equipeA = matchCalcule.t1;
+                matchCalendrier.equipeB = matchCalcule.t2;
+                
+                // --- SUPPRIME OU COMMENTE LA LIGNE CI-DESSOUS ---
+                // matchCalendrier.groupe = "1/16 de finale"; 
+                // ------------------------------------------------
+            }
+        });
+    }
+
+    function isToutesPoulesTerminees() {
+        const rawData = localStorage.getItem('mes_pronos_2026');
+        const data = getPronos();
+        
+        const matchesPoules = CALENDRIER_CDM.filter(m => {
+            const g = m.groupe || "";
+            return g.startsWith("Groupe") || (g.length === 1 && /[A-L]/.test(g));
+        });
+
+        //console.group("🔍 Diagnostic Fin des Poules");
+        //console.log("Nombre de matchs de poules identifiés :", matchesPoules.length);
+        
+        let manquants = [];
+
+        const estComplet = matchesPoules.every(m => {
+            const sA = data[`scoreA_${m.id}`];
+            const sB = data[`scoreB_${m.id}`];
+            
+            const valide = (sA !== undefined && sA !== null && sA !== "") && 
+                        (sB !== undefined && sB !== null && sB !== "");
+            
+            if (!valide) {
+                manquants.push({id: m.id, equipeA: m.equipeA, equipeB: m.equipeB, scoreA: sA, scoreB: sB});
+            }
+            return valide;
+        });
+
+        if (!estComplet) {
+            //console.warn("⚠️ Poules incomplètes ! Matches restants :", manquants.length);
+            //if (manquants.length < 5) console.table(manquants); // Affiche le détail s'il en reste peu
+        } else {
+            //console.log("✅ Toutes les poules sont remplies dans le Storage.");
+        }
+        
+        //console.groupEnd();
+        return estComplet;
+    }
+
+    function autoResetPhaseFinale() {
+        let data = getPronos();
+        let newData = {};
+        let suppressionEffectuee = false;
+
+        Object.keys(data).forEach(key => {
+            // On ne garde QUE ce qui concerne les poules
+            // (scoresA/B et les éventuels vainqueurs de poules si tu en as)
+            if (key.startsWith('scoreA_') || key.startsWith('scoreB_') || key.startsWith('winner_poule_')) {
+                newData[key] = data[key];
+            } else {
+                // Si on trouve une clé de phase finale (16, 8, 4, 2, f, pf, winner_...)
+                // on note qu'on a fait un nettoyage
+                suppressionEffectuee = true;
+            }
+        });
+
+        if (suppressionEffectuee) {
+            CACHE_PRONOS = newData;
+            savePronosGlobal();
+            //console.log("⚠️ Changement en poules détecté : Arbre de phase finale réinitialisé.");
+        }
+    }
+
+    // --- HELPER DE NETTOYAGE ---
+    // Retourne true si le nom est un nom générique (Match 1, 1er Gr. A, etc.)
+    function estNomGenerique(name) {
+        const regex = /Match \d+|[123]er Gr\.|[123]e Gr\.|Vainqueur|V\.|P\.|Demi|Huitième|Quart/i;
+        return regex.test(name);
+    }
+
+    function saveTeamProjection(phaseId, matchId, teamLetter, teamName) {
+        // 1. Sécurité : On ne garde que les vrais noms
+        const estGenerique = (n) => !n || n.startsWith("Match") || n.includes("Gr.") || n.startsWith("V.") || n.startsWith("P.");
+        if (estGenerique(teamName)) return; 
+
+        // 2. Accès au cache (on l'initialise s'il est null)
+        if (!CACHE_PRONOS) CACHE_PRONOS = getPronos() || {};
+        
+        const key = `team_${phaseId}_${matchId}_${teamLetter}`;
+        const nomTiroir = getTiroirFromPhase(phaseId); // Utilise la fonction de mapping donnée plus haut
+
+        // 3. Rangement dans le cache
+        if (nomTiroir) {
+            if (!CACHE_PRONOS[nomTiroir]) CACHE_PRONOS[nomTiroir] = {};
+            CACHE_PRONOS[nomTiroir][key] = teamName;
+        } else {
+            CACHE_PRONOS[key] = teamName;
+        }
+        
+        // 4. On appelle ta fonction unique
+        savePronosGlobal();
+    }
+
+    function pushPronoToStorage(phaseId, matchId, teamLetter, teamName) {
+        if (!teamName || teamName.startsWith("Match")) return; 
+
+        let data = getPronos();
+        const key = `team_${phaseId}_${matchId}_${teamLetter}`;
+        const nomTiroir = getTiroirFromPhase(phaseId);
+
+        if (nomTiroir) {
+            if (!data[nomTiroir]) data[nomTiroir] = {};
+            data[nomTiroir][key] = teamName;
+        } else {
+            data[key] = teamName;
+        }
+        
+        localStorage.setItem("pronos_cdm_2026", JSON.stringify(data));
+    }
+
+    function capturerProjectionsActuelles() {
+        //console.log("📸 [Snapshot] Capture globale en cours...");
+        const data = getPronos() || {};
+        const memoire = {};
+
+        // On cherche toutes les clés qui commencent par team_ (team_16, team_8, team_4, etc.)
+        Object.keys(data).forEach(key => {
+            if (key.startsWith('team_')) {
+                const nomEquipe = data[key];
+                // On ne stocke que si c'est un vrai nom (pas Match, pas Gr., pas vide)
+                if (nomEquipe && !nomEquipe.startsWith("Match") && !nomEquipe.includes("Gr.")) {
+                    memoire[key] = nomEquipe;
+                }
+            }
+        });
+
+        localStorage.setItem(getKey('mes_projections_fantomes'), JSON.stringify(memoire));
+        //console.log("💾 [Snapshot] " + Object.keys(memoire).length + " équipes mémorisées.");
+    }
+
+    function getResultat(phaseSource, matchId, listeMatchesSource, libelleDefaut) {
+        // 1. On cherche d'abord le vainqueur "réel" dans la liste des matchs
+        const matchSource = listeMatchesSource.find(m => m.id === matchId);
+        
+        // Si on a un vainqueur (via clic ou score)
+        if (matchSource && matchSource.vainqueur) {
+            return { nom: matchSource.vainqueur, id: matchSource.id };
+        }
+
+        // 2. SECOURS GHOST : Si pas de vainqueur réel, on regarde dans notre Snapshot
+        // On génère la clé que le snapshot a enregistrée (ex: team_16_687045_V) 
+        // ou on cherche quel camp (A ou B) a été mis en mémoire.
+        const memoireFantome = JSON.parse(localStorage.getItem(getKey('mes_projections_fantomes'))) || {};
+        
+        // On cherche si un nom de pays est rattaché à ce match dans le snapshot
+        // Note: Adapte 'V' si ta clé de vainqueur est différente (ex: _A ou _B)
+        const ghostVainqueur = memoireFantome[`team_${phaseSource}_${matchId}_V`] || 
+                            memoireFantome[`team_${phaseSource}_${matchId}_A`]; // Test de secours
+
+        if (ghostVainqueur && !ghostVainqueur.startsWith("Match")) {
+            return { nom: ghostVainqueur, id: matchId };
+        }
+
+        // 3. Par défaut
+        return { nom: libelleDefaut, id: matchId };
+    }
+
+    // --- SYSTÈME DE COMPTE ---
+
+    // --- FONCTIONS INTERFACE ---
+    function handleInscription() {
+        const u = document.getElementById('login-user').value.trim();
+        const p = document.getElementById('login-pass').value;
+        if (!u || !p) return alert("Identifiants vides !");
+        
+        let users = JSON.parse(localStorage.getItem('liste_utilisateurs_2026')) || {};
+        if (users[u]) return alert("Ce pseudo est déjà utilisé.");
+
+        users[u] = { password: p };
+        localStorage.setItem('liste_utilisateurs_2026', JSON.stringify(users));
+        alert("Compte créé ! Connecte-toi maintenant.");
+    }
+
+    function handleConnexion() {
+        const u = document.getElementById('login-user').value.trim();
+        const p = document.getElementById('login-pass').value;
+        let users = JSON.parse(localStorage.getItem('liste_utilisateurs_2026')) || {};
+
+        if (users[u] && users[u].password === p) {
+            localStorage.setItem('current_user', u);
+            // Important : On réinitialise le cache pour charger les bonnes données
+            CACHE_PRONOS = null;
+            location.reload(); 
+        } else {
+            alert("Pseudo ou mot de passe incorrect.");
+        }
+    }
+
+    function deconnexion() {
+        localStorage.removeItem('current_user');
+        location.reload();
+    }
+
+    // --- INITIALISATION (À mettre dans ton window.onload ou DOMContentLoaded) ---
+    function initAuthUI() {
+        if (CURRENT_USER) {
+            document.getElementById('auth-logged-out').style.display = 'none';
+            document.getElementById('auth-logged-in').style.display = 'flex';
+            document.getElementById('display-username').innerText = CURRENT_USER;
+        }
+    }
+
+    //########################################################################################################//
+    // Fonction CLASSEMENT
+    //########################################################################################################//
+
+    function calculerPointsUtilisateur(username) {
+        let points = 0;
+        const prefix = username + "_";
+        
+        // 1. Récupération des données du joueur
+        const pronos = JSON.parse(localStorage.getItem(prefix + 'mes_pronos_2026')) || {};
+        const verrou = JSON.parse(localStorage.getItem(prefix + 'mes_fantomes_verrouilles')) || {};
+        
+        // --- PARTIE A : POINTS DES MATCHS (Scores exacts et issues) ---
+        // On compare pronos aux résultats réels (qu'on imagine stockés dans une variable globale RESULTATS_REELS)
+        if (typeof RESULTATS_REELS !== 'undefined') {
+            Object.keys(RESULTATS_REELS).forEach(matchKey => {
+                const reel = RESULTATS_REELS[matchKey]; // ex: { scoreA: 2, scoreB: 1 }
+                const prono = pronos[matchKey]; // ex: { scoreA: 2, scoreB: 1 } ou valeur directe selon ta structure
+                
+                if (prono) {
+                    // Logique de calcul (à adapter selon ton format de stockage)
+                    // if (exact) points += cote * 20; etc.
+                }
+            });
+        }
+
+        // --- PARTIE B : POINTS DES QUALIFIÉS (Fantômes Verrouillés) ---
+        // C'est ici que ta logique intervient !
+        if (verrou && typeof PHASE_FINALE !== 'undefined') {
+            // On extrait toutes les équipes uniques présentes dans le verrou du joueur
+            const equipesPronostiquees = new Set(Object.values(verrou));
+
+            equipesPronostiquees.forEach(nomEquipe => {
+                // On cherche la cote dans PHASE_FINALE
+                const infoCote = PHASE_FINALE.find(f => f.selection === nomEquipe);
+                
+                if (infoCote) {
+                    // Est-elle en 1/16e ? (On vérifie dans le verrou si elle apparaît dans un match "team_16_")
+                    const estEn16eme = Object.keys(verrou).some(key => key.startsWith("team_16_") && verrou[key] === nomEquipe);
+                    
+                    if (estEn16eme) {
+                        const coteVal = parseFloat(infoCote.cotes_qualifs.qualif_1_16.replace(',', '.'));
+                        points += Math.round(coteVal * 10); 
+                        console.log(`${username} gagne ${Math.round(coteVal * 10)} pts pour la qualif de ${nomEquipe}`);
+                    }
+                    
+                    // On peut répéter pour qualif_1_8, 1_4, etc.
+                }
+            });
+        }
+
+        return points;
+    }
+
+    function calculerDetailsPoints(username) {
+        let details = {
+            poules: 0,
+            predictions: 0,
+            total: 0,
+            meilleurProno: { match: "-", pts: 0 }
+        };
+
+        const prefix = username + "_";
+        const pronos = JSON.parse(localStorage.getItem(prefix + 'mes_pronos_2026')) || {};
+        const verrou = JSON.parse(localStorage.getItem(prefix + 'mes_fantomes_verrouilles')) || {};
+
+        // --- 1. CALCUL POINTS MATCHS (Poules) ---
+        CALENDRIER_CDM.forEach(m => {
+            const officiel = OFFICIEL_2026.scores[m.id];
+            const monProno = pronos[m.id]; // On récupère l'objet {sA, sB}
+
+            if (officiel && officiel.termine && monProno) {
+                let ptsMatch = 0;
+                const pA = parseInt(monProno.sA);
+                const pB = parseInt(monProno.sB);
+                const sA = officiel.sA;
+                const sB = officiel.sB;
+
+                const scoreExact = (pA === sA && pB === sB);
+                const bonneIssue = (Math.sign(pA - pB) === Math.sign(sA - sB));
+
+                if (scoreExact) ptsMatch = 6; 
+                else if (bonneIssue) ptsMatch = 3;
+
+                details.poules += ptsMatch;
+
+                if (ptsMatch > details.meilleurProno.pts) {
+                    details.meilleurProno = { match: `${m.equipeA} - ${m.equipeB}`, pts: ptsMatch };
+                }
+            }
+        });
+
+        // --- 2. CALCUL POINTS PRÉDICTIONS (Cotes) ---
+        // On utilise OFFICIEL_2026.qualifies que tu rempliras à la main
+        const qualifsReels = OFFICIEL_2026.qualifies || {};
+
+        Object.keys(verrou).forEach(key => {
+            if (key.startsWith("team_16_")) {
+                const equipeJoueur = verrou[key];
+                const equipeReelle = qualifsReels[key];
+
+                if (equipeJoueur && equipeJoueur === equipeReelle) {
+                    const infoCote = PHASE_FINALE.find(f => f.selection === equipeJoueur);
+                    if (infoCote) {
+                        const ptsCote = Math.round(parseFloat(infoCote.cotes_qualifs.qualif_1_16.replace(',', '.')) * 10);
+                        details.predictions += ptsCote;
+                    }
+                }
+            }
+        });
+
+        details.total = details.poules + details.predictions;
+        return details;
+    }
+
+    function afficherClassement() {
+        const users = JSON.parse(localStorage.getItem('liste_utilisateurs_2026')) || {};
+        let scores = [];
+
+        Object.keys(users).forEach(u => {
+            const d = calculerDetailsPoints(u);
+            scores.push({ name: u, ...d });
+        });
+
+        // Tri par points totaux
+        scores.sort((a, b) => b.total - a.total);
+
+        let html = `
+            <table class="classement-table">
+                <thead>
+                    <tr>
+                        <th>Rang</th>
+                        <th>Joueur</th>
+                        <th>Poules</th>
+                        <th>Prédictions</th>
+                        <th>Total</th>
+                        <th>Meilleur Prono</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${scores.map((s, index) => `
+                        <tr class="${s.name === CURRENT_USER ? 'highlight-me' : ''}">
+                            <td>${index + 1}</td>
+                            <td><strong>${s.name}</strong></td>
+                            <td>${s.poules}</td>
+                            <td>${s.predictions}</td>
+                            <td class="total-pts">${s.total}</td>
+                            <td style="font-size: 0.75rem; font-style: italic;">
+                                ${s.meilleurProno.match} (${s.meilleurProno.pts} pts)
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>`;
+
+        const container = document.getElementById('classement-container');
+        if(container) container.innerHTML = html;
+    }
+
+    //########################################################################################################//
+    // Fonction UPDATE ALL
+    //########################################################################################################//
+
+    function updateAll() {
+        console.log("--> DÉBUT updateAll");
+
+        CACHE_PRONOS = null; 
+        const savedData = getPronos() || {}; // On s'assure d'avoir au moins un objet vide
+
+        // --- BLOC DÉTECTION AUTOMATIQUE DE LA BASCULE (MULTI-USER) ---
+        const etatActuel = getAppState(); 
+        const keyVerrou = getKey('mes_fantomes_verrouilles'); // On génère la clé Paul_...
+        const keyFantomes = getKey('mes_projections_fantomes'); // On génère la clé Paul_...
+
+        // Si on n'est plus en phase "AVANT", on verrouille
+        if (etatActuel !== "AVANT") {
+            if (!localStorage.getItem(keyVerrou)) {
+                const projections = localStorage.getItem(keyFantomes);
+                if (projections) {
+                    localStorage.setItem(keyVerrou, projections);
+                    //console.log(`🔒 Bascule vers ${etatActuel} : Verrou activé pour ${CURRENT_USER || 'invité'}`);
+                }
+            }
+        } else {
+            // Si on revient en mode "AVANT", on libère le verrou
+            if (localStorage.getItem(keyVerrou)) {
+                localStorage.removeItem(keyVerrou);
+                //console.log(`🔓 Retour en mode AVANT : Verrou supprimé pour ${CURRENT_USER || 'invité'}`);
+            }
+        }
+
+        // On log la source, mais on ne bloque plus le script
+        //console.log("--> DÉBUT updateAll (Source : " + (arguments.callee.caller ? arguments.callee.caller.name : "inconnue") + ")");
+
+        try {
+            const activeId = document.activeElement ? document.activeElement.id : null;
+            const app = document.getElementById('app');
+            if (!app) return;
+
+            let htmlCalendrier = "";
+            let totalPointsPoules = 0;
+            let totalPointsFinales = 0; // Initialisé à 0
+            const groupes = {};
+            let currentDayDetected = 0;
+
+        // 1. Logique des Poules et calcul totalPointsPoules
+        CALENDRIER_CDM.forEach(m => {
+            if (!m.groupe || m.groupe.includes("finale")) return;
+
+            // DÉTECTION ET GÉNÉRATION DES EN-TÊTES DE JOURNÉE ---
+            const dateNettoyee = (m.date || "").toLowerCase();
+            let idJournee = "";
+            let titreJournee = "";
+
+            if (dateNettoyee.includes("1re")) { idJournee = "journee-1"; titreJournee = "Journée 1"; }
+            else if (dateNettoyee.includes("2e")) { idJournee = "journee-2"; titreJournee = "Journée 2"; }
+            else if (dateNettoyee.includes("3e")) { idJournee = "journee-3"; titreJournee = "Journée 3"; }
+
+            if (idJournee && currentDayDetected !== idJournee) {
+                currentDayDetected = idJournee;
+                htmlCalendrier += `
+                    <h3 id="${idJournee}" style="margin: 30px 0 15px 0; color: var(--gold); border-bottom: 1px solid #333; padding-bottom: 5px; font-size: 1.2rem;">
+                        ${titreJournee} <span style="font-size: 0.8rem; color: #888; font-weight: normal; margin-left: 10px;">— ${m.date}</span>
+                    </h3>`;
+            }
+
+            const gCode = m.groupe.replace("Groupe ", "").trim();
+            if (!groupes[gCode]) groupes[gCode] = {};
+            
+            [m.equipeA, m.equipeB].forEach(e => {
+                if (!groupes[gCode][e]) groupes[gCode][e] = { nom: e, pts: 0, bp: 0, bc: 0, diff: 0, mj: 0, v: 0, n: 0, d: 0 };
+            });
+
+            const state = getAppState();
+            const isLocked = (state !== "AVANT");
+
+            // --- GESTION DES SCORES ET SOURCES ---
+            const sA = savedData[`scoreA_${m.id}`];
+            const sB = savedData[`scoreB_${m.id}`];
+            
+            const officielMatch = (typeof OFFICIEL_2026 !== 'undefined' && OFFICIEL_2026.scores) ? OFFICIEL_2026.scores[m.id] : null;
+            const reelMatch = (typeof RESULTATS_REELS !== 'undefined') ? RESULTATS_REELS[m.id] : null;
+
+            const realA = officielMatch ? officielMatch.sA : (reelMatch ? reelMatch.scoreA : null);
+            const realB = officielMatch ? officielMatch.sB : (reelMatch ? reelMatch.scoreB : null);
+            const estTermine = officielMatch ? officielMatch.termine : (realA !== null);
+
+            const valA = (sA !== undefined && sA !== null && sA !== "") ? sA : "";
+            const valB = (sB !== undefined && sB !== null && sB !== "") ? sB : "";
+
+            // --- CALCUL DU CLASSEMENT ---
+            let scA = "", scB = "";
+            if (isLocked) {
+                if (realA !== null && realB !== null && estTermine) {
+                    scA = realA; scB = realB;
+                }
+            } else {
+                scA = valA; scB = valB;
+            }
+
+            if (scA !== "" && scB !== "") {
+                const numA = parseInt(scA); const numB = parseInt(scB);
+                const tA = groupes[gCode][m.equipeA]; const tB = groupes[gCode][m.equipeB];
+                if (tA && tB) {
+                    tA.mj++; tB.mj++; tA.bp += numA; tA.bc += numB; tB.bp += numB; tB.bc += numA;
+                    if (numA > numB) { tA.pts += 3; tA.v++; tB.d++; }
+                    else if (numB > numA) { tB.pts += 3; tB.v++; tA.d++; }
+                    else { tA.pts += 1; tB.pts += 1; tA.n++; tB.n++; }
+                    tA.diff = tA.bp - tA.bc; tB.diff = tB.bp - tB.bc;
+                }
+            }
+
+            // --- CALCUL DES GAINS ET PRÉPARATION AFFICHAGE ---
+            let gainsHtml = "";
+            let inputBorderColor = "#444";
+            let affichageA = valA, affichageB = valB;
+            let couleurTexte = "#fff", opacite = "1";
+
+            // Détermination des couleurs et valeurs d'affichage (Arbitrage Final)
+            if (isLocked) {
+                if (realA !== null && estTermine) {
+                    affichageA = realA; affichageB = realB;
+                    couleurTexte = "var(--gold)";
+                    inputBorderColor = "#fbbf24"; // Bordure dorée pour les matchs finis
+                } else {
+                    affichageA = 0; affichageB = 0;
+                    couleurTexte = "#666"; opacite = "0.5";
+                }
+            }
+
+            if (typeof COTES_MATCHS !== 'undefined') {
+                let odds = COTES_MATCHS.find(c => c.id && String(c.id) === String(m.id));
+                if (odds && odds.details) {
+                    const parseOdds = (v) => v ? parseFloat(v.toString().replace(',', '.')) : 0;
+                    const p1 = Math.round(parseOdds(odds.details.domicile.value) * 10);
+                    const pN = Math.round(parseOdds(odds.details.nul.value) * 10);
+                    const p2 = Math.round(parseOdds(odds.details.exterieur.value) * 10);
+
+                    let userChoice = null;
+                    if (valA !== "" && valB !== "") {
+                        const nA = parseInt(valA); const nB = parseInt(valB);
+                        if (nA > nB) userChoice = '1'; else if (nA < nB) userChoice = '2'; else userChoice = 'N';
+                    }
+
+                    if (!isLocked) {
+                        if (userChoice) totalPointsPoules += (userChoice === '1' ? p1 : (userChoice === '2' ? p2 : pN));
+                        gainsHtml = `<div style="font-size:0.9rem; color:#888; margin-top:6px;">Gains : ${p1} | ${pN} | ${p2} pts</div>`;
+                    } else if (realA !== null && userChoice) {
+                        const winReel = realA > realB ? '1' : (realA < realB ? '2' : 'N');
+                        const isExact = (parseInt(valA) === realA && parseInt(valB) === realB);
+                        let ptsGagnes = 0;
+                        if (userChoice === winReel) {
+                            const cote = (winReel === '1') ? p1 : (winReel === '2' ? p2 : pN);
+                            ptsGagnes = isExact ? (cote * 2) : cote;
+                            totalPointsPoules += ptsGagnes;
+                            inputBorderColor = "#4ade80";
+                        } else {
+                            inputBorderColor = "#ff4d4d";
+                        }
+                        gainsHtml = `<div style="font-size:0.95rem; margin-top:6px; font-weight:bold; color:${ptsGagnes > 0 ? '#4ade80' : '#ff4d4d'}">
+                            ${isExact ? '⭐ ' : ''}${ptsGagnes} pts <span style="color:#666; font-size:0.7rem;">(${p1}|${pN}|${p2})</span>
+                        </div>`;
+                    }
+                }
+            }
+
+            let flagA = typeof getFlag === 'function' ? getFlag(m.equipeA) : "";
+            let flagB = typeof getFlag === 'function' ? getFlag(m.equipeB) : "";
+
+            // --- GÉNÉRATION DU HTML ---
+            htmlCalendrier += `
+                <div class="match-card" style="display: flex; align-items: center; padding: 12px 15px; background: rgba(255,255,255,0.03); border-radius: 8px; margin-bottom: 10px; border-left: 4px solid ${inputBorderColor}">
+                    <div class="team-home" style="flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 12px;">
+                        <span style="font-weight: 500;">${m.equipeA}</span>
+                        <img src="${flagA}" style="width:26px; height:auto;">
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; align-items: center; min-width: 150px;">
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                            <input type="number" value="${affichageA}" ${isLocked ? 'disabled' : ''} 
+                                style="width: 42px; height: 34px; text-align: center; background: #000; 
+                                border: 1px solid ${inputBorderColor}; color: ${couleurTexte}; 
+                                border-radius: 4px; font-weight: bold; opacity: ${opacite};">
+                            <span style="color: var(--gold); font-weight: bold;">:</span>
+                            <input type="number" value="${affichageB}" ${isLocked ? 'disabled' : ''} 
+                                style="width: 42px; height: 34px; text-align: center; background: #000; 
+                                border: 1px solid ${inputBorderColor}; color: ${couleurTexte}; 
+                                border-radius: 4px; font-weight: bold; opacity: ${opacite};">
+                        </div>
+                        ${isLocked ? `<div style="color:#888; font-size:0.7rem; margin-top:4px; font-style:italic;">Prono: ${valA || 0}-${valB || 0}</div>` : ''}
+                        <div class="gains-container">${gainsHtml}</div>
+                    </div>
+
+                    <div class="team-away" style="flex: 1; display: flex; align-items: center; justify-content: flex-start; gap: 12px;">
+                        <img src="${flagB}" style="width:26px; height:auto;">
+                        <span>${m.equipeB}</span>
+                    </div>
+                </div>`;
+        });
+
+            // Création du badge de score total
+            const badgeTotal = `
+                <div id="total-points-badge" style="
+                    position: sticky; 
+                    top: 70px; 
+                    z-index: 100; 
+                    background: rgba(0, 0, 0, 0.85); 
+                    border: 1px solid var(--gold); 
+                    color: white; 
+                    padding: 10px 15px; 
+                    border-radius: 50px; 
+                    text-align: center; 
+                    margin-bottom: 20px; 
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+                    backdrop-filter: blur(5px);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    gap: 10px;
+                    font-family: sans-serif;
+                ">
+                    <span style="font-size: 0.8rem; color: #aaa; text-transform: uppercase; letter-spacing: 1px;">Points cumulés (Poules) :</span>
+                    <span style="font-size: 1.3rem; font-weight: bold; color: var(--gold);">${totalPointsPoules} pts</span>
+                </div>
+            `;
+
+            //console.log("Total cumulé affiché :", totalPointsPoules);
+
+
+            // 2. Tri des groupes et préparation phases finales
+            const resGroupesTriés = {};
+            let troisiemes = [];
+            Object.keys(groupes).sort().forEach(g => {
+                const tri = Object.values(groupes[g]).sort((a, b) => b.pts - a.pts || b.diff - a.diff || b.bp - a.bp);
+                resGroupesTriés[g] = tri;
+                if (tri[2]) troisiemes.push({ ...tri[2], groupe: g });
+            });
+            const top8 = troisiemes.sort((a, b) => b.pts - a.pts || b.diff - a.diff || b.bp - a.bp).slice(0, 8);
+
+            const getResultat = (phaseId, matchId, listeAffiches, labelDefaut, demandePerdant = false) => {
+                const match = listeAffiches.find(m => m.id === matchId);
+                if (!match) return { nom: labelDefaut, meta: labelDefaut };
+
+                const state = getAppState();
+                const isLocked = (state !== "AVANT");
+
+                let vainqueur = null, perdant = null;
+
+                // --- LOGIQUE PHASE 2 (RÉEL) ---
+                if (isLocked) {
+                    // On cherche si un score réel existe pour ce match éliminatoire
+                    // Note: Assure-toi d'avoir RESULTATS_REELS disponible ici
+                    const rMatch = (typeof RESULTATS_REELS !== 'undefined') ? RESULTATS_REELS[matchId] : null;
+                    
+                    if (rMatch && rMatch.scoreA !== null) {
+                        const rA = parseInt(rMatch.scoreA);
+                        const rB = parseInt(rMatch.scoreB);
+                        // On détermine le vainqueur réel (en gérant les tirs au but si besoin via un champ 'winner' dans ton JSON réel)
+                        const rWinner = rMatch.winner || (rA > rB ? 'A' : (rB > rA ? 'B' : null));
+                        
+                        if (rWinner === 'A') { vainqueur = match.t1; perdant = match.t2; }
+                        else if (rWinner === 'B') { vainqueur = match.t2; perdant = match.t1; }
+                    }
+                } 
+                // --- LOGIQUE PHASE AVANT (PRONOS) ---
+                else {
+                    const sA = parseInt(savedData[`score_${phaseId}_${matchId}_A`]);
+                    const sB = parseInt(savedData[`score_${phaseId}_${matchId}_B`]);
+                    const manual = savedData[`winner_${phaseId}_${matchId}`];
+
+                    if (manual === 'A' || (sA > sB)) { vainqueur = match.t1; perdant = match.t2; }
+                    else if (manual === 'B' || (sB > sA)) { vainqueur = match.t2; perdant = match.t1; }
+                }
+
+                if (vainqueur) {
+                    return demandePerdant ? { nom: perdant.nom, meta: labelDefaut } : { nom: vainqueur.nom, meta: labelDefaut };
+                }
+                
+                // Si pas de résultat (match non joué), on retourne le label par défaut (ex: "Vainqueur Match 45")
+                return { nom: labelDefaut, meta: labelDefaut };
+            };
+
+            // 3. Calcul des Points de Phase Finale ET Synchronisation Calendrier
+            // 1. On génère les 16èmes
+            const les16emes = genererAffiches16emes(resGroupesTriés, top8);
+            // 2. On synchronise avec le calendrier (MAJ de CALENDRIER_CDM + ajout de .nomA / .nomB)
+            synchroniserCalendrier(les16emes);
+
+            // 3. Calcul des points (la boucle est plus simple maintenant)
+            les16emes.forEach(m => {
+                const estVraiPays = (n) => n && !n.includes("Gr.") && !n.includes("Match") && !n.includes("attente");
+
+                if (estVraiPays(m.nomA)) {
+                    totalPointsFinales += Math.round(getCotePhaseFinale(m.nomA, "qualif_1_16") * 10);
+                }
+                if (estVraiPays(m.nomB)) {
+                    totalPointsFinales += Math.round(getCotePhaseFinale(m.nomB, "qualif_1_16") * 10);
+                }
+            });
+
+            // --- 1/8es ---
+            const les8emes = [
+                { id: 687061, label: "Match 90 - Samedi 04 Juillet 2026", t1: getResultat('16', 687045, les16emes, "Match 73"), t2: getResultat('16', 687048, les16emes, "Match 75") },
+                { id: 687062, label: "Match 89 - Samedi 04 Juillet 2026", t1: getResultat('16', 687047, les16emes, "Match 74"), t2: getResultat('16', 687050, les16emes, "Match 77") },
+                { id: 687063, label: "Match 91 - Dimanche 05 Juillet 2026", t1: getResultat('16', 687046, les16emes, "Match 76"), t2: getResultat('16', 687049, les16emes, "Match 78") },
+                { id: 687064, label: "Match 92 - Lundi 06 Juillet 2026", t1: getResultat('16', 687051, les16emes, "Match 79"), t2: getResultat('16', 687052, les16emes, "Match 80") },
+                { id: 687065, label: "Match 93 - Lundi 06 Juillet 2026", t1: getResultat('16', 687056, les16emes, "Match 83"), t2: getResultat('16', 687055, les16emes, "Match 84") },
+                { id: 687066, label: "Match 94 - Mardi 07 Juillet 2026", t1: getResultat('16', 687054, les16emes, "Match 81"), t2: getResultat('16', 687053, les16emes, "Match 82") },
+                { id: 687067, label: "Match 95 - Mardi 07 Juillet 2026", t1: getResultat('16', 687059, les16emes, "Match 86"), t2: getResultat('16', 687058, les16emes, "Match 88") },
+                { id: 687068, label: "Match 96 - Mardi 07 Juillet 2026", t1: getResultat('16', 687057, les16emes, "Match 85"), t2: getResultat('16', 687060, les16emes, "Match 87") }
+            ];
+
+            // Calcul points 8èmes
+            les8emes.forEach(m => {
+                if (m.t1 && !m.t1.nom.includes("Match")) {
+                    totalPointsFinales += Math.round(getCotePhaseFinale(m.t1.nom, "qualif_1_8") * 10);
+                }
+                if (m.t2 && !m.t2.nom.includes("Match")) {
+                    totalPointsFinales += Math.round(getCotePhaseFinale(m.t2.nom, "qualif_1_8") * 10);
+                }
+            });
+
+            // --- QUARTS ---
+            const lesQuarts = [
+                { id: 687069, label: "Match 97 - Jeudi 09 Juillet 2026", t1: getResultat('8', 687062, les8emes, "Match 89"), t2: getResultat('8', 687061, les8emes, "Match 90") },
+                { id: 687070, label: "Match 98 - Vendredi 10 Juillet 2026", t1: getResultat('8', 687065, les8emes, "Match 91"), t2: getResultat('8', 687066, les8emes, "Match 92") },
+                { id: 687071, label: "Match 99 - Samedi 11 Juillet 2026", t1: getResultat('8', 687063, les8emes, "Match 93"), t2: getResultat('8', 687064, les8emes, "Match 94") },
+                { id: 687072,label: "Match 100 - Dimanche 12 Juillet 2026", t1: getResultat('8', 687067, les8emes, "Match 95"), t2: getResultat('8', 687068, les8emes, "Match 96") }
+            ];
+
+            // Calcul points Quarts
+            lesQuarts.forEach(m => {
+                if (m.t1 && !m.t1.nom.includes("Match")) {
+                    totalPointsFinales += Math.round(getCotePhaseFinale(m.t1.nom, "qualif_1_4") * 10);
+                }
+                if (m.t2 && !m.t2.nom.includes("Match")) {
+                    totalPointsFinales += Math.round(getCotePhaseFinale(m.t2.nom, "qualif_1_4") * 10);
+                }
+            });
+
+            // --- DEMIES ---
+            const lesDemies = [
+                { id: 687073, label: "Match 101 - Mardi 14 Juillet 2026", t1: getResultat('4', 687069, lesQuarts, "Match 97"), t2: getResultat('4', 687070, lesQuarts, "Match 98") },
+                { id: 687074, label: "Match 102 - Mercredi 15 Juillet 2026", t1: getResultat('4', 687071, lesQuarts, "Match 99"), t2: getResultat('4', 687072, lesQuarts, "Match 100") }
+            ];
+
+            // Calcul points Demies
+            lesDemies.forEach(m => {
+                if (m.t1 && !m.t1.nom.includes("Match")) {
+                    totalPointsFinales += Math.round(getCotePhaseFinale(m.t1.nom, "qualif_1_2") * 10);
+                }
+                if (m.t2 && !m.t2.nom.includes("Match")) {
+                    totalPointsFinales += Math.round(getCotePhaseFinale(m.t2.nom, "qualif_1_2") * 10);
+                }
+            });
+
+            // --- FINALES ---
+            // 1. Définition des objets
+            const finaleObj = { id: 687076, label: "Match 104 - Dimanche 19 Juillet 2026", t1: getResultat('2', 687073, lesDemies, "V. Demi 1"), t2: getResultat('2', 687074, lesDemies, "V. Demi 2") };
+            const pFinaleObj = { id: 687075, label: "Match 103 - Samedi 18 Juillet 2026", t1: getResultat('2', 687073, lesDemies, "P. Demi 1", true), t2: getResultat('2', 687074, lesDemies, "P. Demi 2", true) };
+
+            // Fonction de vérification pour ne compter que les vrais pays
+            const estVraiPays = (n) => n && !n.includes("Demi") && !n.includes("V.") && !n.includes("P.") && !n.includes("attente");
+
+            // 2. Points pour avoir trouvé les Finalistes (Cote "finaliste")
+            if (estVraiPays(finaleObj.t1.nom)) {
+                totalPointsFinales += Math.round(getCotePhaseFinale(finaleObj.t1.nom, "finaliste") * 10);
+            }
+            if (estVraiPays(finaleObj.t2.nom)) {
+                totalPointsFinales += Math.round(getCotePhaseFinale(finaleObj.t2.nom, "finaliste") * 10);
+            }
+
+            // 3. Points pour le Vainqueur Final (Cote "vainqueur")
+            const winnerFinale = getResultat('f', 687076, [finaleObj], "Vainqueur");
+            if (winnerFinale && estVraiPays(winnerFinale.nom)) {
+                totalPointsFinales += Math.round(getCotePhaseFinale(winnerFinale.nom, "vainqueur") * 10);
+            }
+
+            // 4. (Optionnel) Points pour le vainqueur de la Petite Finale (3e place)
+            // Si tu n'as pas de cote spécifique "3eme", tu peux utiliser une fraction ou ignorer
+            const winnerPetiteFinale = getResultat('f', 687075, [pFinaleObj], "3e Place");
+            if (winnerPetiteFinale && estVraiPays(winnerPetiteFinale.nom)) {
+                // Exemple : on donne 10 pts fixes ou on ne fait rien
+                // totalPointsFinales += 10; 
+            }
+
+            // =========================================================
+            // ÉTAPE FINALE : AFFICHAGE GLOBAL
+            // =========================================================
+
+            // 1. On calcule le total général maintenant que tout est prêt
+            const totalGeneral = totalPointsPoules + totalPointsFinales;
+
+            // 2. On prépare le HTML du badge avec les chiffres définitifs
+            const badgeTotalHtml = `
+                <div id="points-cumules" style="
+                    position: fixed; 
+                    top: 10px; 
+                    left: 50%; 
+                    transform: translateX(-50%); 
+                    z-index: 9999; 
+                    background: #1a1a1a; 
+                    border: 2px solid var(--gold); 
+                    color: white; 
+                    padding: 12px; 
+                    border-radius: 12px; 
+                    text-align: center; 
+                    width: 90%; 
+                    max-width: 350px; 
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+                ">
+                    <div style="display: flex; justify-content: space-around; margin-bottom: 5px; border-bottom: 1px solid #333; padding-bottom: 5px;">
+                        <div>
+                            <div style="font-size: 0.6rem; color: #aaa;">POULES</div>
+                            <div style="font-weight: bold; color: white;">${totalPointsPoules}</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.6rem; color: #aaa;">PHASES FINALES</div>
+                            <div style="font-weight: bold; color: white;">${totalPointsFinales}</div>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.7rem; text-transform: uppercase; color: #aaa;">Total Général</div>
+                    <div style="font-size: 1.8rem; font-weight: bold; color: var(--gold);">${totalGeneral} <span style="font-size: 1rem;">pts</span></div>
+                </div>
+            `;
+
+            // 3. MISE À JOUR DU DOM (L'affichage réel dans la page)
+                // On injecte le badge ET le calendrier des poules
+                if (app) {
+                    app.style.paddingTop = "80px";
+                    app.innerHTML = htmlCalendrier; // On met le calendrier dans app
+                }
+
+                // Et on injecte le badge directement dans le body (ou un conteneur global)
+                let existingBadge = document.getElementById('points-cumules');
+                if (existingBadge) existingBadge.remove(); // On enlève l'ancien s'il existe
+
+                document.body.insertAdjacentHTML('afterbegin', badgeTotalHtml);
+
+                // 4. Remplissage des zones de Phase Finale 
+                // (Obligatoire APRÈS app.innerHTML car app.innerHTML recrée les div vides)
+                const zone16 = document.getElementById('zone-16emes');
+                
+                if (zone16) zone16.innerHTML = les16emes.map(m => renderMatchCard(m, '16', '1/16e', 'var(--gold)')).join('');
+                const cote = getCotePhaseFinale("France", "qualif_1_16");
+                //console.log("Test cote France corrigé :", cote); // Devrait afficher 1.2
+                //console.log("Points après 16èmes :", totalPointsFinales);
+
+                const zone8 = document.getElementById('zone-8emes');
+                // --- LOG DE DEBUG ---
+                //console.log("--- VÉRIFICATION DES 8ÈMES AVANT RENDU ---");
+                les8emes.forEach(m => {
+                    //console.log(`Match ${m.id} (${m.label}) :`);
+                    //console.log(`  - Équipe A: "${m.t1 ? m.t1.nom : 'NULL'}"`);
+                    //console.log(`  - Équipe B: "${m.t2 ? m.t2.nom : 'NULL'}"`);
+                });
+                if (zone8) zone8.innerHTML = les8emes.map(m => renderMatchCard(m, '8', '1/8e', '#00d4ff')).join('');
+
+                const zone4 = document.getElementById('zone-4emes');
+                if (zone4) zone4.innerHTML = lesQuarts.map(m => renderMatchCard(m, '4', '1/4', '#bc13fe')).join('');
+
+                const zone2 = document.getElementById('zone-2emes');
+                if (zone2) zone2.innerHTML = lesDemies.map(m => renderMatchCard(m, '2', 'Demi', '#ff8c00')).join('');
+
+                const zone1 = document.getElementById('zone-1emes');
+                if (zone1) zone1.innerHTML = renderMatchCard(pFinaleObj, 'pf', 'Petite Finale', '#c0c0c0') + renderMatchCard(finaleObj, 'f', 'FINALE', '#ff4500');
+
+                // 5. RESTAURATION DU FOCUS ET CURSEUR (Pour ne pas perdre la saisie)
+                if (activeId) {
+                    const el = document.getElementById(activeId);
+                    if (el) {
+                        el.focus();
+                        const temporaryValue = el.value;
+                        el.value = '';
+                        el.value = temporaryValue;
+                    }
+                }
+
+                // 6. AFFICHAGE DES CLASSEMENTS
+                if (typeof afficherClassements === 'function') {
+                    afficherClassements(resGroupesTriés);
+                }
+
+            } catch (error) {
+                console.error("GROS PLANTAGE DANS UPDATEALL :", error);
+            }
+            
+            console.log("--> FIN updateAll");
+        }
+
+    function afficherClassements(resGroupesTriés) {
+        const zone = document.getElementById('zone-classements') || document.getElementById('zone-resultats');
+        if (!zone) return;
+
+        // --- 1. CALCUL DES MEILLEURS 3es ---
+        let tousLes3es = [];
+        Object.keys(resGroupesTriés).forEach(g => {
+            const t = resGroupesTriés[g][2]; // L'équipe à la 3e place
+            if (t && (t.mj > 0)) { // On ne compte que ceux qui ont joué
+                tousLes3es.push(t);
+            }
+        });
+
+        // Tri identique à la logique FIFA (Pts > Diff > BP)
+        tousLes3es.sort((a, b) => {
+            if (b.pts !== a.pts) return b.pts - a.pts;
+            if (b.diff !== a.diff) return b.diff - a.diff;
+            return b.bp - a.bp;
+        });
+
+        // On prend les 8 premiers
+        const nomsQualifies3es = tousLes3es.slice(0, 8).map(q => q.nom);
+
+        // --- 2. CONSTRUCTION DU HTML ---
+        let html = `<div id="zone-classements">`;
+        const nomsGroupes = Object.keys(resGroupesTriés).sort();
+
+        nomsGroupes.forEach(g => {
+            html += `
+                <div class="group-card">
+                    <h3>Groupe ${g}</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width:25px;">Pos</th>
+                                <th>Équipe</th>
+                                <th>Pts</th>
+                                <th>V</th>
+                                <th>N</th>
+                                <th>D</th>
+                                <th>BP</th>
+                                <th>BC</th>
+                                <th>Diff</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+            resGroupesTriés[g].forEach((team, index) => {
+            // 1. Calcul de la qualification (identique à ton tableau final)
+            const estTop2 = index < 2;
+            const estMeilleur3e = (index === 2 && nomsQualifies3es.includes(team.nom));
+            const estQualifie = estTop2 || estMeilleur3e;
+
+            // 2. Attribution de la classe CSS et d'un petit symbole
+            const qualifClass = estQualifie ? 'class="qualifie"' : 'style="color: #888;"';
+            const icone = estQualifie ? '<span style="color: #4ade80; margin-right: 5px;">●</span>' : '<span style="color: #444; margin-right: 5px;">○</span>';
+            
+            // 3. Style de ligne pour séparer visuellement les éliminés
+            const rowStyle = estQualifie ? '' : 'style="opacity: 0.6;"';
+
+            const diff = team.diff || 0;
+            let drapeau = "";
+            if (typeof getFlag === 'function') {
+                drapeau = `<img src="${getFlag(team.nom)}" style="width:18px; margin-right:8px; vertical-align:middle;">`;
+            }
+
+            html += `
+                <tr ${rowStyle}>
+                    <td style="color: #666; text-align: center;">${index + 1}</td>
+                    <td ${qualifClass}>
+                        <div style="display: flex; align-items: center;">
+                            ${icone} ${drapeau} ${team.nom}
+                        </div>
+                    </td>
+                    <td style="font-weight: bold; color: var(--gold);">${team.pts || 0}</td>
+                    <td>${team.v || 0}</td>
+                    <td>${team.n || 0}</td>
+                    <td>${team.d || 0}</td>
+                    <td style="color: #aaa;">${team.bp || 0}</td>
+                    <td style="color: #aaa;">${team.bc || 0}</td>
+                    <td style="font-weight: bold; color: ${diff > 0 ? '#4ade80' : diff < 0 ? '#f87171' : '#fff'};">
+                        ${diff > 0 ? '+' + diff : diff}
+                    </td>
+                </tr>`;
+        });
+            html += `</tbody></table></div>`;
+        });
+
+        html += `</div>`;
+        zone.innerHTML = html;
+    }
+
+    function toggleLuckyMenu() {
+        const menu = document.getElementById('lucky-menu');
+        const overlay = document.getElementById('modal-overlay');
+        document.getElementById('reset-menu').style.display = 'none'; // Ferme le Reset si ouvert
+
+        if (menu.style.display === 'none' || menu.style.display === '') {
+            menu.style.display = 'block';
+            overlay.style.display = 'block';
+        } else {
+            fermerLesMenus();
+        }
+    }
+
+    function toggleResetMenu() {
+        const menu = document.getElementById('reset-menu');
+        const overlay = document.getElementById('modal-overlay');
+        document.getElementById('lucky-menu').style.display = 'none'; // Ferme le Lucky si ouvert
+
+        if (menu.style.display === 'none' || menu.style.display === '') {
+            menu.style.display = 'block';
+            overlay.style.display = 'block';
+        } else {
+            fermerLesMenus();
+        }
+    }
+
+    // Fonction utilitaire pour tout fermer d'un coup
+    function fermerLesMenus() {
+        document.getElementById('lucky-menu').style.display = 'none';
+        document.getElementById('reset-menu').style.display = 'none';
+        document.getElementById('modal-overlay').style.display = 'none';
+    }
+
+    // Fonction utilitaire pour générer un score réaliste selon une issue voulue (1, N ou 2)
+    function genererScoreSelonIssue(issue) {
+        let sA = 0, sB = 0;
+        if (issue === '1') { // Victoire A
+            sA = Math.floor(Math.random() * 3) + 1; // 1, 2 ou 3
+            sB = Math.floor(Math.random() * sA);    // Forcément moins que sA
+        } else if (issue === '2') { // Victoire B
+            sB = Math.floor(Math.random() * 3) + 1;
+            sA = Math.floor(Math.random() * sB);
+        } else { // Match Nul (N)
+            sA = Math.floor(Math.random() * 3);     // 0, 1 ou 2
+            sB = sA;
+        }
+        return [sA, sB];
+    }
+
+    function simulationPartielle(cible) {
+        // 1. On utilise CONFIG_PHASES. Si ça n'existe pas, on affiche la cible brute
+        const labelAAfficher = CONFIG_PHASES[cible] ? CONFIG_PHASES[cible].label : cible;
+        
+        // Sécurité : Vérifie si l'élément profil existe, sinon 'hasard' par défaut
+        const profilSelect = document.getElementById('lucky-profil');
+        const profil = profilSelect ? profilSelect.value : 'hasard';
+        
+        // 2. Ici aussi, on remplace labels[cible] par CONFIG_PHASES
+        const nomCible = CONFIG_PHASES[cible] ? CONFIG_PHASES[cible].label : cible;
+
+        if (!confirm(`Simuler ${nomCible} ?`)) return;
+        try {
+            // --- 1. LOGIQUE POULES ---
+            if (['J1', 'J2', 'J3', 'POULES', 'TOUT'].includes(cible)) {
+                //console.log("--- DÉBUT SIMULATION POULES ---");
+                //console.log("Cible demandée :", cible);
+                //console.log("Nombre de matchs dans CALENDRIER_CDM :", CALENDRIER_CDM.length);
+
+                CALENDRIER_CDM.forEach((m, index) => {
+                    try {
+                        let matchCible = false;
+                        const dateM = (m.date || "").toLowerCase();
+                        const numId = parseInt(m.id);
+                        
+                        // --- SÉCURITÉ ABSOLUE : ON IGNORE TOUT CE QUI N'EST PAS UNE POULE ---
+                        const nomGroupe = (m.groupe || "").toLowerCase();
+                        
+                        // Si le groupe contient "finale" ou "1/" (pour 1/8, 1/4, etc.), on dégage
+                        if (nomGroupe.includes("finale") || nomGroupe.includes("1/")) {
+                            return; 
+                        }
+
+                        // --- LE RESTE DU CODE NE S'EXÉCUTE QUE POUR LES POULES ---
+                        // DÉTECTION ET GÉNÉRATION DES EN-TÊTES DE JOURNÉE...
+                        const dateNettoyee = (m.date || "").toLowerCase();
+
+                        // Log de progression tous les 10 matchs pour ne pas inonder la console
+                        if (index % 10 === 0) console.log(`Traitement match index ${index} (ID: ${m.id})...`);
+
+                        // On remplace le test sur l'ID par un test plus malin
+                        if (cible === 'POULES' || cible === 'TOUT') {
+                            matchCible = true; // On prend tout ce qui est dans CALENDRIER_CDM
+                        } else if (cible === 'J1') {
+                            matchCible = dateM.includes("1re");
+                        } else if (cible === 'J2') {
+                            matchCible = dateM.includes("2e");
+                        } else if (cible === 'J3') {
+                            matchCible = dateM.includes("3e");
+                        }
+
+                        if (matchCible) {
+                            // VERIFICATION CRITIQUE
+                            if (!m.equipeA || !m.equipeB) {
+                                console.warn(`Match ID ${m.id} ignoré : Équipe(s) manquante(s)`, m);
+                                return; 
+                            }
+
+                            let sA = Math.floor(Math.random() * 4);
+                            let sB = Math.floor(Math.random() * 4);
+
+                            if (profil !== 'hasard' && typeof COTES_MATCHS !== 'undefined') {
+                                // 1. RECHERCHE PRIORITAIRE PAR ID
+                                let odds = COTES_MATCHS.find(c => c.id && String(c.id) === String(m.id));
+
+                                // 2. RECHERCHE DE SECOURS PAR NOMS (si pas d'ID trouvé)
+                                if (!odds) {
+                                    const eqA = m.equipeA.trim();
+                                    const eqB = m.equipeB.trim();
+                                    odds = COTES_MATCHS.find(c => 
+                                        c.match && c.match.includes(eqA) && c.match.includes(eqB)
+                                    );
+                                }
+                                
+                                if (odds && odds.details) {
+                                    const c1 = parseFloat(odds.details.domicile.value.replace(',', '.'));
+                                    const cN = parseFloat(odds.details.nul.value.replace(',', '.'));
+                                    const c2 = parseFloat(odds.details.exterieur.value.replace(',', '.'));
+                                    
+                                    let issue = 'N';
+                                    const min = Math.min(c1, cN, c2);
+                                    
+                                    // --- CHOIX DE L'ISSUE SELON LE PROFIL ---
+                                    if (profil === 'senateur') {
+                                        // Le favori gagne 100% du temps
+                                        issue = (min === c1 ? '1' : (min === c2 ? '2' : 'N'));
+                                    } 
+                                    else if (profil === 'kamikaze') {
+                                        // L'outsider gagne 100% du temps (Cote la plus haute)
+                                        const max = Math.max(c1, cN, c2);
+                                        issue = (max === c1 ? '1' : (max === c2 ? '2' : 'N'));
+                                    } 
+                                    else if (profil === 'equilibre') {
+                                        // --- LOGIQUE PROBABILISTE ---
+                                        // On calcule la force relative (inverse de la cote)
+                                        const p1 = 1 / c1;
+                                        const pN = 1 / cN;
+                                        const p2 = 1 / c2;
+                                        const total = p1 + pN + p2;
+
+                                        const tirage = Math.random();
+
+                                        if (tirage < p1 / total) {
+                                            issue = '1';
+                                        } else if (tirage < (p1 + pN) / total) {
+                                            issue = 'N';
+                                        } else {
+                                            issue = '2';
+                                        }
+                                    } else {
+                                        // Profil "hasard" ou inconnu : tirage 33/33/33
+                                        const r = Math.random();
+                                        issue = r < 0.33 ? '1' : (r < 0.66 ? 'N' : '2');
+                                    }
+                                    
+                                    // Utilisation de ta fonction utilitaire
+                                    const res = genererScoreSelonIssue(issue);
+                                    sA = res[0]; 
+                                    sB = res[1];
+                                }
+                            }
+                            
+                            syncProno(`scoreA_${m.id}`, sA);
+                            syncProno(`scoreB_${m.id}`, sB);
+                            syncProno(`winner_poule_${m.id}`, "");
+                        }
+                    } catch (matchError) {
+                        console.error(`CRASH sur le match index ${index} (ID: ${m.id}) :`, matchError);
+                    }
+                });
+                console.log("--- FIN SIMULATION POULES ---");
+            }
+
+            // --- 2. LOGIQUE ÉLIMINATOIRES ---
+            const limites = { 
+                '16': [687045, 687060], 
+                '8': [687061, 687068], 
+                '4': [687069, 687072], 
+                '2': [687073, 687074], 
+                'FINALES': [687075, 687076] 
+            };
+
+            const genererMatchFini = (p, i) => {
+                const state = getAppState();
+                const elA = document.getElementById(`team_name_${p}_${i}_A`);
+                const elB = document.getElementById(`team_name_${p}_${i}_B`);
+                
+                // Si le DOM n'est pas prêt, on tente de forcer une lecture de secours
+                const nomA = elA ? elA.innerText.trim() : "INCONNU";
+                const nomB = elB ? elB.innerText.trim() : "INCONNU";
+
+                if (state === "AVANT") {
+                    syncProno(`team_${p}_${i}_A`, nomA);
+                    syncProno(`team_${p}_${i}_B`, nomB);
+                    const side = Math.random() > 0.5 ? 'A' : 'B';
+                    syncProno(`winner_${p}_${i}`, side);
+                    syncProno(`score_${p}_${i}_A`, "");
+                    syncProno(`score_${p}_${i}_B`, "");
+                } else {
+                    let sA = Math.floor(Math.random() * 3);
+                    let sB = Math.floor(Math.random() * 3);
+                    syncProno(`score_${p}_${i}_A`, sA);
+                    syncProno(`score_${p}_${i}_B`, sB);
+                    syncProno(`winner_${p}_${i}`, sA >= sB ? 'A' : 'B');
+                }
+            };
+
+            // --- DÉTERMINATION DES PHASES ---
+            let phasesALancer = [];
+            if (cible === 'TOUT' || cible === 'TABLEAU_FINAL') {
+                phasesALancer = ['16', '8', '4', '2', 'FINALES'];
+            } else if (limites[cible]) {
+                phasesALancer = [cible];
+            }
+
+            // Exécution en cascade
+            phasesALancer.forEach(phase => {
+                // SUPPRESSION DU updateAll() ICI
+                // On simule la phase
+                const [debut, fin] = limites[phase];
+                for (let i = debut; i <= fin; i++) {
+                    let codePhase = (phase === 'FINALES') ? (i === 687075 ? 'pf' : 'f') : phase;
+                    genererMatchFini(codePhase, i);
+                }
+                
+                // Si tu as besoin que les noms "montent" pour la phase suivante, 
+                // il vaut mieux appeler une fonction de CALCUL pure (sans rendu HTML) 
+                // ou accepter de faire un seul updateAll ici si vraiment nécessaire.
+                // Pour tester, essayons sans rien dans la boucle.
+            });
+
+            // --- 3. FINALISATION (UNE SEULE FOIS) ---
+            // On enregistre tout et on rafraîchit l'affichage global à la fin
+            setTimeout(() => {
+                if (typeof updateAll === 'function') updateAll();
+                alert(`Simulation de ${nomCible} terminée !`);
+            }, 100); // Un léger délai pour laisser le LocalStorage respirer
+
+        } catch (e) { 
+            console.error("Erreur sim:", e); 
+        }
+    }
+
+    function toggleResetMenu() {
+        const menu = document.getElementById('reset-menu');
+        menu.style.display = (menu.style.display === 'none' || menu.style.display === '') ? 'block' : 'none';
+    }
+
+    function effacerSpecifique(cible) {
+        if (!confirm("Confirmer la suppression pour : " + cible + " ?")) return;
+
+        let data = getPronos();
+
+        // On parcourt toutes les clés stockées (scoreA_..., scoreB_..., winner_...)
+        Object.keys(data).forEach(key => {
+            let supprimer = false;
+
+            // --- CAS DES JOURNÉES DE GROUPES (J1, J2, J3) ---
+            if (cible === 'J1' || cible === 'J2' || cible === 'J3') {
+                const idMatch = key.split('_')[1]; // On récupère l'ID après le "_"
+                
+                const matchInfo = (typeof CALENDRIER_CDM !== 'undefined') 
+                    ? CALENDRIER_CDM.find(m => m.id == idMatch) 
+                    : null;
+
+                if (matchInfo) {
+                    let journeeMatch = "";
+                    if (matchInfo.date.includes("1re journée")) journeeMatch = "J1";
+                    else if (matchInfo.date.includes("2e journée")) journeeMatch = "J2";
+                    else if (matchInfo.date.includes("3e journée")) journeeMatch = "J3";
+
+                    if (journeeMatch === cible) {
+                        supprimer = true;
+                    }
+                }
+            }
+            // --- CAS DE TOUS LES GROUPES ---
+            else if (cible === 'POULES') {
+                if (key.startsWith('scoreA_') || key.startsWith('scoreB_')) {
+                    supprimer = true;
+                }
+            } 
+            // --- CAS DES PHASES ÉLIMINATOIRES ---
+            else if (cible === '16' || cible === '8' || cible === '4' || cible === '2') {
+                // Supprime les scores et les vainqueurs manuels pour la phase cible
+                if (key.includes(`_${cible}_`) || key.includes(`winner_${cible}`)) {
+                    supprimer = true;
+                }
+            } 
+            // --- CAS DES FINALES (Petite et Grande) ---
+            else if (cible === 'FINALES_ALL') {
+                if (key.includes('_f_') || key.includes('_pf_') || key.includes('winner_f') || key.includes('winner_pf')) {
+                    supprimer = true;
+                }
+            }  
+            // --- CAS GÉNÉRAL (TOUT EFFACER) ---
+            else if (cible === 'TOUT') {
+                supprimer = true;
+            }
+
+            // Si la clé doit être supprimée, on appelle syncProno avec une valeur vide
+            if (supprimer) {
+                syncProno(key, ""); 
+            }
+        });
+
+        // Fermeture du menu et nettoyage visuel
+        const menu = document.getElementById('reset-menu');
+        if (menu) menu.style.display = 'none';
+        
+        // On vide les champs de saisie pour forcer updateAll à les rafraîchir proprement
+        document.querySelectorAll('.score-inputs input').forEach(inp => {
+            inp.value = "";
+        });
+
+        // On relance la machine pour recalculer les classements et tableaux
+        updateAll(); 
+    }
+
+    function determinerVainqueurPro(phase, matchId, nomA, nomB) {
+        const savedData = getPronos();
+        
+        // 1. On récupère les scores
+        const sA = parseInt(document.getElementById(`score_${phase}_${matchId}_A`)?.value);
+        const sB = parseInt(document.getElementById(`score_${phase}_${matchId}_B`)?.value);
+
+        // 2. PRIORITÉ ABSOLUE : Le choix manuel (le clic radio)
+        // Cela permet de désigner un vainqueur aux TAB même si le score est 0-0
+        const manualWin = savedData[`winner_${phase}_${matchId}`];
+        if (manualWin === 'A') return nomA;
+        if (manualWin === 'B') return nomB;
+
+        // 3. SECONDAIRE : Le score (si pas de clic manuel)
+        if (!isNaN(sA) && !isNaN(sB)) {
+            if (sA > sB) return nomA;
+            if (sB > sA) return nomB;
+        }
+
+        // 4. Sinon, personne ne passe
+        return null;
+    }
+
+    function toggleWinnerUniversal(phaseId, matchId, team) {
+        const state = getAppState(); 
+        const data = getPronos();
+        
+        // --- 1. SÉCURITÉ PENDANT LA COMPÉTITION (11/06 au 25/06) ---
+        if (state === "PENDANT") {
+            //console.log("🚫 Verrouillage : Les pronos spéculatifs sont fermés.");
+            return;
+        }
+
+        // --- 2. SÉCURITÉ PHASE FINALE (Après le 25/06) ---
+        if (state === "PHASE_FINALE") {
+            const valA = data[`score_${phaseId}_${matchId}_A`];
+            const valB = data[`score_${phaseId}_${matchId}_B`];
+            
+            // Si les scores sont différents, le vainqueur est automatique (le clic est bloqué)
+            if (valA !== undefined && valB !== undefined && parseInt(valA) !== parseInt(valB)) {
+                //console.log("🚫 Le score détermine déjà le vainqueur.");
+                return;
+            }
+        }
+
+        // --- 3. LOGIQUE DE BASCULE (Toujours autorisée si on est en mode "AVANT") ---
+        const key = `winner_${phaseId}_${matchId}`;
+        let nouvelleValeur;
+
+        if (data[key] === team) {
+            nouvelleValeur = ""; // Annulation
+        } else {
+            nouvelleValeur = team; // Attribution A ou B
+        }
+
+        // Sauvegarde via ton système existant
+        syncProno(key, nouvelleValeur);
+        
+        // Mise à jour visuelle immédiate
+        if (typeof updateAll === 'function') {
+            setTimeout(() => { updateAll(); }, 10);
+        }
+    }
+
+    // 2. LES RACCOURCIS (Ils appellent tous la fonction universelle)
+    function toggleWinner16(id, side) { toggleWinnerUniversal('16', id, side); }
+    function toggleWinner8(id, side)  { toggleWinnerUniversal('8', id, side); }
+    function toggleWinner4(id, side)  { toggleWinnerUniversal('4', id, side); }
+    function toggleWinner2(id, side)  { toggleWinnerUniversal('2', id, side); }
+    function toggleWinnerPF(id, side) { toggleWinnerUniversal('pf', id, side); }
+    function toggleWinnerF(id, side)  { toggleWinnerUniversal('f', id, side); }
+
+    function savePronos() {
+        const rawData = getPronos();
+        if (!rawData || Object.keys(rawData).length === 0) {
+            alert("Aucun pronostic à sauvegarder !");
+            return;
+        }
+
+        // 1. On prépare la structure organisée
+        const structuredData = {
+            "INFOS_GENERALES": {
+                "nom": "Mes Pronostics CDM 2026",
+                "export_le": new Date().toLocaleString()
+            },
+            "POULES": {},
+            "16EMES": {},
+            "8EMES": {},
+            "4EMES": {},
+            "DEMI_FINALES": {},
+            "PETITE_FINALE": {},
+            "FINALE": {},
+            "VAINQUEURS_MANUELS": {} // Pour stocker les winner_...
+        };
+
+        // 2. On range chaque clé au bon endroit
+        Object.keys(rawData).forEach(key => {
+            const val = rawData[key];
+            
+            if (key.startsWith('scoreA_') || key.startsWith('scoreB_')) {
+                structuredData["POULES"][key] = val;
+            } else if (key.includes('_16_')) {
+                structuredData["16EMES"][key] = val;
+            } else if (key.includes('_8_')) {
+                structuredData["8EMES"][key] = val;
+            } else if (key.includes('_4_')) {
+                structuredData["4EMES"][key] = val;
+            } else if (key.includes('_2_')) {
+                structuredData["DEMI_FINALES"][key] = val;
+            } else if (key.includes('_pf_')) {
+                structuredData["PETITE_FINALE"][key] = val;
+            } else if (key.includes('_f_')) {
+                structuredData["FINALE"][key] = val;
+            } else if (key.startsWith('winner_')) {
+                structuredData["VAINQUEURS_MANUELS"][key] = val;
+            }
+        });
+
+        // 3. Conversion en texte JSON bien espacé (4 espaces)
+        const dataString = JSON.stringify(structuredData, null, 4);
+
+        // 4. Création et téléchargement du fichier
+        const blob = new Blob([dataString], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `mes_pronos_cdm2026_organises.json`;
+        document.body.appendChild(a);
+        a.click();
+        
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    function importPronos() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        
+        input.onchange = e => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = event => {
+                try {
+                    const json = JSON.parse(event.target.result);
+                    Object.entries(json).forEach(([k, v]) => syncProno(k, v));
+                    alert("Pronostics importés avec succès !");
+                    location.reload(); // Recharge la page pour appliquer les scores
+                } catch (err) {
+                    alert("Erreur lors de la lecture du fichier.");
+                }
+            };
+            reader.readAsText(file);
+        };
+        
+        input.click();
+    }
+
+    // --- INITIALISATION AU CHARGEMENT DU DOM ---
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log("🚀 Initialisation de l'application...");
+
+        // 1. Gérer l'affichage de la barre de connexion (Bouton login/logout)
+        if (typeof initAuthUI === 'function') {
+            initAuthUI();
+        }
+
+        // 2. Nettoyer les données (doublons, etc.)
+        if (typeof nettoyerStorage === 'function') {
+            nettoyerStorage();
+        }
+
+        // 3. Vérification des données dans la console (Debug)
+        const keyData = getKey('mes_pronos_2026');
+        const data = localStorage.getItem(keyData);
+        if (!data) {
+            console.warn(`Aucune donnée trouvée pour la clé : ${keyData}`);
+        } else {
+            console.log(`Données chargées pour : ${keyData}`);
+        }
+        
+        // 4. Mise à jour de l'interface (scores saisis, totaux de l'utilisateur)
+        if (typeof updateAll === 'function') {
+            updateAll();
+        }
+
+        // 5. GESTION DU CLASSEMENT SELON L'ÉTAT
+        const etatActuel = getAppState();
+        const sectionClassement = document.getElementById('section-classement');
+
+        if (sectionClassement) {
+            sectionClassement.style.display = 'block'; // On affiche la section
+            if (typeof afficherClassement === 'function') {
+                afficherClassement(); // On génère le tableau           
+
+            } else {
+                console.log("⏳ État actuel : " + etatActuel + ". Le classement est masqué.");
+                sectionClassement.style.display = 'none';
+            }
+        }
+    });
+
+    
+
+</script>
+<nav class="side-nav">
+    <div class="nav-title">Navigation</div>
+    <a href="#zone-classements" class="nav-item">📊 Classements</a>
+    
+    <div class="nav-subtitle">Phases de Groupes</div>
+    <div class="nav-days">
+        <a href="#journee-1" class="day-link">J1</a>
+        <a href="#journee-2" class="day-link">J2</a>
+        <a href="#journee-3" class="day-link">J3</a>
+    </div>
+
+    <div class="nav-subtitle">Élimination</div>
+    <a href="#zone-16emes" class="nav-item">⚔️ 1/16es</a>
+    <a href="#zone-8emes" class="nav-item">🛡️ 1/8es</a>
+    <a href="#zone-4emes" class="nav-item">🏆 Quarts</a>
+    <a href="#zone-2emes" class="nav-item">🏟️ Demies</a>
+    <a href="#zone-1emes" class="nav-item">✨ Finale(s)</a>
+
+    <button onclick="toggleLuckyMenu()" id="lucky" style="display: block; width: 100%; padding: 15px; background: #222; color: var(--gold); border: 2px solid var(--gold); border-radius: 50px; font-weight: bold; cursor: pointer; margin: 15px 0; transition: 0.3s;">
+        🎲 J'AI DE LA CHANCE
+    </button>
+
+    <button onclick="toggleResetMenu()" class="btn-reset-main" style="background: #c0392b; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold;">
+        🗑️ Options d'effacement
+    </button>
+    
+    <hr style="border: 0; border-top: 1px solid #444; margin: 15px 0 5px 0;">
+    <a href="javascript:void(0)" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="nav-item nav-back-top" style="text-align: center;">🚀 Haut</a>
+</nav>
+<div id="modal-overlay" onclick="fermerLesMenus()" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9998; backdrop-filter: blur(3px);"></div>
+
+<div id="lucky-menu" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 320px; max-height: 85vh; background: #1a1a1a; border: 2px solid var(--gold); border-radius: 12px; padding: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.9); z-index: 9999; overflow-y: auto;">
+    
+    <div style="margin-bottom: 15px;">
+        <label style="color: #aaa; font-size: 0.8em; display: block; margin-bottom: 4px;">🎯 Profil de simulation :</label>
+        <select id="lucky-profil" style="width: 100%; padding: 8px; background: #333; color: white; border: 1px solid #555; border-radius: 4px; font-size: 0.9em;">
+            <option value="hasard">🎲 Hasard Total</option>
+            <option value="senateur">🏛️ Sénateur (Les favoris gagnent)</option>
+            <option value="kamikaze">🪂 Kamikaze (Que des surprises !)</option>
+            <option value="equilibre">⚖️ Équilibré (Cotes respectées)</option>
+        </select>
+    </div>
+    
+    <div style="height: 1px; background: #333; margin: 10px 0;"></div>
+
+    <button class="lucky-btn" onclick="simulationPartielle('J1'); fermerLesMenus();">🕒 Journée 1</button>
+    <button class="lucky-btn" onclick="simulationPartielle('J2'); fermerLesMenus();">🕒 Journée 2</button>
+    <button class="lucky-btn" onclick="simulationPartielle('J3'); fermerLesMenus();">🕒 Journée 3</button>
+    <button class="lucky-btn" onclick="simulationPartielle('POULES'); fermerLesMenus();">📊 Phase de Poules</button>
+    
+    <div style="height: 1px; background: #333; margin: 10px 0;"></div>
+    
+    <div class="sim-group" style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px; border-top: 1px solid #444; padding-top: 10px;">
+        <span style="font-size: 0.75rem; color: #888; text-transform: uppercase;">Simulation Rapide</span>
+        <button class="lucky-btn" onclick="simulationPartielle('16'); fermerLesMenus();">⚔️ 1/16èmes</button>
+        <button class="lucky-btn" onclick="simulationPartielle('8'); fermerLesMenus();">🛡️ 1/8èmes</button>
+        <button class="lucky-btn" onclick="simulationPartielle('4'); fermerLesMenus();">🏆 Quarts</button>
+        <button class="lucky-btn" onclick="simulationPartielle('2'); fermerLesMenus();">🏟️ Demies</button>
+        <button class="lucky-btn" onclick="simulationPartielle('FINALES'); fermerLesMenus();">✨ Finales (P & G)</button>
+        <button class="lucky-btn" style="background: linear-gradient(45deg, #b8860b, #ffd700); color: #000; font-weight: bold; margin-bottom: 12px;" 
+            onclick="simulationPartielle('TABLEAU_FINAL'); fermerLesMenus();">
+            🚀 Simuler TOUT le Tableau Final
+        </button>
+    </div>
+    
+    <button class="lucky-btn" style="background: #441111; color: #ff9999; margin-top: 15px;" onclick="if(confirm('Tout effacer ?')){localStorage.removeItem(getKey('mes_pronos_2026')); CACHE_PRONOS=null; location.reload();}">
+        🗑️ Réinitialiser tout
+    </button>
+
+    <hr style="border: 0; border-top: 1px solid #444; margin: 15px 0;">
+    
+    <button class="lucky-btn" style="background: rgba(212, 175, 55, 0.2); color: white; font-weight: bold; padding: 12px;" onclick="simulationPartielle('TOUT'); fermerLesMenus();">🔥 TOUT SIMULER</button>
+    
+    <button onclick="fermerLesMenus()" style="width: 100%; background: #333; color: #bbb; border: none; padding: 10px; border-radius: 6px; font-size: 0.8em; cursor: pointer; margin-top: 15px;">
+        ↩ Annuler & Fermer
+    </button>
+</div>
+
+<div id="reset-menu" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 320px; max-height: 85vh; background: #222; border: 2px solid #e74c3c; border-radius: 12px; padding: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.9); z-index: 9999; overflow-y: auto;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #444; padding-bottom: 10px;">
+        <span style="font-size: 0.9em; color: #e74c3c; font-weight: bold;">🗑️ CHOISIR LA ZONE</span>
+        <button onclick="fermerLesMenus()" style="background: none; border: none; color: #888; cursor: pointer; font-size: 1.5em; line-height: 1;">&times;</button>
+    </div>
+
+    <button class="reset-btn" onclick="effacerSpecifique('J1'); fermerLesMenus();">Journée 1</button>
+    <button class="reset-btn" onclick="effacerSpecifique('J2'); fermerLesMenus();">Journée 2</button>
+    <button class="reset-btn" onclick="effacerSpecifique('J3'); fermerLesMenus();">Journée 3</button>
+    <button class="reset-btn" onclick="effacerSpecifique('POULES'); fermerLesMenus();">Toutes les Poules</button>
+    
+    <hr style="border: 0; border-top: 1px solid #444; margin: 10px 0;">
+    
+    <button class="reset-btn" onclick="effacerSpecifique('16'); fermerLesMenus();">1/16èmes</button>
+    <button class="reset-btn" onclick="effacerSpecifique('8'); fermerLesMenus();">1/8èmes</button>
+    <button class="reset-btn" onclick="effacerSpecifique('4'); fermerLesMenus();">1/4 de finale</button>
+    <button class="reset-btn" onclick="effacerSpecifique('2'); fermerLesMenus();">1/2 finale</button>
+    <button class="reset-btn" onclick="effacerSpecifique('FINALES_ALL'); fermerLesMenus();">🏆 Finales (Petite & Grande)</button>
+    
+    <hr style="border: 0; border-top: 1px solid #444; margin: 10px 0;">
+    
+    <button class="reset-btn reset-btn-danger" style="background: #e74c3c; color: white; margin-bottom: 15px; padding: 12px; font-weight:bold; width:100%; border-radius:6px;" onclick="effacerSpecifique('TOUT'); fermerLesMenus();">TOUT EFFACER</button>
+
+    <button onclick="fermerLesMenus()" style="width: 100%; background: #333; color: #bbb; border: none; padding: 10px; border-radius: 6px; font-size: 0.8em; cursor: pointer;">
+        ↩ Retour
+    </button>
+</div>
+</body>
+</html>
