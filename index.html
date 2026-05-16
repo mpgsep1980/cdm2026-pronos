@@ -2697,9 +2697,16 @@
             // =========================================================
 
             // Points réels du joueur connecté
+            // Pas de calcul ni badge si personne n'est connecté
+            if (!CURRENT_USER) {
+                const b = document.getElementById('points-cumules');
+                if (b) b.remove();
+                return;
+            }
+
             const sessionPronos = getPronos();
             const sessionVerrou = JSON.parse(localStorage.getItem(getKey('mes_fantomes_verrouilles'))) || {};
-            const earned = calculerDetailsPoints(CURRENT_USER || '', sessionPronos, sessionVerrou);
+            const earned = calculerDetailsPoints(CURRENT_USER, sessionPronos, sessionVerrou);
             _earnedResult = earned;
 
             // Delta bracket : compare avec la valeur enregistrée à l'ouverture de session
