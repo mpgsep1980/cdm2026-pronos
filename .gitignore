@@ -1,4 +1,7 @@
-# Rien de spécifique pour un projet HTML/JS pur
-node_modules/
-.DS_Store
-Thumbs.db
+﻿mpp_credentials.json
+mpp_token.txt
+etat_scores.json
+debug_page.html
+mpp_raw.json
+__pycache__/
+*.pyc
