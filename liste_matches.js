@@ -1,902 +1,135 @@
+// liste_matches.js — Calendrier CDM 2026 + cotes intégrées
+// Généré par fetch_mpp.py — NE PAS ÉDITER MANUELLEMENT
+
 const CALENDRIER_CDM = [
-  {
-    "id": "686902",
-    "equipeA": "Mexique",
-    "equipeB": "Afrique du Sud",
-    "date": "1re journée - 11 jui.",
-    "heure": "21h00",
-    "groupe": "Groupe A",
-    "timestamp": "1112100"
-  },
-  {
-    "id": "686903",
-    "equipeA": "Corée du Sud",
-    "equipeB": "Bar. D (DAN-MCD-RTC-IRL)",
-    "date": "1re journée - 12 jui.",
-    "heure": "04h00",
-    "groupe": "Groupe A",
-    "timestamp": "1120400"
-  },
-  {
-    "id": "686908",
-    "equipeA": "Canada",
-    "equipeB": "Bar. A (ITA-ILN-GAL-BOS)",
-    "date": "1re journée - 12 jui.",
-    "heure": "21h00",
-    "groupe": "Groupe B",
-    "timestamp": "1122100"
-  },
-  {
-    "id": "686920",
-    "equipeA": "États-Unis",
-    "equipeB": "Paraguay",
-    "date": "1re journée - 13 jui.",
-    "heure": "03h00",
-    "groupe": "Groupe D",
-    "timestamp": "1130300"
-  },
-  {
-    "id": "686921",
-    "equipeA": "Australie",
-    "equipeB": "Bar. C (TUR-ROU-SLQ-KOS)",
-    "date": "1re journée - 13 jui.",
-    "heure": "06h00",
-    "groupe": "Groupe D",
-    "timestamp": "1130600"
-  },
-  {
-    "id": "686909",
-    "equipeA": "Qatar",
-    "equipeB": "Suisse",
-    "date": "1re journée - 13 jui.",
-    "heure": "21h00",
-    "groupe": "Groupe B",
-    "timestamp": "1132100"
-  },
-  {
-    "id": "686914",
-    "equipeA": "Brésil",
-    "equipeB": "Maroc",
-    "date": "1re journée - 14 jui.",
-    "heure": "00h00",
-    "groupe": "Groupe C",
-    "timestamp": "1140000"
-  },
-  {
-    "id": "686915",
-    "equipeA": "Haïti",
-    "equipeB": "Écosse",
-    "date": "1re journée - 14 jui.",
-    "heure": "03h00",
-    "groupe": "Groupe C",
-    "timestamp": "1140300"
-  },
-  {
-    "id": "686926",
-    "equipeA": "Allemagne",
-    "equipeB": "Curaçao",
-    "date": "1re journée - 14 jui.",
-    "heure": "19h00",
-    "groupe": "Groupe E",
-    "timestamp": "1141900"
-  },
-  {
-    "id": "686932",
-    "equipeA": "Pays-Bas",
-    "equipeB": "Japon",
-    "date": "1re journée - 14 jui.",
-    "heure": "22h00",
-    "groupe": "Groupe F",
-    "timestamp": "1142200"
-  },
-  {
-    "id": "686927",
-    "equipeA": "Côte d'Ivoire",
-    "equipeB": "Equateur",
-    "date": "1re journée - 15 jui.",
-    "heure": "01h00",
-    "groupe": "Groupe E",
-    "timestamp": "1150100"
-  },
-  {
-    "id": "686933",
-    "equipeA": "Bar. B (UKR-SUE-POL-ALB)",
-    "equipeB": "Tunisie",
-    "date": "1re journée - 15 jui.",
-    "heure": "04h00",
-    "groupe": "Groupe F",
-    "timestamp": "1150400"
-  },
-  {
-    "id": "686944",
-    "equipeA": "Espagne",
-    "equipeB": "Cap-Vert",
-    "date": "1re journée - 15 jui.",
-    "heure": "18h00",
-    "groupe": "Groupe H",
-    "timestamp": "1151800"
-  },
-  {
-    "id": "686939",
-    "equipeA": "Belgique",
-    "equipeB": "Égypte",
-    "date": "1re journée - 15 jui.",
-    "heure": "21h00",
-    "groupe": "Groupe G",
-    "timestamp": "1152100"
-  },
-  {
-    "id": "686945",
-    "equipeA": "Arabie Saoudite",
-    "equipeB": "Uruguay",
-    "date": "1re journée - 16 jui.",
-    "heure": "00h00",
-    "groupe": "Groupe H",
-    "timestamp": "1160000"
-  },
-  {
-    "id": "686938",
-    "equipeA": "Iran",
-    "equipeB": "Nouvelle-Zélande",
-    "date": "1re journée - 16 jui.",
-    "heure": "03h00",
-    "groupe": "Groupe G",
-    "timestamp": "1160300"
-  },
-  {
-    "id": "686951",
-    "equipeA": "France",
-    "equipeB": "Sénégal",
-    "date": "1re journée - 16 jui.",
-    "heure": "21h00",
-    "groupe": "Groupe I",
-    "timestamp": "1162100"
-  },
-  {
-    "id": "686950",
-    "equipeA": "Bar. Int. (IRK ou BOL-SUR)",
-    "equipeB": "Norvège",
-    "date": "1re journée - 17 jui.",
-    "heure": "00h00",
-    "groupe": "Groupe I",
-    "timestamp": "1170000"
-  },
-  {
-    "id": "686957",
-    "equipeA": "Argentine",
-    "equipeB": "Algérie",
-    "date": "1re journée - 17 jui.",
-    "heure": "03h00",
-    "groupe": "Groupe J",
-    "timestamp": "1170300"
-  },
-  {
-    "id": "686956",
-    "equipeA": "Autriche",
-    "equipeB": "Jordanie",
-    "date": "1re journée - 17 jui.",
-    "heure": "06h00",
-    "groupe": "Groupe J",
-    "timestamp": "1170600"
-  },
-  {
-    "id": "686962",
-    "equipeA": "Portugal",
-    "equipeB": "Bar. Int. (RDC ou NCA-JAM)",
-    "date": "1re journée - 17 jui.",
-    "heure": "19h00",
-    "groupe": "Groupe K",
-    "timestamp": "1171900"
-  },
-  {
-    "id": "686968",
-    "equipeA": "Angleterre",
-    "equipeB": "Croatie",
-    "date": "1re journée - 17 jui.",
-    "heure": "22h00",
-    "groupe": "Groupe L",
-    "timestamp": "1172200"
-  },
-  {
-    "id": "686969",
-    "equipeA": "Ghana",
-    "equipeB": "Panama",
-    "date": "1re journée - 18 jui.",
-    "heure": "01h00",
-    "groupe": "Groupe L",
-    "timestamp": "1180100"
-  },
-  {
-    "id": "686963",
-    "equipeA": "Ouzbékistan",
-    "equipeB": "Colombie",
-    "date": "1re journée - 18 jui.",
-    "heure": "04h00",
-    "groupe": "Groupe K",
-    "timestamp": "1180400"
-  },
-  {
-    "id": "686904",
-    "equipeA": "Bar. D (DAN-MCD-RTC-IRL)",
-    "equipeB": "Afrique du Sud",
-    "date": "2e journée - 18 jui.",
-    "heure": "18h00",
-    "groupe": "Groupe A",
-    "timestamp": "2181800"
-  },
-  {
-    "id": "686910",
-    "equipeA": "Suisse",
-    "equipeB": "Bar. A (ITA-ILN-GAL-BOS)",
-    "date": "2e journée - 18 jui.",
-    "heure": "21h00",
-    "groupe": "Groupe B",
-    "timestamp": "2182100"
-  },
-  {
-    "id": "686911",
-    "equipeA": "Canada",
-    "equipeB": "Qatar",
-    "date": "2e journée - 19 jui.",
-    "heure": "00h00",
-    "groupe": "Groupe B",
-    "timestamp": "2190000"
-  },
-  {
-    "id": "686905",
-    "equipeA": "Mexique",
-    "equipeB": "Corée du Sud",
-    "date": "2e journée - 19 jui.",
-    "heure": "03h00",
-    "groupe": "Groupe A",
-    "timestamp": "2190300"
-  },
-  {
-    "id": "686923",
-    "equipeA": "États-Unis",
-    "equipeB": "Australie",
-    "date": "2e journée - 19 jui.",
-    "heure": "21h00",
-    "groupe": "Groupe D",
-    "timestamp": "2192100"
-  },
-  {
-    "id": "686916",
-    "equipeA": "Écosse",
-    "equipeB": "Maroc",
-    "date": "2e journée - 20 jui.",
-    "heure": "00h00",
-    "groupe": "Groupe C",
-    "timestamp": "2200000"
-  },
-  {
-    "id": "686917",
-    "equipeA": "Brésil",
-    "equipeB": "Haïti",
-    "date": "2e journée - 20 jui.",
-    "heure": "03h00",
-    "groupe": "Groupe C",
-    "timestamp": "2200300"
-  },
-  {
-    "id": "686922",
-    "equipeA": "Bar. C (TUR-ROU-SLQ-KOS)",
-    "equipeB": "Paraguay",
-    "date": "2e journée - 20 jui.",
-    "heure": "06h00",
-    "groupe": "Groupe D",
-    "timestamp": "2200600"
-  },
-  {
-    "id": "686934",
-    "equipeA": "Pays-Bas",
-    "equipeB": "Bar. B (UKR-SUE-POL-ALB)",
-    "date": "2e journée - 20 jui.",
-    "heure": "19h00",
-    "groupe": "Groupe F",
-    "timestamp": "2201900"
-  },
-  {
-    "id": "686928",
-    "equipeA": "Allemagne",
-    "equipeB": "Côte d'Ivoire",
-    "date": "2e journée - 20 jui.",
-    "heure": "22h00",
-    "groupe": "Groupe E",
-    "timestamp": "2202200"
-  },
-  {
-    "id": "686929",
-    "equipeA": "Equateur",
-    "equipeB": "Curaçao",
-    "date": "2e journée - 21 jui.",
-    "heure": "02h00",
-    "groupe": "Groupe E",
-    "timestamp": "2210200"
-  },
-  {
-    "id": "686935",
-    "equipeA": "Tunisie",
-    "equipeB": "Japon",
-    "date": "2e journée - 21 jui.",
-    "heure": "06h00",
-    "groupe": "Groupe F",
-    "timestamp": "2210600"
-  },
-  {
-    "id": "686946",
-    "equipeA": "Espagne",
-    "equipeB": "Arabie Saoudite",
-    "date": "2e journée - 21 jui.",
-    "heure": "18h00",
-    "groupe": "Groupe H",
-    "timestamp": "2211800"
-  },
-  {
-    "id": "686940",
-    "equipeA": "Belgique",
-    "equipeB": "Iran",
-    "date": "2e journée - 21 jui.",
-    "heure": "21h00",
-    "groupe": "Groupe G",
-    "timestamp": "2212100"
-  },
-  {
-    "id": "686947",
-    "equipeA": "Uruguay",
-    "equipeB": "Cap-Vert",
-    "date": "2e journée - 22 jui.",
-    "heure": "00h00",
-    "groupe": "Groupe H",
-    "timestamp": "2220000"
-  },
-  {
-    "id": "686941",
-    "equipeA": "Nouvelle-Zélande",
-    "equipeB": "Égypte",
-    "date": "2e journée - 22 jui.",
-    "heure": "03h00",
-    "groupe": "Groupe G",
-    "timestamp": "2220300"
-  },
-  {
-    "id": "686958",
-    "equipeA": "Argentine",
-    "equipeB": "Autriche",
-    "date": "2e journée - 22 jui.",
-    "heure": "19h00",
-    "groupe": "Groupe J",
-    "timestamp": "2221900"
-  },
-  {
-    "id": "686952",
-    "equipeA": "France",
-    "equipeB": "Bar. Int. (IRK ou BOL-SUR)",
-    "date": "2e journée - 22 jui.",
-    "heure": "23h00",
-    "groupe": "Groupe I",
-    "timestamp": "2222300"
-  },
-  {
-    "id": "686953",
-    "equipeA": "Norvège",
-    "equipeB": "Sénégal",
-    "date": "2e journée - 23 jui.",
-    "heure": "02h00",
-    "groupe": "Groupe I",
-    "timestamp": "2230200"
-  },
-  {
-    "id": "686959",
-    "equipeA": "Jordanie",
-    "equipeB": "Algérie",
-    "date": "2e journée - 23 jui.",
-    "heure": "05h00",
-    "groupe": "Groupe J",
-    "timestamp": "2230500"
-  },
-  {
-    "id": "686964",
-    "equipeA": "Portugal",
-    "equipeB": "Ouzbékistan",
-    "date": "2e journée - 23 jui.",
-    "heure": "19h00",
-    "groupe": "Groupe K",
-    "timestamp": "2231900"
-  },
-  {
-    "id": "686970",
-    "equipeA": "Angleterre",
-    "equipeB": "Ghana",
-    "date": "2e journée - 23 jui.",
-    "heure": "22h00",
-    "groupe": "Groupe L",
-    "timestamp": "2232200"
-  },
-  {
-    "id": "686971",
-    "equipeA": "Panama",
-    "equipeB": "Croatie",
-    "date": "2e journée - 24 jui.",
-    "heure": "01h00",
-    "groupe": "Groupe L",
-    "timestamp": "2240100"
-  },
-  {
-    "id": "686965",
-    "equipeA": "Colombie",
-    "equipeB": "Bar. Int. (RDC ou NCA-JAM)",
-    "date": "2e journée - 24 jui.",
-    "heure": "04h00",
-    "groupe": "Groupe K",
-    "timestamp": "2240400"
-  },
-  {
-    "id": "686912",
-    "equipeA": "Suisse",
-    "equipeB": "Canada",
-    "date": "3e journée - 24 jui.",
-    "heure": "21h00",
-    "groupe": "Groupe B",
-    "timestamp": "3242100"
-  },
-  {
-    "id": "686913",
-    "equipeA": "Bar. A (ITA-ILN-GAL-BOS)",
-    "equipeB": "Qatar",
-    "date": "3e journée - 24 jui.",
-    "heure": "21h00",
-    "groupe": "Groupe B",
-    "timestamp": "3242100"
-  },
-  {
-    "id": "686918",
-    "equipeA": "Écosse",
-    "equipeB": "Brésil",
-    "date": "3e journée - 25 jui.",
-    "heure": "00h00",
-    "groupe": "Groupe C",
-    "timestamp": "3250000"
-  },
-  {
-    "id": "686919",
-    "equipeA": "Maroc",
-    "equipeB": "Haïti",
-    "date": "3e journée - 25 jui.",
-    "heure": "00h00",
-    "groupe": "Groupe C",
-    "timestamp": "3250000"
-  },
-  {
-    "id": "686906",
-    "equipeA": "Bar. D (DAN-MCD-RTC-IRL)",
-    "equipeB": "Mexique",
-    "date": "3e journée - 25 jui.",
-    "heure": "03h00",
-    "groupe": "Groupe A",
-    "timestamp": "3250300"
-  },
-  {
-    "id": "686907",
-    "equipeA": "Afrique du Sud",
-    "equipeB": "Corée du Sud",
-    "date": "3e journée - 25 jui.",
-    "heure": "03h00",
-    "groupe": "Groupe A",
-    "timestamp": "3250300"
-  },
-  {
-    "id": "686930",
-    "equipeA": "Equateur",
-    "equipeB": "Allemagne",
-    "date": "3e journée - 25 jui.",
-    "heure": "22h00",
-    "groupe": "Groupe E",
-    "timestamp": "3252200"
-  },
-  {
-    "id": "686931",
-    "equipeA": "Curaçao",
-    "equipeB": "Côte d'Ivoire",
-    "date": "3e journée - 25 jui.",
-    "heure": "22h00",
-    "groupe": "Groupe E",
-    "timestamp": "3252200"
-  },
-  {
-    "id": "686936",
-    "equipeA": "Japon",
-    "equipeB": "Bar. B (UKR-SUE-POL-ALB)",
-    "date": "3e journée - 26 jui.",
-    "heure": "01h00",
-    "groupe": "Groupe F",
-    "timestamp": "3260100"
-  },
-  {
-    "id": "686937",
-    "equipeA": "Tunisie",
-    "equipeB": "Pays-Bas",
-    "date": "3e journée - 26 jui.",
-    "heure": "01h00",
-    "groupe": "Groupe F",
-    "timestamp": "3260100"
-  },
-  {
-    "id": "686924",
-    "equipeA": "Bar. C (TUR-ROU-SLQ-KOS)",
-    "equipeB": "États-Unis",
-    "date": "3e journée - 26 jui.",
-    "heure": "04h00",
-    "groupe": "Groupe D",
-    "timestamp": "3260400"
-  },
-  {
-    "id": "686925",
-    "equipeA": "Paraguay",
-    "equipeB": "Australie",
-    "date": "3e journée - 26 jui.",
-    "heure": "04h00",
-    "groupe": "Groupe D",
-    "timestamp": "3260400"
-  },
-  {
-    "id": "686954",
-    "equipeA": "Norvège",
-    "equipeB": "France",
-    "date": "3e journée - 26 jui.",
-    "heure": "21h00",
-    "groupe": "Groupe I",
-    "timestamp": "3262100"
-  },
-  {
-    "id": "686955",
-    "equipeA": "Sénégal",
-    "equipeB": "Bar. Int. (IRK ou BOL-SUR)",
-    "date": "3e journée - 26 jui.",
-    "heure": "21h00",
-    "groupe": "Groupe I",
-    "timestamp": "3262100"
-  },
-  {
-    "id": "686948",
-    "equipeA": "Cap-Vert",
-    "equipeB": "Arabie Saoudite",
-    "date": "3e journée - 27 jui.",
-    "heure": "02h00",
-    "groupe": "Groupe H",
-    "timestamp": "3270200"
-  },
-  {
-    "id": "686949",
-    "equipeA": "Uruguay",
-    "equipeB": "Espagne",
-    "date": "3e journée - 27 jui.",
-    "heure": "02h00",
-    "groupe": "Groupe H",
-    "timestamp": "3270200"
-  },
-  {
-    "id": "686942",
-    "equipeA": "Égypte",
-    "equipeB": "Iran",
-    "date": "3e journée - 27 jui.",
-    "heure": "05h00",
-    "groupe": "Groupe G",
-    "timestamp": "3270500"
-  },
-  {
-    "id": "686943",
-    "equipeA": "Nouvelle-Zélande",
-    "equipeB": "Belgique",
-    "date": "3e journée - 27 jui.",
-    "heure": "05h00",
-    "groupe": "Groupe G",
-    "timestamp": "3270500"
-  },
-  {
-    "id": "686972",
-    "equipeA": "Panama",
-    "equipeB": "Angleterre",
-    "date": "3e journée - 27 jui.",
-    "heure": "23h00",
-    "groupe": "Groupe L",
-    "timestamp": "3272300"
-  },
-  {
-    "id": "686973",
-    "equipeA": "Croatie",
-    "equipeB": "Ghana",
-    "date": "3e journée - 27 jui.",
-    "heure": "23h00",
-    "groupe": "Groupe L",
-    "timestamp": "3272300"
-  },
-  {
-    "id": "686966",
-    "equipeA": "Colombie",
-    "equipeB": "Portugal",
-    "date": "3e journée - 28 jui.",
-    "heure": "01h30",
-    "groupe": "Groupe K",
-    "timestamp": "3280130"
-  },
-  {
-    "id": "686967",
-    "equipeA": "Bar. Int. (RDC ou NCA-JAM)",
-    "equipeB": "Ouzbékistan",
-    "date": "3e journée - 28 jui.",
-    "heure": "01h30",
-    "groupe": "Groupe K",
-    "timestamp": "3280130"
-  },
-  {
-    "id": "686960",
-    "equipeA": "Algérie",
-    "equipeB": "Autriche",
-    "date": "3e journée - 28 jui.",
-    "heure": "04h00",
-    "groupe": "Groupe J",
-    "timestamp": "3280400"
-  },
-  {
-    "id": "686961",
-    "equipeA": "Jordanie",
-    "equipeB": "Argentine",
-    "date": "3e journée - 28 jui.",
-    "heure": "04h00",
-    "groupe": "Groupe J",
-    "timestamp": "3280400"
-  },
-  {
-    "id": "687045",
-    "equipeA": "",
-    "equipeB": "",
-    "date": "Dimanche 28 juin",
-    "heure": "21h00",
-    "groupe": "1/16 de finale",
-    "timestamp": "6282100"
-  },
-  {
-    "id": "687046",
-    "equipeA": "",
-    "equipeB": "",
-    "date": "Lundi 29 juin",
-    "heure": "19h00",
-    "groupe": "1/16 de finale",
-    "timestamp": "6291900"
-  },
-  {
-    "id": "687047",
-    "equipeA": "",
-    "equipeB": "",
-    "date": "Lundi 29 juin",
-    "heure": "22h30",
-    "groupe": "1/16 de finale",
-    "timestamp": "6292230"
-  },
-  {
-    "id": "687048",
-    "equipeA": "",
-    "equipeB": "",
-    "date": "Mardi 30 juin",
-    "heure": "03h00",
-    "groupe": "1/16 de finale",
-    "timestamp": "6300300"
-  },
-  {
-    "id": "687049",
-    "equipeA": "",
-    "equipeB": "",
-    "date": "Mardi 30 juin",
-    "heure": "19h00",
-    "groupe": "1/16 de finale",
-    "timestamp": "6301900"
-  },
-  {
-    "id": "687050",
-    "equipeA": "",
-    "equipeB": "",
-    "date": "Mardi 30 juin",
-    "heure": "23h00",
-    "groupe": "1/16 de finale",
-    "timestamp": "6302300"
-  },
-  {
-    "id": "687051",
-    "equipeA": "",
-    "equipeB": "",
-    "date": "Mercredi 1er juillet",
-    "heure": "03h00",
-    "groupe": "1/16 de finale",
-    "timestamp": "7010300"
-  },
-  {
-    "id": "687052",
-    "equipeA": "",
-    "equipeB": "",
-    "date": "Mercredi 1er juillet",
-    "heure": "18h00",
-    "groupe": "1/16 de finale",
-    "timestamp": "7011800"
-  },
-  {
-    "id": "687053",
-    "equipeA": "",
-    "equipeB": "",
-    "date": "Mercredi 1er juillet",
-    "heure": "22h00",
-    "groupe": "1/16 de finale",
-    "timestamp": "7012200"
-  },
-  {
-    "id": "687054",
-    "equipeA": "",
-    "equipeB": "",
-    "date": "Jeudi 2 juillet",
-    "heure": "02h00",
-    "groupe": "1/16 de finale",
-    "timestamp": "7020200"
-  },
-  {
-    "id": "687055",
-    "equipeA": "",
-    "equipeB": "",
-    "date": "Jeudi 2 juillet",
-    "heure": "21h00",
-    "groupe": "1/16 de finale",
-    "timestamp": "7022100"
-  },
-  {
-    "id": "687056",
-    "equipeA": "",
-    "equipeB": "",
-    "date": "Vendredi 3 juillet",
-    "heure": "01h00",
-    "groupe": "1/16 de finale",
-    "timestamp": "7030100"
-  },
-  {
-    "id": "687057",
-    "equipeA": "",
-    "equipeB": "",
-    "date": "Vendredi 3 juillet",
-    "heure": "05h00",
-    "groupe": "1/16 de finale",
-    "timestamp": "7030500"
-  },
-  {
-    "id": "687058",
-    "equipeA": "",
-    "equipeB": "",
-    "date": "Vendredi 3 juillet",
-    "heure": "20h00",
-    "groupe": "1/16 de finale",
-    "timestamp": "7032000"
-  },
-  {
-    "id": "687059",
-    "equipeA": "",
-    "equipeB": "",
-    "date": "Samedi 4 juillet",
-    "heure": "00h00",
-    "groupe": "1/16 de finale",
-    "timestamp": "7040000"
-  },
-  {
-    "id": "687060",
-    "equipeA": "",
-    "equipeB": "",
-    "date": "Samedi 4 juillet",
-    "heure": "03h30",
-    "groupe": "1/16 de finale",
-    "timestamp": "7040330"
-  },
-  {
-    "id": "687061",
-    "equipeA": "",
-    "equipeB": "",
-    "date": "Mercredi 1er juillet",
-    "heure": "22h00",
-    "groupe": "1/16 de finale",
-    "timestamp": "7012200"
-  },
-  {
-    "id": "687062",
-    "equipeA": "",
-    "equipeB": "",
-    "date": "Jeudi 2 juillet",
-    "heure": "02h00",
-    "groupe": "1/16 de finale",
-    "timestamp": "7020200"
-  },
-  {
-    "id": "687063",
-    "equipeA": "",
-    "equipeB": "",
-    "date": "Jeudi 2 juillet",
-    "heure": "21h00",
-    "groupe": "1/16 de finale",
-    "timestamp": "7022100"
-  },
-  {
-    "id": "687064",
-    "equipeA": "",
-    "equipeB": "",
-    "date": "Vendredi 3 juillet",
-    "heure": "01h00",
-    "groupe": "1/16 de finale",
-    "timestamp": "7030100"
-  },
-  {
-    "id": "687065",
-    "equipeA": "",
-    "equipeB": "",
-    "date": "Vendredi 3 juillet",
-    "heure": "05h00",
-    "groupe": "1/16 de finale",
-    "timestamp": "7030500"
-  },
-  {
-    "id": "687066",
-    "equipeA": "",
-    "equipeB": "",
-    "date": "Vendredi 3 juillet",
-    "heure": "20h00",
-    "groupe": "1/16 de finale",
-    "timestamp": "7032000"
-  },
-  {
-    "id": "687067",
-    "equipeA": "",
-    "equipeB": "",
-    "date": "Samedi 4 juillet",
-    "heure": "00h00",
-    "groupe": "1/16 de finale",
-    "timestamp": "7040000"
-  },
-  {
-    "id": "687068",
-    "equipeA": "",
-    "equipeB": "",
-    "date": "Samedi 4 juillet",
-    "heure": "03h30",
-    "groupe": "1/16 de finale",
-    "timestamp": "7040330"
-  },
-  // --- 1/8es de finale ---
-  { "id": "687061", "equipeA": "", "equipeB": "", "date": "Samedi 4 juillet", "heure": "21h00", "groupe": "1/8 de finale", "timestamp": "7042100" },
-  { "id": "687062", "equipeA": "", "equipeB": "", "date": "Samedi 4 juillet", "heure": "18h00", "groupe": "1/8 de finale", "timestamp": "7041800" },
-  { "id": "687063", "equipeA": "", "equipeB": "", "date": "Dimanche 5 juillet", "heure": "21h00", "groupe": "1/8 de finale", "timestamp": "7052100" },
-  { "id": "687064", "equipeA": "", "equipeB": "", "date": "Lundi 6 juillet", "heure": "18h00", "groupe": "1/8 de finale", "timestamp": "7061800" },
-  { "id": "687065", "equipeA": "", "equipeB": "", "date": "Lundi 6 juillet", "heure": "21h00", "groupe": "1/8 de finale", "timestamp": "7062100" },
-  { "id": "687066", "equipeA": "", "equipeB": "", "date": "Mardi 7 juillet", "heure": "18h00", "groupe": "1/8 de finale", "timestamp": "7071800" },
-  { "id": "687067", "equipeA": "", "equipeB": "", "date": "Mardi 7 juillet", "heure": "21h00", "groupe": "1/8 de finale", "timestamp": "7072100" },
-  { "id": "687068", "equipeA": "", "equipeB": "", "date": "Mardi 7 juillet", "heure": "21h00", "groupe": "1/8 de finale", "timestamp": "7072100" },
-
-  // --- Quarts de finale ---
-  { "id": "687069", "equipeA": "", "equipeB": "", "date": "Jeudi 9 juillet", "heure": "21h00", "groupe": "1/4 de finale", "timestamp": "7092100" },
-  { "id": "687070", "equipeA": "", "equipeB": "", "date": "Vendredi 10 juillet", "heure": "21h00", "groupe": "1/4 de finale", "timestamp": "7102100" },
-  { "id": "687071", "equipeA": "", "equipeB": "", "date": "Samedi 11 juillet", "heure": "21h00", "groupe": "1/4 de finale", "timestamp": "7112100" },
-  { "id": "687072", "equipeA": "", "equipeB": "", "date": "Dimanche 12 juillet", "heure": "21h00", "groupe": "1/4 de finale", "timestamp": "7122100" },
-
-  // --- Demi-finales ---
-  { "id": "687073", "equipeA": "", "equipeB": "", "date": "Mardi 14 juillet", "heure": "21h00", "groupe": "Demi-finale", "timestamp": "7142100" },
-  { "id": "687074", "equipeA": "", "equipeB": "", "date": "Mercredi 15 juillet", "heure": "21h00", "groupe": "Demi-finale", "timestamp": "7152100" },
-
-  // --- Finales ---
-  { "id": "687075", "equipeA": "", "equipeB": "", "date": "Samedi 18 juillet", "heure": "21h00", "groupe": "Petite Finale", "timestamp": "7182100" },
-  { "id": "687076", "equipeA": "", "equipeB": "", "date": "Dimanche 19 juillet", "heure": "21h00", "groupe": "Finale", "timestamp": "7192100" }
+  {"id": "689422", "equipeA": "Mexique", "equipeB": "Afrique du Sud", "date": "1re journée - 11 jui.", "heure": "21h00", "groupe": "Groupe A", "timestamp": "16/05/2026 18:00:00", "details": {"domicile": {"label": "Mexique", "value": "49"}, "nul": {"label": "N", "value": "125"}, "exterieur": {"label": "Afrique du Sud", "value": "148"}}, "mpp": {"home": 83, "draw": 10, "away": 7, "total": 322}},
+  {"id": "677634", "equipeA": "Corée du Sud", "equipeB": "Rep. Tchèque", "date": "1re journée - 12 jui.", "heure": "04h00", "groupe": "Groupe A", "timestamp": "16/05/2026 19:00:00", "details": {"domicile": {"label": "Corée du Sud", "value": "96"}, "nul": {"label": "N", "value": "107"}, "exterieur": {"label": "Rep. Tchèque", "value": "91"}}, "mpp": {"home": 34, "draw": 45, "away": 21, "total": 294}},
+  {"id": "677633", "equipeA": "Canada", "equipeB": "Bosnie-H.", "date": "1re journée - 12 jui.", "heure": "21h00", "groupe": "Groupe B", "timestamp": "16/05/2026 21:30:00", "details": {"domicile": {"label": "Canada", "value": "65"}, "nul": {"label": "N", "value": "117"}, "exterieur": {"label": "Bosnie-H.", "value": "125"}}, "mpp": {"home": 60, "draw": 22, "away": 18, "total": 307}},
+  {"id": "686920", "equipeA": "États-Unis", "equipeB": "Paraguay", "date": "1re journée - 13 jui.", "heure": "03h00", "groupe": "Groupe D", "timestamp": "13/06/2026 03:00:00", "details": {"domicile": {"label": "États-Unis", "value": "74"}, "nul": {"label": "N", "value": "113"}, "exterieur": {"label": "Paraguay", "value": "115"}}, "mpp": {"home": 64, "draw": 21, "away": 15, "total": 302}},
+  {"id": "686921", "equipeA": "Australie", "equipeB": "Turquie", "date": "1re journée - 13 jui.", "heure": "06h00", "groupe": "Groupe D", "timestamp": "14/06/2026 06:00:00", "details": {"domicile": {"label": "Australie", "value": "126"}, "nul": {"label": "N", "value": "115"}, "exterieur": {"label": "Turquie", "value": "66"}}, "mpp": {"home": 9, "draw": 20, "away": 71, "total": 307}},
+  {"id": "686909", "equipeA": "Qatar", "equipeB": "Suisse", "date": "1re journée - 13 jui.", "heure": "21h00", "groupe": "Groupe B", "timestamp": "13/06/2026 21:00:00", "details": {"domicile": {"label": "Qatar", "value": "172"}, "nul": {"label": "N", "value": "141"}, "exterieur": {"label": "Suisse", "value": "33"}}, "mpp": {"home": 5, "draw": 6, "away": 89, "total": 346}},
+  {"id": "686914", "equipeA": "Brésil", "equipeB": "Maroc", "date": "1re journée - 14 jui.", "heure": "00h00", "groupe": "Groupe C", "timestamp": "14/06/2026 00:00:00", "details": {"domicile": {"label": "Brésil", "value": "55"}, "nul": {"label": "N", "value": "122"}, "exterieur": {"label": "Maroc", "value": "140"}}, "mpp": {"home": 49, "draw": 30, "away": 21, "total": 317}},
+  {"id": "686915", "equipeA": "Haïti", "equipeB": "Écosse", "date": "1re journée - 14 jui.", "heure": "03h00", "groupe": "Groupe C", "timestamp": "14/06/2026 03:00:00", "details": {"domicile": {"label": "Haïti", "value": "154"}, "nul": {"label": "N", "value": "131"}, "exterieur": {"label": "Écosse", "value": "44"}}, "mpp": {"home": 4, "draw": 8, "away": 89, "total": 329}},
+  {"id": "686926", "equipeA": "Allemagne", "equipeB": "Curaçao", "date": "1re journée - 14 jui.", "heure": "19h00", "groupe": "Groupe E", "timestamp": "14/06/2026 19:00:00", "details": {"domicile": {"label": "Allemagne", "value": "15"}, "nul": {"label": "N", "value": "179"}, "exterieur": {"label": "Curaçao", "value": "222"}}, "mpp": {"home": 97, "draw": 2, "away": 2, "total": 416}},
+  {"id": "686932", "equipeA": "Pays-Bas", "equipeB": "Japon", "date": "1re journée - 14 jui.", "heure": "22h00", "groupe": "Groupe F", "timestamp": "14/06/2026 22:00:00", "details": {"domicile": {"label": "Pays-Bas", "value": "74"}, "nul": {"label": "N", "value": "115"}, "exterieur": {"label": "Japon", "value": "113"}}, "mpp": {"home": 63, "draw": 23, "away": 13, "total": 302}},
+  {"id": "686927", "equipeA": "Côte d'Ivoire", "equipeB": "Equateur", "date": "1re journée - 15 jui.", "heure": "01h00", "groupe": "Groupe E", "timestamp": "15/06/2026 01:00:00", "details": {"domicile": {"label": "Côte d'Ivoire", "value": "108"}, "nul": {"label": "N", "value": "101"}, "exterieur": {"label": "Equateur", "value": "85"}}, "mpp": {"home": 36, "draw": 41, "away": 23, "total": 294}},
+  {"id": "686933", "equipeA": "Suède", "equipeB": "Tunisie", "date": "1re journée - 15 jui.", "heure": "04h00", "groupe": "Groupe F", "timestamp": "15/06/2026 04:00:00", "details": {"domicile": {"label": "Suède", "value": "72"}, "nul": {"label": "N", "value": "110"}, "exterieur": {"label": "Tunisie", "value": "122"}}, "mpp": {"home": 66, "draw": 24, "away": 10, "total": 304}},
+  {"id": "686944", "equipeA": "Espagne", "equipeB": "Cap-Vert", "date": "1re journée - 15 jui.", "heure": "18h00", "groupe": "Groupe H", "timestamp": "15/06/2026 18:00:00", "details": {"domicile": {"label": "Espagne", "value": "16"}, "nul": {"label": "N", "value": "166"}, "exterieur": {"label": "Cap-Vert", "value": "217"}}, "mpp": {"home": 97, "draw": 2, "away": 1, "total": 399}},
+  {"id": "686939", "equipeA": "Belgique", "equipeB": "Égypte", "date": "1re journée - 15 jui.", "heure": "21h00", "groupe": "Groupe G", "timestamp": "15/06/2026 21:00:00", "details": {"domicile": {"label": "Belgique", "value": "57"}, "nul": {"label": "N", "value": "122"}, "exterieur": {"label": "Égypte", "value": "135"}}, "mpp": {"home": 75, "draw": 17, "away": 7, "total": 314}},
+  {"id": "686945", "equipeA": "Arabie Saoudite", "equipeB": "Uruguay", "date": "1re journée - 16 jui.", "heure": "00h00", "groupe": "Groupe H", "timestamp": "16/06/2026 00:00:00", "details": {"domicile": {"label": "Arabie Saoudite", "value": "146"}, "nul": {"label": "N", "value": "125"}, "exterieur": {"label": "Uruguay", "value": "50"}}, "mpp": {"home": 8, "draw": 13, "away": 80, "total": 321}},
+  {"id": "686938", "equipeA": "Iran", "equipeB": "Nouvelle-Zélande", "date": "1re journée - 16 jui.", "heure": "03h00", "groupe": "Groupe G", "timestamp": "16/06/2026 03:00:00", "details": {"domicile": {"label": "Iran", "value": "63"}, "nul": {"label": "N", "value": "116"}, "exterieur": {"label": "Nouvelle-Zélande", "value": "130"}}, "mpp": {"home": 42, "draw": 38, "away": 20, "total": 309}},
+  {"id": "686951", "equipeA": "France", "equipeB": "Sénégal", "date": "1re journée - 16 jui.", "heure": "21h00", "groupe": "Groupe I", "timestamp": "16/06/2026 21:00:00", "details": {"domicile": {"label": "France", "value": "46"}, "nul": {"label": "N", "value": "128"}, "exterieur": {"label": "Sénégal", "value": "153"}}, "mpp": {"home": 92, "draw": 6, "away": 2, "total": 327}},
+  {"id": "686950", "equipeA": "Irak", "equipeB": "Norvège", "date": "1re journée - 17 jui.", "heure": "00h00", "groupe": "Groupe I", "timestamp": "17/06/2026 00:00:00", "details": {"domicile": {"label": "Irak", "value": "178"}, "nul": {"label": "N", "value": "144"}, "exterieur": {"label": "Norvège", "value": "30"}}, "mpp": {"home": 3, "draw": 4, "away": 94, "total": 352}},
+  {"id": "686957", "equipeA": "Argentine", "equipeB": "Algérie", "date": "1re journée - 17 jui.", "heure": "03h00", "groupe": "Groupe J", "timestamp": "17/06/2026 03:00:00", "details": {"domicile": {"label": "Argentine", "value": "43"}, "nul": {"label": "N", "value": "129"}, "exterieur": {"label": "Algérie", "value": "159"}}, "mpp": {"home": 82, "draw": 12, "away": 6, "total": 331}},
+  {"id": "686956", "equipeA": "Autriche", "equipeB": "Jordanie", "date": "1re journée - 17 jui.", "heure": "06h00", "groupe": "Groupe J", "timestamp": "17/06/2026 06:00:00", "details": {"domicile": {"label": "Autriche", "value": "38"}, "nul": {"label": "N", "value": "136"}, "exterieur": {"label": "Jordanie", "value": "163"}}, "mpp": {"home": 87, "draw": 10, "away": 3, "total": 337}},
+  {"id": "686962", "equipeA": "Portugal", "equipeB": "RD Congo", "date": "1re journée - 17 jui.", "heure": "19h00", "groupe": "Groupe K", "timestamp": "17/06/2026 19:00:00", "details": {"domicile": {"label": "Portugal", "value": "34"}, "nul": {"label": "N", "value": "140"}, "exterieur": {"label": "RD Congo", "value": "170"}}, "mpp": {"home": 95, "draw": 4, "away": 1, "total": 344}},
+  {"id": "686968", "equipeA": "Angleterre", "equipeB": "Croatie", "date": "1re journée - 17 jui.", "heure": "22h00", "groupe": "Groupe L", "timestamp": "17/06/2026 22:00:00", "details": {"domicile": {"label": "Angleterre", "value": "59"}, "nul": {"label": "N", "value": "119"}, "exterieur": {"label": "Croatie", "value": "133"}}, "mpp": {"home": 61, "draw": 31, "away": 8, "total": 311}},
+  {"id": "686969", "equipeA": "Ghana", "equipeB": "Panama", "date": "1re journée - 18 jui.", "heure": "01h00", "groupe": "Groupe L", "timestamp": "18/06/2026 01:00:00", "details": {"domicile": {"label": "Ghana", "value": "73"}, "nul": {"label": "N", "value": "113"}, "exterieur": {"label": "Panama", "value": "116"}}, "mpp": {"home": 67, "draw": 27, "away": 6, "total": 302}},
+  {"id": "686963", "equipeA": "Ouzbékistan", "equipeB": "Colombie", "date": "1re journée - 18 jui.", "heure": "04h00", "groupe": "Groupe K", "timestamp": "18/06/2026 04:00:00", "details": {"domicile": {"label": "Ouzbékistan", "value": "157"}, "nul": {"label": "N", "value": "130"}, "exterieur": {"label": "Colombie", "value": "44"}}, "mpp": {"home": 4, "draw": 6, "away": 90, "total": 331}},
+  {"id": "686904", "equipeA": "Rep. Tchèque", "equipeB": "Afrique du Sud", "date": "2e journée - 18 jui.", "heure": "18h00", "groupe": "Groupe A", "timestamp": "18/06/2026 18:00:00", "details": {"domicile": {"label": "Rep. Tchèque", "value": "62"}, "nul": {"label": "N", "value": "112"}, "exterieur": {"label": "Afrique du Sud", "value": "142"}}, "mpp": {"home": 63, "draw": 23, "away": 14, "total": 316}},
+  {"id": "686910", "equipeA": "Suisse", "equipeB": "Bosnie-H.", "date": "2e journée - 18 jui.", "heure": "21h00", "groupe": "Groupe B", "timestamp": "18/06/2026 21:00:00", "details": {"domicile": {"label": "Suisse", "value": "76"}, "nul": {"label": "N", "value": "108"}, "exterieur": {"label": "Bosnie-H.", "value": "134"}}, "mpp": {"home": 78, "draw": 17, "away": 5, "total": 318}},
+  {"id": "686911", "equipeA": "Canada", "equipeB": "Qatar", "date": "2e journée - 19 jui.", "heure": "00h00", "groupe": "Groupe B", "timestamp": "19/06/2026 00:00:00", "details": {"domicile": {"label": "Canada", "value": "71"}, "nul": {"label": "N", "value": "104"}, "exterieur": {"label": "Qatar", "value": "148"}}, "mpp": {"home": 84, "draw": 12, "away": 5, "total": 323}},
+  {"id": "686905", "equipeA": "Mexique", "equipeB": "Corée du Sud", "date": "2e journée - 19 jui.", "heure": "03h00", "groupe": "Groupe A", "timestamp": "19/06/2026 03:00:00", "details": {"domicile": {"label": "Mexique", "value": "69"}, "nul": {"label": "N", "value": "117"}, "exterieur": {"label": "Corée du Sud", "value": "129"}}, "mpp": {"home": 61, "draw": 26, "away": 13, "total": 315}},
+  {"id": "686923", "equipeA": "États-Unis", "equipeB": "Australie", "date": "2e journée - 19 jui.", "heure": "21h00", "groupe": "Groupe D", "timestamp": "19/06/2026 21:00:00", "details": {"domicile": {"label": "États-Unis", "value": "58"}, "nul": {"label": "N", "value": "119"}, "exterieur": {"label": "Australie", "value": "153"}}, "mpp": {"home": 70, "draw": 21, "away": 9, "total": 330}},
+  {"id": "686916", "equipeA": "Écosse", "equipeB": "Maroc", "date": "2e journée - 20 jui.", "heure": "00h00", "groupe": "Groupe C", "timestamp": "20/06/2026 00:00:00", "details": {"domicile": {"label": "Écosse", "value": "99"}, "nul": {"label": "N", "value": "112"}, "exterieur": {"label": "Maroc", "value": "91"}}, "mpp": {"home": 6, "draw": 22, "away": 72, "total": 302}},
+  {"id": "686917", "equipeA": "Brésil", "equipeB": "Haïti", "date": "2e journée - 20 jui.", "heure": "03h00", "groupe": "Groupe C", "timestamp": "20/06/2026 03:00:00", "details": {"domicile": {"label": "Brésil", "value": "21"}, "nul": {"label": "N", "value": "167"}, "exterieur": {"label": "Haïti", "value": "198"}}, "mpp": {"home": 97, "draw": 2, "away": 1, "total": 386}},
+  {"id": "686922", "equipeA": "Turquie", "equipeB": "Paraguay", "date": "2e journée - 20 jui.", "heure": "06h00", "groupe": "Groupe D", "timestamp": "20/06/2026 06:00:00", "details": {"domicile": {"label": "Turquie", "value": "84"}, "nul": {"label": "N", "value": "113"}, "exterieur": {"label": "Paraguay", "value": "126"}}, "mpp": {"home": 67, "draw": 23, "away": 10, "total": 323}},
+  {"id": "686934", "equipeA": "Pays-Bas", "equipeB": "Suède", "date": "2e journée - 20 jui.", "heure": "19h00", "groupe": "Groupe F", "timestamp": "20/06/2026 19:00:00", "details": {"domicile": {"label": "Pays-Bas", "value": "67"}, "nul": {"label": "N", "value": "122"}, "exterieur": {"label": "Suède", "value": "131"}}, "mpp": {"home": 68, "draw": 25, "away": 7, "total": 320}},
+  {"id": "686928", "equipeA": "Allemagne", "equipeB": "Côte d'Ivoire", "date": "2e journée - 20 jui.", "heure": "22h00", "groupe": "Groupe E", "timestamp": "20/06/2026 22:00:00", "details": {"domicile": {"label": "Allemagne", "value": "38"}, "nul": {"label": "N", "value": "137"}, "exterieur": {"label": "Côte d'Ivoire", "value": "164"}}, "mpp": {"home": 86, "draw": 9, "away": 4, "total": 339}},
+  {"id": "686929", "equipeA": "Equateur", "equipeB": "Curaçao", "date": "2e journée - 21 jui.", "heure": "02h00", "groupe": "Groupe E", "timestamp": "21/06/2026 02:00:00", "details": {"domicile": {"label": "Equateur", "value": "41"}, "nul": {"label": "N", "value": "143"}, "exterieur": {"label": "Curaçao", "value": "168"}}, "mpp": {"home": 87, "draw": 9, "away": 3, "total": 352}},
+  {"id": "686935", "equipeA": "Tunisie", "equipeB": "Japon", "date": "2e journée - 21 jui.", "heure": "06h00", "groupe": "Groupe F", "timestamp": "21/06/2026 06:00:00", "details": {"domicile": {"label": "Tunisie", "value": "118"}, "nul": {"label": "N", "value": "103"}, "exterieur": {"label": "Japon", "value": "91"}}, "mpp": {"home": 15, "draw": 24, "away": 61, "total": 312}},
+  {"id": "686946", "equipeA": "Espagne", "equipeB": "Arabie Saoudite", "date": "2e journée - 21 jui.", "heure": "18h00", "groupe": "Groupe H", "timestamp": "21/06/2026 18:00:00", "details": {"domicile": {"label": "Espagne", "value": "31"}, "nul": {"label": "N", "value": "139"}, "exterieur": {"label": "Arabie Saoudite", "value": "176"}}, "mpp": {"home": 97, "draw": 2, "away": 1, "total": 346}},
+  {"id": "686940", "equipeA": "Belgique", "equipeB": "Iran", "date": "2e journée - 21 jui.", "heure": "21h00", "groupe": "Groupe G", "timestamp": "21/06/2026 21:00:00", "details": {"domicile": {"label": "Belgique", "value": "39"}, "nul": {"label": "N", "value": "138"}, "exterieur": {"label": "Iran", "value": "171"}}, "mpp": {"home": 94, "draw": 4, "away": 2, "total": 348}},
+  {"id": "686947", "equipeA": "Uruguay", "equipeB": "Cap-Vert", "date": "2e journée - 22 jui.", "heure": "00h00", "groupe": "Groupe H", "timestamp": "22/06/2026 00:00:00", "details": {"domicile": {"label": "Uruguay", "value": "72"}, "nul": {"label": "N", "value": "109"}, "exterieur": {"label": "Cap-Vert", "value": "137"}}, "mpp": {"home": 90, "draw": 8, "away": 3, "total": 318}},
+  {"id": "686941", "equipeA": "Nouvelle-Zélande", "equipeB": "Égypte", "date": "2e journée - 22 jui.", "heure": "03h00", "groupe": "Groupe G", "timestamp": "22/06/2026 03:00:00", "details": {"domicile": {"label": "Nouvelle-Zélande", "value": "148"}, "nul": {"label": "N", "value": "116"}, "exterieur": {"label": "Égypte", "value": "59"}}, "mpp": {"home": 8, "draw": 14, "away": 78, "total": 323}},
+  {"id": "686958", "equipeA": "Argentine", "equipeB": "Autriche", "date": "2e journée - 22 jui.", "heure": "19h00", "groupe": "Groupe J", "timestamp": "22/06/2026 19:00:00", "details": {"domicile": {"label": "Argentine", "value": "63"}, "nul": {"label": "N", "value": "105"}, "exterieur": {"label": "Autriche", "value": "132"}}, "mpp": {"home": 84, "draw": 11, "away": 4, "total": 300}},
+  {"id": "686952", "equipeA": "France", "equipeB": "Irak", "date": "2e journée - 22 jui.", "heure": "23h00", "groupe": "Groupe I", "timestamp": "22/06/2026 23:00:00", "details": {"domicile": {"label": "France", "value": "22"}, "nul": {"label": "N", "value": "166"}, "exterieur": {"label": "Irak", "value": "189"}}, "mpp": {"home": 99, "draw": 1, "away": 0, "total": 377}},
+  {"id": "686953", "equipeA": "Norvège", "equipeB": "Sénégal", "date": "2e journée - 23 jui.", "heure": "02h00", "groupe": "Groupe I", "timestamp": "23/06/2026 02:00:00", "details": {"domicile": {"label": "Norvège", "value": "64"}, "nul": {"label": "N", "value": "105"}, "exterieur": {"label": "Sénégal", "value": "137"}}, "mpp": {"home": 43, "draw": 34, "away": 22, "total": 306}},
+  {"id": "686959", "equipeA": "Jordanie", "equipeB": "Algérie", "date": "2e journée - 23 jui.", "heure": "05h00", "groupe": "Groupe J", "timestamp": "23/06/2026 05:00:00", "details": {"domicile": {"label": "Jordanie", "value": "152"}, "nul": {"label": "N", "value": "139"}, "exterieur": {"label": "Algérie", "value": "67"}}, "mpp": {"home": 4, "draw": 9, "away": 86, "total": 358}},
+  {"id": "686964", "equipeA": "Portugal", "equipeB": "Ouzbékistan", "date": "2e journée - 23 jui.", "heure": "19h00", "groupe": "Groupe K", "timestamp": "23/06/2026 19:00:00", "details": {"domicile": {"label": "Portugal", "value": "24"}, "nul": {"label": "N", "value": "154"}, "exterieur": {"label": "Ouzbékistan", "value": "173"}}, "mpp": {"home": 97, "draw": 2, "away": 1, "total": 351}},
+  {"id": "686970", "equipeA": "Angleterre", "equipeB": "Ghana", "date": "2e journée - 23 jui.", "heure": "22h00", "groupe": "Groupe L", "timestamp": "23/06/2026 22:00:00", "details": {"domicile": {"label": "Angleterre", "value": "44"}, "nul": {"label": "N", "value": "127"}, "exterieur": {"label": "Ghana", "value": "162"}}, "mpp": {"home": 90, "draw": 7, "away": 2, "total": 333}},
+  {"id": "686971", "equipeA": "Panama", "equipeB": "Croatie", "date": "2e journée - 24 jui.", "heure": "01h00", "groupe": "Groupe L", "timestamp": "24/06/2026 01:00:00", "details": {"domicile": {"label": "Panama", "value": "165"}, "nul": {"label": "N", "value": "123"}, "exterieur": {"label": "Croatie", "value": "36"}}, "mpp": {"home": 3, "draw": 5, "away": 92, "total": 324}},
+  {"id": "686965", "equipeA": "Colombie", "equipeB": "RD Congo", "date": "2e journée - 24 jui.", "heure": "04h00", "groupe": "Groupe K", "timestamp": "24/06/2026 04:00:00", "details": {"domicile": {"label": "Colombie", "value": "77"}, "nul": {"label": "N", "value": "111"}, "exterieur": {"label": "RD Congo", "value": "123"}}, "mpp": {"home": 71, "draw": 21, "away": 8, "total": 311}},
+  {"id": "686912", "equipeA": "Suisse", "equipeB": "Canada", "date": "3e journée - 24 jui.", "heure": "21h00", "groupe": "Groupe B", "timestamp": "24/06/2026 21:00:00", "details": {"domicile": {"label": "Suisse", "value": "87"}, "nul": {"label": "N", "value": "102"}, "exterieur": {"label": "Canada", "value": "120"}}, "mpp": {"home": 64, "draw": 25, "away": 10, "total": 309}},
+  {"id": "686913", "equipeA": "Bosnie-H.", "equipeB": "Qatar", "date": "3e journée - 24 jui.", "heure": "21h00", "groupe": "Groupe B", "timestamp": "24/06/2026 21:00:00", "details": {"domicile": {"label": "Bosnie-H.", "value": "68"}, "nul": {"label": "N", "value": "106"}, "exterieur": {"label": "Qatar", "value": "129"}}, "mpp": {"home": 60, "draw": 30, "away": 10, "total": 303}},
+  {"id": "686918", "equipeA": "Écosse", "equipeB": "Brésil", "date": "3e journée - 25 jui.", "heure": "00h00", "groupe": "Groupe C", "timestamp": "25/06/2026 00:00:00", "details": {"domicile": {"label": "Écosse", "value": "29"}, "nul": {"label": "N", "value": "159"}, "exterieur": {"label": "Brésil", "value": "187"}}, "mpp": {"home": 96, "draw": 2, "away": 2, "total": 375}},
+  {"id": "686919", "equipeA": "Maroc", "equipeB": "Haïti", "date": "3e journée - 25 jui.", "heure": "00h00", "groupe": "Groupe C", "timestamp": "25/06/2026 00:00:00", "details": {"domicile": {"label": "Maroc", "value": "145"}, "nul": {"label": "N", "value": "124"}, "exterieur": {"label": "Haïti", "value": "48"}}, "mpp": {"home": 5, "draw": 9, "away": 86, "total": 317}},
+  {"id": "686906", "equipeA": "Rep. Tchèque", "equipeB": "Mexique", "date": "3e journée - 25 jui.", "heure": "03h00", "groupe": "Groupe A", "timestamp": "25/06/2026 03:00:00", "details": {"domicile": {"label": "Rep. Tchèque", "value": "109"}, "nul": {"label": "N", "value": "99"}, "exterieur": {"label": "Mexique", "value": "91"}}, "mpp": {"home": 13, "draw": 37, "away": 49, "total": 299}},
+  {"id": "686907", "equipeA": "Afrique du Sud", "equipeB": "Corée du Sud", "date": "3e journée - 25 jui.", "heure": "03h00", "groupe": "Groupe A", "timestamp": "25/06/2026 03:00:00", "details": {"domicile": {"label": "Afrique du Sud", "value": "117"}, "nul": {"label": "N", "value": "103"}, "exterieur": {"label": "Corée du Sud", "value": "87"}}, "mpp": {"home": 16, "draw": 28, "away": 56, "total": 307}},
+  {"id": "686930", "equipeA": "Equateur", "equipeB": "Allemagne", "date": "3e journée - 25 jui.", "heure": "22h00", "groupe": "Groupe E", "timestamp": "25/06/2026 22:00:00", "details": {"domicile": {"label": "Equateur", "value": "163"}, "nul": {"label": "N", "value": "118"}, "exterieur": {"label": "Allemagne", "value": "53"}}, "mpp": {"home": 3, "draw": 7, "away": 90, "total": 334}},
+  {"id": "686931", "equipeA": "Curaçao", "equipeB": "Côte d'Ivoire", "date": "3e journée - 25 jui.", "heure": "22h00", "groupe": "Groupe E", "timestamp": "25/06/2026 22:00:00", "details": {"domicile": {"label": "Curaçao", "value": "145"}, "nul": {"label": "N", "value": "129"}, "exterieur": {"label": "Côte d'Ivoire", "value": "42"}}, "mpp": {"home": 4, "draw": 13, "away": 83, "total": 316}},
+  {"id": "686936", "equipeA": "Japon", "equipeB": "Suède", "date": "3e journée - 26 jui.", "heure": "01h00", "groupe": "Groupe F", "timestamp": "26/06/2026 01:00:00", "details": {"domicile": {"label": "Japon", "value": "96"}, "nul": {"label": "N", "value": "108"}, "exterieur": {"label": "Suède", "value": "111"}}, "mpp": {"home": 38, "draw": 40, "away": 22, "total": 315}},
+  {"id": "686937", "equipeA": "Tunisie", "equipeB": "Pays-Bas", "date": "3e journée - 26 jui.", "heure": "01h00", "groupe": "Groupe F", "timestamp": "26/06/2026 01:00:00", "details": {"domicile": {"label": "Tunisie", "value": "131"}, "nul": {"label": "N", "value": "123"}, "exterieur": {"label": "Pays-Bas", "value": "56"}}, "mpp": {"home": 5, "draw": 11, "away": 84, "total": 310}},
+  {"id": "686924", "equipeA": "Turquie", "equipeB": "États-Unis", "date": "3e journée - 26 jui.", "heure": "04h00", "groupe": "Groupe D", "timestamp": "26/06/2026 04:00:00", "details": {"domicile": {"label": "Turquie", "value": "74"}, "nul": {"label": "N", "value": "104"}, "exterieur": {"label": "États-Unis", "value": "131"}}, "mpp": {"home": 53, "draw": 30, "away": 17, "total": 309}},
+  {"id": "686925", "equipeA": "Paraguay", "equipeB": "Australie", "date": "3e journée - 26 jui.", "heure": "04h00", "groupe": "Groupe D", "timestamp": "26/06/2026 04:00:00", "details": {"domicile": {"label": "Paraguay", "value": "109"}, "nul": {"label": "N", "value": "102"}, "exterieur": {"label": "Australie", "value": "93"}}, "mpp": {"home": 43, "draw": 31, "away": 26, "total": 304}},
+  {"id": "686954", "equipeA": "Norvège", "equipeB": "France", "date": "3e journée - 26 jui.", "heure": "21h00", "groupe": "Groupe I", "timestamp": "26/06/2026 21:00:00", "details": {"domicile": {"label": "Norvège", "value": "141"}, "nul": {"label": "N", "value": "108"}, "exterieur": {"label": "France", "value": "68"}}, "mpp": {"home": 5, "draw": 18, "away": 77, "total": 317}},
+  {"id": "686955", "equipeA": "Sénégal", "equipeB": "Irak", "date": "3e journée - 26 jui.", "heure": "21h00", "groupe": "Groupe I", "timestamp": "26/06/2026 21:00:00", "details": {"domicile": {"label": "Sénégal", "value": "54"}, "nul": {"label": "N", "value": "115"}, "exterieur": {"label": "Irak", "value": "149"}}, "mpp": {"home": 93, "draw": 5, "away": 2, "total": 318}},
+  {"id": "686948", "equipeA": "Cap-Vert", "equipeB": "Arabie Saoudite", "date": "3e journée - 27 jui.", "heure": "02h00", "groupe": "Groupe H", "timestamp": "27/06/2026 02:00:00", "details": {"domicile": {"label": "Cap-Vert", "value": "99"}, "nul": {"label": "N", "value": "123"}, "exterieur": {"label": "Arabie Saoudite", "value": "94"}}, "mpp": {"home": 15, "draw": 49, "away": 36, "total": 316}},
+  {"id": "686949", "equipeA": "Uruguay", "equipeB": "Espagne", "date": "3e journée - 27 jui.", "heure": "02h00", "groupe": "Groupe H", "timestamp": "27/06/2026 02:00:00", "details": {"domicile": {"label": "Uruguay", "value": "143"}, "nul": {"label": "N", "value": "112"}, "exterieur": {"label": "Espagne", "value": "57"}}, "mpp": {"home": 4, "draw": 13, "away": 84, "total": 312}},
+  {"id": "686942", "equipeA": "Égypte", "equipeB": "Iran", "date": "3e journée - 27 jui.", "heure": "05h00", "groupe": "Groupe G", "timestamp": "27/06/2026 05:00:00", "details": {"domicile": {"label": "Égypte", "value": "85"}, "nul": {"label": "N", "value": "114"}, "exterieur": {"label": "Iran", "value": "123"}}, "mpp": {"home": 75, "draw": 20, "away": 5, "total": 322}},
+  {"id": "686943", "equipeA": "Nouvelle-Zélande", "equipeB": "Belgique", "date": "3e journée - 27 jui.", "heure": "05h00", "groupe": "Groupe G", "timestamp": "27/06/2026 05:00:00", "details": {"domicile": {"label": "Nouvelle-Zélande", "value": "172"}, "nul": {"label": "N", "value": "129"}, "exterieur": {"label": "Belgique", "value": "32"}}, "mpp": {"home": 3, "draw": 5, "away": 92, "total": 333}},
+  {"id": "686972", "equipeA": "Panama", "equipeB": "Angleterre", "date": "3e journée - 27 jui.", "heure": "23h00", "groupe": "Groupe L", "timestamp": "27/06/2026 23:00:00", "details": {"domicile": {"label": "Panama", "value": "57"}, "nul": {"label": "N", "value": "120"}, "exterieur": {"label": "Angleterre", "value": "138"}}, "mpp": {"home": 76, "draw": 18, "away": 6, "total": 315}},
+  {"id": "686973", "equipeA": "Croatie", "equipeB": "Ghana", "date": "3e journée - 27 jui.", "heure": "23h00", "groupe": "Groupe L", "timestamp": "27/06/2026 23:00:00", "details": {"domicile": {"label": "Croatie", "value": "168"}, "nul": {"label": "N", "value": "137"}, "exterieur": {"label": "Ghana", "value": "32"}}, "mpp": {"home": 1, "draw": 3, "away": 96, "total": 337}},
+  {"id": "686966", "equipeA": "Colombie", "equipeB": "Portugal", "date": "3e journée - 28 jui.", "heure": "01h30", "groupe": "Groupe K", "timestamp": "28/06/2026 01:30:00", "details": {"domicile": {"label": "Colombie", "value": "154"}, "nul": {"label": "N", "value": "102"}, "exterieur": {"label": "Portugal", "value": "55"}}, "mpp": {"home": 5, "draw": 18, "away": 77, "total": 311}},
+  {"id": "686967", "equipeA": "RD Congo", "equipeB": "Ouzbékistan", "date": "3e journée - 28 jui.", "heure": "01h30", "groupe": "Groupe K", "timestamp": "28/06/2026 01:30:00", "details": {"domicile": {"label": "RD Congo", "value": "63"}, "nul": {"label": "N", "value": "107"}, "exterieur": {"label": "Ouzbékistan", "value": "158"}}, "mpp": {"home": 72, "draw": 21, "away": 7, "total": 328}},
+  {"id": "686960", "equipeA": "Algérie", "equipeB": "Autriche", "date": "3e journée - 28 jui.", "heure": "04h00", "groupe": "Groupe J", "timestamp": "28/06/2026 04:00:00", "details": {"domicile": {"label": "Algérie", "value": "96"}, "nul": {"label": "N", "value": "103"}, "exterieur": {"label": "Autriche", "value": "107"}}, "mpp": {"home": 42, "draw": 35, "away": 23, "total": 306}},
+  {"id": "686961", "equipeA": "Jordanie", "equipeB": "Argentine", "date": "3e journée - 28 jui.", "heure": "04h00", "groupe": "Groupe J", "timestamp": "28/06/2026 04:00:00", "details": {"domicile": {"label": "Jordanie", "value": "165"}, "nul": {"label": "N", "value": "145"}, "exterieur": {"label": "Argentine", "value": "32"}}, "mpp": {"home": 2, "draw": 3, "away": 95, "total": 342}},
+  {"id": "687045", "equipeA": "", "equipeB": "", "date": "Dimanche 28 juin", "heure": "21h00", "groupe": "1/16 de finale", "timestamp": "28/06/2026 21:00:00", "details": {"domicile": {"label": "1er Gr.A", "value": "1,90"}, "nul": {"label": "N", "value": "3,40"}, "exterieur": {"label": "2e Gr.B", "value": "3,80"}}},
+  {"id": "687046", "equipeA": "", "equipeB": "", "date": "Lundi 29 juin", "heure": "19h00", "groupe": "1/16 de finale", "timestamp": "29/06/2026 19:00:00", "details": {"domicile": {"label": "1er Gr.B", "value": "1,55"}, "nul": {"label": "N", "value": "3,90"}, "exterieur": {"label": "2e Gr.A", "value": "5,50"}}},
+  {"id": "687047", "equipeA": "", "equipeB": "", "date": "Lundi 29 juin", "heure": "22h30", "groupe": "1/16 de finale", "timestamp": "29/06/2026 22:30:00", "details": {"domicile": {"label": "1er Gr.C", "value": "1,25"}, "nul": {"label": "N", "value": "5,50"}, "exterieur": {"label": "2e Gr.D", "value": "9,00"}}},
+  {"id": "687048", "equipeA": "", "equipeB": "", "date": "Mardi 30 juin", "heure": "03h00", "groupe": "1/16 de finale", "timestamp": "30/06/2026 03:00:00", "details": {"domicile": {"label": "1er Gr.D", "value": "1,60"}, "nul": {"label": "N", "value": "3,80"}, "exterieur": {"label": "2e Gr.C", "value": "5,00"}}},
+  {"id": "687049", "equipeA": "", "equipeB": "", "date": "Mardi 30 juin", "heure": "19h00", "groupe": "1/16 de finale", "timestamp": "30/06/2026 19:00:00", "details": {"domicile": {"label": "1er Gr.E", "value": "2,10"}, "nul": {"label": "N", "value": "3,20"}, "exterieur": {"label": "2e Gr.F", "value": "3,20"}}},
+  {"id": "687050", "equipeA": "", "equipeB": "", "date": "Mardi 30 juin", "heure": "23h00", "groupe": "1/16 de finale", "timestamp": "30/06/2026 23:00:00", "details": {"domicile": {"label": "1er Gr.F", "value": "1,70"}, "nul": {"label": "N", "value": "3,60"}, "exterieur": {"label": "2e Gr.E", "value": "4,80"}}},
+  {"id": "687051", "equipeA": "", "equipeB": "", "date": "Mercredi 1er juillet", "heure": "03h00", "groupe": "1/16 de finale", "timestamp": "01/07/2026 03:00:00", "details": {"domicile": {"label": "1er Gr.G", "value": "1,45"}, "nul": {"label": "N", "value": "4,20"}, "exterieur": {"label": "2e Gr.H", "value": "6,50"}}},
+  {"id": "687052", "equipeA": "", "equipeB": "", "date": "Mercredi 1er juillet", "heure": "18h00", "groupe": "1/16 de finale", "timestamp": "01/07/2026 18:00:00", "details": {"domicile": {"label": "1er Gr.H", "value": "1,30"}, "nul": {"label": "N", "value": "5,00"}, "exterieur": {"label": "2e Gr.G", "value": "8,00"}}},
+  {"id": "687053", "equipeA": "", "equipeB": "", "date": "Mercredi 1er juillet", "heure": "22h00", "groupe": "1/16 de finale", "timestamp": "01/07/2026 22:00:00", "details": {"domicile": {"label": "1er Gr.I", "value": "1,35"}, "nul": {"label": "N", "value": "4,80"}, "exterieur": {"label": "2e Gr.J", "value": "7,50"}}},
+  {"id": "687054", "equipeA": "", "equipeB": "", "date": "Jeudi 2 juillet", "heure": "02h00", "groupe": "1/16 de finale", "timestamp": "02/07/2026 02:00:00", "details": {"domicile": {"label": "1er Gr.J", "value": "1,40"}, "nul": {"label": "N", "value": "4,50"}, "exterieur": {"label": "2e Gr.I", "value": "7,00"}}},
+  {"id": "687055", "equipeA": "", "equipeB": "", "date": "Jeudi 2 juillet", "heure": "21h00", "groupe": "1/16 de finale", "timestamp": "02/07/2026 21:00:00", "details": {"domicile": {"label": "1er Gr.K", "value": "1,50"}, "nul": {"label": "N", "value": "4,00"}, "exterieur": {"label": "2e Gr.L", "value": "5,50"}}},
+  {"id": "687056", "equipeA": "", "equipeB": "", "date": "Vendredi 3 juillet", "heure": "01h00", "groupe": "1/16 de finale", "timestamp": "03/07/2026 01:00:00", "details": {"domicile": {"label": "1er Gr.L", "value": "2,00"}, "nul": {"label": "N", "value": "3,30"}, "exterieur": {"label": "2e Gr.K", "value": "3,50"}}},
+  {"id": "687057", "equipeA": "", "equipeB": "", "date": "Vendredi 3 juillet", "heure": "05h00", "groupe": "1/16 de finale", "timestamp": "03/07/2026 05:00:00", "details": {"domicile": {"label": "3e*", "value": "1,85"}, "nul": {"label": "N", "value": "3,50"}, "exterieur": {"label": "3e*", "value": "4,00"}}},
+  {"id": "687058", "equipeA": "", "equipeB": "", "date": "Vendredi 3 juillet", "heure": "20h00", "groupe": "1/16 de finale", "timestamp": "03/07/2026 20:00:00", "details": {"domicile": {"label": "3e*", "value": "1,80"}, "nul": {"label": "N", "value": "3,60"}, "exterieur": {"label": "3e*", "value": "4,20"}}},
+  {"id": "687059", "equipeA": "", "equipeB": "", "date": "Samedi 4 juillet", "heure": "00h00", "groupe": "1/16 de finale", "timestamp": "04/07/2026 00:00:00", "details": {"domicile": {"label": "3e*", "value": "1,90"}, "nul": {"label": "N", "value": "3,40"}, "exterieur": {"label": "3e*", "value": "3,80"}}},
+  {"id": "687060", "equipeA": "", "equipeB": "", "date": "Samedi 4 juillet", "heure": "03h30", "groupe": "1/16 de finale", "timestamp": "04/07/2026 03:30:00", "details": {"domicile": {"label": "3e*", "value": "1,55"}, "nul": {"label": "N", "value": "4,00"}, "exterieur": {"label": "3e*", "value": "5,50"}}},
+  {"id": "687061", "equipeA": "", "equipeB": "", "date": "Samedi 4 juillet", "heure": "21h00", "groupe": "1/8 de finale", "timestamp": "04/07/2026 21:00:00", "details": {"domicile": {"label": "V. M73", "value": "1,80"}, "nul": {"label": "N", "value": "3,60"}, "exterieur": {"label": "V. M75", "value": "4,00"}}},
+  {"id": "687062", "equipeA": "", "equipeB": "", "date": "Samedi 4 juillet", "heure": "18h00", "groupe": "1/8 de finale", "timestamp": "04/07/2026 18:00:00", "details": {"domicile": {"label": "V. M74", "value": "1,65"}, "nul": {"label": "N", "value": "3,70"}, "exterieur": {"label": "V. M77", "value": "4,80"}}},
+  {"id": "687063", "equipeA": "", "equipeB": "", "date": "Dimanche 5 juillet", "heure": "21h00", "groupe": "1/8 de finale", "timestamp": "05/07/2026 21:00:00", "details": {"domicile": {"label": "V. M76", "value": "1,50"}, "nul": {"label": "N", "value": "4,00"}, "exterieur": {"label": "V. M78", "value": "5,50"}}},
+  {"id": "687064", "equipeA": "", "equipeB": "", "date": "Lundi 6 juillet", "heure": "18h00", "groupe": "1/8 de finale", "timestamp": "06/07/2026 18:00:00", "details": {"domicile": {"label": "V. M79", "value": "1,60"}, "nul": {"label": "N", "value": "3,80"}, "exterieur": {"label": "V. M80", "value": "5,00"}}},
+  {"id": "687065", "equipeA": "", "equipeB": "", "date": "Lundi 6 juillet", "heure": "21h00", "groupe": "1/8 de finale", "timestamp": "06/07/2026 21:00:00", "details": {"domicile": {"label": "V. M83", "value": "2,00"}, "nul": {"label": "N", "value": "3,30"}, "exterieur": {"label": "V. M84", "value": "3,50"}}},
+  {"id": "687066", "equipeA": "", "equipeB": "", "date": "Mardi 7 juillet", "heure": "18h00", "groupe": "1/8 de finale", "timestamp": "07/07/2026 18:00:00", "details": {"domicile": {"label": "V. M81", "value": "1,70"}, "nul": {"label": "N", "value": "3,60"}, "exterieur": {"label": "V. M82", "value": "4,50"}}},
+  {"id": "687067", "equipeA": "", "equipeB": "", "date": "Mardi 7 juillet", "heure": "21h00", "groupe": "1/8 de finale", "timestamp": "07/07/2026 21:00:00", "details": {"domicile": {"label": "V. M86", "value": "1,85"}, "nul": {"label": "N", "value": "3,50"}, "exterieur": {"label": "V. M88", "value": "4,00"}}},
+  {"id": "687068", "equipeA": "", "equipeB": "", "date": "Mardi 7 juillet", "heure": "21h00", "groupe": "1/8 de finale", "timestamp": "07/07/2026 21:00:00", "details": {"domicile": {"label": "V. M85", "value": "1,90"}, "nul": {"label": "N", "value": "3,40"}, "exterieur": {"label": "V. M87", "value": "3,80"}}},
+  {"id": "687069", "equipeA": "", "equipeB": "", "date": "Jeudi 9 juillet", "heure": "21h00", "groupe": "1/4 de finale", "timestamp": "09/07/2026 21:00:00", "details": {"domicile": {"label": "V. M89", "value": "1,80"}, "nul": {"label": "N", "value": "3,60"}, "exterieur": {"label": "V. M90", "value": "4,00"}}},
+  {"id": "687070", "equipeA": "", "equipeB": "", "date": "Vendredi 10 juillet", "heure": "21h00", "groupe": "1/4 de finale", "timestamp": "10/07/2026 21:00:00", "details": {"domicile": {"label": "V. M93", "value": "1,90"}, "nul": {"label": "N", "value": "3,40"}, "exterieur": {"label": "V. M94", "value": "3,80"}}},
+  {"id": "687071", "equipeA": "", "equipeB": "", "date": "Samedi 11 juillet", "heure": "21h00", "groupe": "1/4 de finale", "timestamp": "11/07/2026 21:00:00", "details": {"domicile": {"label": "V. M91", "value": "2,00"}, "nul": {"label": "N", "value": "3,30"}, "exterieur": {"label": "V. M92", "value": "3,50"}}},
+  {"id": "687072", "equipeA": "", "equipeB": "", "date": "Dimanche 12 juillet", "heure": "21h00", "groupe": "1/4 de finale", "timestamp": "12/07/2026 21:00:00", "details": {"domicile": {"label": "V. M95", "value": "1,70"}, "nul": {"label": "N", "value": "3,60"}, "exterieur": {"label": "V. M96", "value": "4,50"}}},
+  {"id": "687073", "equipeA": "", "equipeB": "", "date": "Mardi 14 juillet", "heure": "21h00", "groupe": "Demi-finale", "timestamp": "14/07/2026 21:00:00", "details": {"domicile": {"label": "V. M97", "value": "2,10"}, "nul": {"label": "N", "value": "3,20"}, "exterieur": {"label": "V. M98", "value": "3,20"}}},
+  {"id": "687074", "equipeA": "", "equipeB": "", "date": "Mercredi 15 juillet", "heure": "21h00", "groupe": "Demi-finale", "timestamp": "15/07/2026 21:00:00", "details": {"domicile": {"label": "V. M99", "value": "1,90"}, "nul": {"label": "N", "value": "3,40"}, "exterieur": {"label": "V. M100", "value": "3,80"}}},
+  {"id": "687075", "equipeA": "", "equipeB": "", "date": "Samedi 18 juillet", "heure": "21h00", "groupe": "Petite Finale", "timestamp": "18/07/2026 21:00:00", "details": {"domicile": {"label": "P. M101", "value": "2,00"}, "nul": {"label": "N", "value": "3,30"}, "exterieur": {"label": "P. M102", "value": "3,50"}}},
+  {"id": "687076", "equipeA": "", "equipeB": "", "date": "Dimanche 19 juillet", "heure": "21h00", "groupe": "Finale", "timestamp": "19/07/2026 21:00:00", "details": {"domicile": {"label": "V. M101", "value": "2,20"}, "nul": {"label": "N", "value": "3,20"}, "exterieur": {"label": "V. M102", "value": "3,00"}}}
 ];
-// --- INITIALISATION DE LA SOURCE DE VÉRITÉ ---
+
+// ── Shims backward-compat ─────────────────────────────────────────────
+const COTES_MATCHS = CALENDRIER_CDM.filter(
+    m => m.groupe && !['1/16 de finale','1/8 de finale','1/4 de finale',
+         'Demi-finale','Petite Finale','Finale'].includes(m.groupe) && m.details
+);
+const COTES_MATCHS_KO = CALENDRIER_CDM.filter(
+    m => m.groupe && ['1/16 de finale','1/8 de finale','1/4 de finale',
+         'Demi-finale','Petite Finale','Finale'].includes(m.groupe) && m.details
+);
+
+// ── Source de vérité officielle ────────────────────────────────────────
 const OFFICIEL_2026 = {
-    scores: {},    // Contiendra les scores réels (ex: "686902": { sA: 2, sB: 1, termine: true })
-    qualifies: {}  // Contiendra les noms officiels (ex: "team_16_687045_A": "Mexique")
+    scores:   {},
+    qualifies: {},
+    aliases:   {
+        "686902": "689422",  // TEST : Mexique-AfSud → Lyon F-Nantes F (18h)
+        "686903": "677634",  // TEST : Corée-RepTch → match 19h
+        "686908": "677633",  // TEST : Canada-Bosnie → match 21h30
+        "677630": "677633"   // TEST : migration intermédiaire 677630 → 677633
+    }
 };
 
-// On pré-remplit l'objet avec tous les IDs des 104 matchs du calendrier
 CALENDRIER_CDM.forEach(match => {
-    OFFICIEL_2026.scores[match.id] = null; 
+    if (!OFFICIEL_2026.scores[match.id]) OFFICIEL_2026.scores[match.id] = null;
 });
-// 2. TA SIMULATION (À placer ICI)
-// On écrase le 'null' par un vrai score pour le match d'ouverture
-OFFICIEL_2026.scores["686902"] = { sA: 2, sB: 1, termine: true };

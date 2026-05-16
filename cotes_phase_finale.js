@@ -110,7 +110,7 @@ const PHASE_FINALE = [
     "cotes_qualifs": { "vainqueur": "80", "finaliste": "28", "qualif_1_2": "18.00", "qualif_1_4": "10.00", "qualif_1_8": "6.20", "qualif_1_16": "2.80" }
   },
   {
-    "selection": "Etats-Unis",
+    "selection": "États-Unis",
     "rang_fifa": 18,
     "cotes_qualifs": { "vainqueur": "80", "finaliste": "28", "qualif_1_2": "18.00", "qualif_1_4": "10.00", "qualif_1_8": "6.20", "qualif_1_16": "2.80" }
   },
@@ -140,7 +140,7 @@ const PHASE_FINALE = [
     "cotes_qualifs": { "vainqueur": "200", "finaliste": "70", "qualif_1_2": "48.00", "qualif_1_4": "28.00", "qualif_1_8": "14.00", "qualif_1_16": "4.50" }
   },
   {
-    "selection": "Ecosse",
+    "selection": "Écosse",
     "rang_fifa": 39,
     "cotes_qualifs": { "vainqueur": "250", "finaliste": "80", "qualif_1_2": "55.00", "qualif_1_4": "32.00", "qualif_1_8": "16.00", "qualif_1_16": "4.80" }
   },
@@ -150,7 +150,7 @@ const PHASE_FINALE = [
     "cotes_qualifs": { "vainqueur": "300", "finaliste": "100", "qualif_1_2": "68.00", "qualif_1_4": "38.00", "qualif_1_8": "19.00", "qualif_1_16": "5.00" }
   },
   {
-    "selection": "Egypte",
+    "selection": "Égypte",
     "rang_fifa": 36,
     "cotes_qualifs": { "vainqueur": "300", "finaliste": "100", "qualif_1_2": "68.00", "qualif_1_4": "38.00", "qualif_1_8": "19.00", "qualif_1_16": "5.00" }
   },
@@ -195,7 +195,7 @@ const PHASE_FINALE = [
     "cotes_qualifs": { "vainqueur": "500", "finaliste": "250", "qualif_1_2": "30.00", "qualif_1_4": "10.00", "qualif_1_8": "4.20", "qualif_1_16": "2.10" }
   },
   {
-    "selection": "République Tchèque",
+    "selection": "Rep. Tchèque",
     "rang_fifa": 40,
     "cotes_qualifs": { "vainqueur": "500", "finaliste": "250", "qualif_1_2": "60.00", "qualif_1_4": "18.00", "qualif_1_8": "7.50", "qualif_1_16": "3.20" }
   },
@@ -215,7 +215,7 @@ const PHASE_FINALE = [
     "cotes_qualifs": { "vainqueur": "500", "finaliste": "250", "qualif_1_2": "120.00", "qualif_1_4": "35.00", "qualif_1_8": "15.00", "qualif_1_16": "5.50" }
   },
   {
-    "selection": "République Dém. Congo",
+    "selection": "RD Congo",
     "rang_fifa": 63,
     "cotes_qualifs": { "vainqueur": "500", "finaliste": "250", "qualif_1_2": "115.00", "qualif_1_4": "33.00", "qualif_1_8": "14.00", "qualif_1_16": "5.20" }
   },
@@ -280,7 +280,7 @@ const PHASE_FINALE = [
     "cotes_qualifs": { "vainqueur": "500", "finaliste": "250", "qualif_1_2": "125.00", "qualif_1_4": "36.00", "qualif_1_8": "15.50", "qualif_1_16": "5.40" }
   },
   {
-    "selection": "Bosnie-Herzégovine",
+    "selection": "Bosnie-H.",
     "rang_fifa": 75,
     "cotes_qualifs": { "vainqueur": "500", "finaliste": "250", "qualif_1_2": "150.00", "qualif_1_4": "45.00", "qualif_1_8": "19.00", "qualif_1_16": "6.50" }
   },

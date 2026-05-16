@@ -222,7 +222,33 @@
             gap: 10px;
             z-index: 1000;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            transition: all 0.25s ease;
         }
+
+        .side-nav.collapsed {
+            padding: 10px 8px;
+            gap: 0;
+            min-width: 0;
+            border-color: #555;
+        }
+
+        .side-nav.collapsed .nav-inner {
+            display: none;
+        }
+
+        .nav-toggle-btn {
+            background: none;
+            border: none;
+            color: var(--gold);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 2px 4px;
+            align-self: flex-end;
+            line-height: 1;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        .nav-toggle-btn:hover { opacity: 1; }
 
         .nav-title {
             color: var(--gold);
@@ -236,6 +262,7 @@
         .nav-item {
             color: #fff;
             text-decoration: none;
+            cursor: pointer;
             font-size: 0.9em;
             padding: 8px 12px;
             border-radius: 6px;
@@ -278,6 +305,7 @@
             background: rgba(255, 255, 255, 0.05);
             color: #fff;
             text-decoration: none;
+            cursor: pointer;
             padding: 5px 8px;
             border-radius: 4px;
             font-size: 0.8em;
@@ -373,6 +401,32 @@
             transform: translateY(1px);
         }
 
+        /* ── ADMIN PANEL ── */
+        #admin-panel { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+            width:95%; max-width:640px; max-height:90vh; background:#111; border:2px solid #c0392b;
+            border-radius:12px; padding:0; box-shadow:0 10px 50px rgba(0,0,0,0.95); z-index:9999; overflow:hidden;
+            display:none; flex-direction:column; }
+        .admin-header { display:flex; justify-content:space-between; align-items:center;
+            padding:14px 18px; background:#1a0000; border-bottom:1px solid #333; }
+        .admin-tabs { display:flex; border-bottom:1px solid #333; background:#0d0d0d; }
+        .admin-tab { flex:1; padding:9px 4px; background:none; border:none; color:#888;
+            font-size:0.75em; cursor:pointer; transition:0.2s; border-bottom:2px solid transparent; }
+        .admin-tab:hover { color:#ddd; }
+        .admin-tab.active { color:#e74c3c; border-bottom-color:#e74c3c; font-weight:bold; }
+        .admin-content { overflow-y:auto; padding:16px; flex:1; max-height:calc(90vh - 110px); }
+        .admin-table { width:100%; border-collapse:collapse; font-size:0.78em; }
+        .admin-table th { text-align:left; color:#888; font-weight:normal; padding:5px 8px;
+            border-bottom:1px solid #333; font-size:0.85em; text-transform:uppercase; }
+        .admin-table td { padding:7px 8px; border-bottom:1px solid #1a1a1a; vertical-align:middle; }
+        .admin-table tr:hover td { background:rgba(255,255,255,0.03); }
+        .admin-btn { padding:3px 10px; border-radius:4px; border:none; cursor:pointer; font-size:0.78em; }
+        .admin-btn-del { background:#c0392b; color:white; }
+        .admin-btn-del:hover { background:#e74c3c; }
+        .admin-btn-info { background:#2c3e50; color:#aaa; }
+        .admin-btn-info:hover { background:#34495e; color:white; }
+        .admin-section-title { color:#e74c3c; font-size:0.7em; text-transform:uppercase;
+            letter-spacing:0.08em; margin:14px 0 6px; padding-bottom:4px; border-bottom:1px solid #222; }
+
         /* Supprime les flèches pour Chrome, Safari, Edge et Opera */
             input::-webkit-outer-spin-button,
             input::-webkit-inner-spin-button {
@@ -441,6 +495,17 @@
 
         @media (max-width: 600px) {
             .auth-flex { justify-content: center; }
+        }
+
+        @keyframes aura-pulse {
+            0%   { filter: drop-shadow(0 0 4px #fbbf24) drop-shadow(0 0 10px rgba(251,191,36,0.4)) brightness(1.05); }
+            50%  { filter: drop-shadow(0 0 8px #fbbf24) drop-shadow(0 0 18px rgba(251,191,36,0.7)) brightness(1.15); }
+            100% { filter: drop-shadow(0 0 4px #fbbf24) drop-shadow(0 0 10px rgba(251,191,36,0.4)) brightness(1.05); }
+        }
+        .flag-winner-aura {
+            border: 2px solid rgba(251,191,36,0.9) !important;
+            border-radius: 3px;
+            animation: aura-pulse 2s ease-in-out infinite;
         }
 
         .classement-table {
@@ -527,45 +592,60 @@
     <div id="zone-1emes"></div>
 </div>
 
-<div class="container">
-    <button id="save" onclick="savePronos()">💾 ENREGISTRER L'EXPORT JSON</button>
+<div class="container" style="display:flex; gap:12px; justify-content:center; padding:20px 0 10px 0; flex-wrap:wrap;">
+    <button id="btn-save" onclick="sauvegarderPronos()"
+        style="padding:12px 24px; background:#1a3a1a; color:#4ade80; border:2px solid #4ade80; border-radius:8px; font-weight:bold; font-size:0.95rem; cursor:pointer; transition:0.2s;">
+        💾 Sauvegarder mes pronos
+    </button>
+    <button id="btn-pdf" onclick="exporterPDF()"
+        style="padding:12px 24px; background:#1a1a3a; color:#93c5fd; border:2px solid #93c5fd; border-radius:8px; font-weight:bold; font-size:0.95rem; cursor:pointer; transition:0.2s;">
+        🖨️ Exporter en PDF
+    </button>
 </div>
 
 <section id="section-classement" style="margin-top: 50px; padding: 20px; color: white;">
-    <h2 style="color: #4ade80; text-align: center;">🏆 Classement Général</h2>
-    
+    <div style="display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; margin-bottom:8px;">
+        <h2 style="color: #4ade80; margin:0;">🏆 Classement Général</h2>
+        <button onclick="ouvrirClassementsAnnexes()"
+            style="background:rgba(212,175,55,0.12); border:1px solid var(--gold); color:var(--gold); border-radius:20px; padding:6px 16px; font-size:0.82rem; cursor:pointer; font-weight:bold; white-space:nowrap;">
+            🏅 Classements Annexes
+        </button>
+    </div>
+
     <div id="classement-container">
         <p style="text-align:center; color: #888;">Chargement du classement...</p>
     </div>
 </section>
 
-<div id="test-date-picker" style="position:fixed; bottom:10px; right:10px; background:rgba(0,0,0,0.8); padding:10px; border-radius:5px; z-index:9999; color:white; font-size:10px;">
-    Date Test : <br>
-    <button onclick="
-        console.log('--- RETOUR EN PHASE 1 ---');
-        localStorage.removeItem('mes_fantomes_verrouilles'); // On casse le verrou
-        SIMULATED_DATE='2026-05-15T10:00:00'; 
-        updateAll();
-    ">Mode Phase 1 (Reset Verrou)</button><br>
-    <button onclick="
-        console.log('--- PASSAGE EN PHASE 2 ---');
-        // On prend ce qui est à l'écran et on le verrouille définitivement
-        const projections = localStorage.getItem('mes_projections_fantomes');
-        if (projections) {
-            localStorage.setItem('mes_fantomes_verrouilles', projections);
-            //console.log('🔒 Projections verrouillées pour la Phase 2');
-        }
-        SIMULATED_DATE='2026-06-11T21:01:00'; 
-        updateAll();
-    ">Mode Phase 2 (Sauvegarde Verrouillée)</button><br>
-    <button onclick="SIMULATED_DATE='2026-06-26T10:00:00'; updateAll();">Mode Phase 3 (26 Juin)</button><br>
-    <button onclick="SIMULATED_DATE=null; updateAll();">Vraie Date</button>
+<!-- ── Popover Classements Annexes ──────────────────────────────────────── -->
+<div id="annexes-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:10000; overflow-y:auto; padding:20px 10px;">
+    <div style="max-width:720px; margin:0 auto; background:#111; border:1px solid #333; border-radius:12px; padding:20px; color:#ddd; position:relative;">
+        <button onclick="document.getElementById('annexes-overlay').style.display='none'"
+            style="position:absolute; top:12px; right:14px; background:none; border:none; color:#888; font-size:1.4rem; cursor:pointer;">✕</button>
+        <h2 style="color:var(--gold); text-align:center; margin-top:0; font-size:1.1rem;">🏅 Classements Annexes</h2>
+        <div id="annexes-content" style="font-size:0.85rem;"></div>
+    </div>
 </div>
 
+<!-- ── Popover Stats Joueur ─────────────────────────────────────────────── -->
+<div id="stats-joueur-overlay"
+    style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:10001; align-items:center; justify-content:center; padding:16px;"
+    onclick="if(event.target===this) this.style.display='none'">
+    <div style="max-width:480px; width:100%; background:#0d0d0d; border:1px solid #333; border-radius:14px; padding:20px; color:#ddd; position:relative; max-height:90vh; overflow-y:auto;">
+        <button onclick="document.getElementById('stats-joueur-overlay').style.display='none'"
+            style="position:absolute; top:12px; right:14px; background:none; border:none; color:#666; font-size:1.3rem; cursor:pointer; line-height:1;">✕</button>
+        <h3 style="color:var(--gold); margin-top:0; font-size:1rem; text-align:center;">
+            📊 Stats de <span id="stats-joueur-nom">—</span>
+        </h3>
+        <div id="stats-joueur-content"></div>
+    </div>
+</div>
+
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="cotes_matchs_poules.js"></script>
 <script src="cotes_phase_finale.js"></script>
 <script src="liste_matches.js"></script>
+<script src="resultats.js"></script>
 
 <script>
     // --- CONFIGURATION ---
@@ -581,10 +661,10 @@
         "Égypte": "eg", "Japon": "jp", "Corée du Sud": "kr", "Australie": "au", "Arabie Saoudite": "sa",
         "Qatar": "qa", "Iran": "ir", "Irak": "iq", "Chine": "cn", "Ouzbékistan": "uz",
         "Nouvelle-Zélande": "nz", "Jordanie": "jo", "Macédoine du Nord": "mk", "Grèce": "gr",
-        "Irlande": "ie", "Islande": "is", "Pays de Galles": "gb-wls", "Bosnie-Herzégovine": "ba",
+        "Irlande": "ie", "Islande": "is", "Pays de Galles": "gb-wls", "Bosnie-H.": "ba",
         "Turquie": "tr", "Roumanie": "ro", "Slovaquie": "sk", "Kosovo": "xk", "Ukraine": "ua",
         "Suède": "se", "Albanie": "al", "Bolivie": "bo", "Suriname": "sr", "RDC": "cd",
-        "République démocratique du Congo": "cd", "Nicaragua": "ni", "Jamaïque": "jm"
+        "RD Congo": "cd", "Nicaragua": "ni", "Jamaïque": "jm", "Rep. Tchèque": "cz"
     };
 
     // RÉFÉRENCE UNIQUE POUR LES PHASES
@@ -595,6 +675,33 @@
         "2":  { tiroir: "DEMIS",  label: "Demies"   },
         "pf": { tiroir: "PETITE_FINALE", label: "Petite Finale" },
         "f":  { tiroir: "FINALE", label: "Finale"   }
+    };
+
+    // Mapping bracket : pour chaque match KO, le slot du tour suivant que le vainqueur occupe
+    const BRACKET_SUIVANT = {
+        "16": {
+            687045:{p:"8",id:687061,s:"A"}, 687048:{p:"8",id:687061,s:"B"},
+            687047:{p:"8",id:687062,s:"A"}, 687050:{p:"8",id:687062,s:"B"},
+            687046:{p:"8",id:687063,s:"A"}, 687049:{p:"8",id:687063,s:"B"},
+            687051:{p:"8",id:687064,s:"A"}, 687052:{p:"8",id:687064,s:"B"},
+            687056:{p:"8",id:687065,s:"A"}, 687055:{p:"8",id:687065,s:"B"},
+            687054:{p:"8",id:687066,s:"A"}, 687053:{p:"8",id:687066,s:"B"},
+            687059:{p:"8",id:687067,s:"A"}, 687058:{p:"8",id:687067,s:"B"},
+            687057:{p:"8",id:687068,s:"A"}, 687060:{p:"8",id:687068,s:"B"},
+        },
+        "8": {
+            687062:{p:"4",id:687069,s:"A"}, 687061:{p:"4",id:687069,s:"B"},
+            687065:{p:"4",id:687070,s:"A"}, 687066:{p:"4",id:687070,s:"B"},
+            687063:{p:"4",id:687071,s:"A"}, 687064:{p:"4",id:687071,s:"B"},
+            687067:{p:"4",id:687072,s:"A"}, 687068:{p:"4",id:687072,s:"B"},
+        },
+        "4": {
+            687069:{p:"2",id:687073,s:"A"}, 687070:{p:"2",id:687073,s:"B"},
+            687071:{p:"2",id:687074,s:"A"}, 687072:{p:"2",id:687074,s:"B"},
+        },
+        "2": {
+            687073:{p:"f",id:687076,s:"A"}, 687074:{p:"f",id:687076,s:"B"},
+        }
     };
 
     // Au chargement de la page, on nettoie le verrou pour repartir sur du "Live"
@@ -609,8 +716,84 @@
     // Exemple Phase 2 (Pendant 16èmes) : "2026-06-26T10:00:00"
     // --- CONFIGURATION DU CALENDRIER ---
 
-    let CACHE_PRONOS = null; 
+    let CACHE_PRONOS = null;
     let CURRENT_USER = localStorage.getItem('current_user') || null;
+
+    // ── SUPABASE — dual-write (localStorage = source de vérité, Supabase = backup) ──
+    const SUPABASE_URL  = 'https://hgymgabnzxuwsrwfktdv.supabase.co';
+    const SUPABASE_ANON = 'sb_publishable_J8Elmj9wZRVDSo82N1mbdw_B-0kgCfB';
+    const _sb = typeof supabase !== 'undefined'
+        ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
+
+    let _syncTimer = null;
+    function syncToSupabase(username, data) {
+        if (!_sb || !username) return;
+        clearTimeout(_syncTimer);
+        _syncTimer = setTimeout(async () => {
+            try {
+                await _sb.from('pronos').upsert(
+                    { username, data, updated_at: new Date().toISOString() },
+                    { onConflict: 'username' }
+                );
+                console.log(`☁️ Supabase sync OK (${username})`);
+            } catch(e) { console.warn('Supabase push failed:', e); }
+        }, 2000);
+    }
+
+    async function syncFromSupabase(username) {
+        if (!_sb || !username) return false;
+        try {
+            const { data, error } = await _sb.from('pronos')
+                .select('data').eq('username', username).maybeSingle();
+            if (error || !data?.data) return false;
+            localStorage.setItem(`${username}_mes_pronos_2026`, JSON.stringify(data.data));
+            CACHE_PRONOS = null;
+            return true;
+        } catch(e) { console.warn('Supabase pull failed:', e); return false; }
+    }
+
+    async function fetchAllFromSupabase() {
+        if (!_sb) return;
+        try {
+            const { data, error } = await _sb.from('pronos')
+                .select('username, data').neq('username', '__users__');
+            if (error || !data) return;
+            const users = JSON.parse(localStorage.getItem('liste_utilisateurs_2026') || '{}');
+            data.forEach(row => {
+                if (!row.username || !row.data) return;
+                localStorage.setItem(`${row.username}_mes_pronos_2026`, JSON.stringify(row.data));
+                if (!users[row.username]) users[row.username] = {};
+            });
+            localStorage.setItem('liste_utilisateurs_2026', JSON.stringify(users));
+        } catch(e) { console.warn('Supabase fetchAll failed:', e); }
+    }
+
+    async function loadUsersFromSupabase() {
+        if (!_sb) return;
+        try {
+            const { data } = await _sb.from('pronos')
+                .select('data').eq('username', '__users__').maybeSingle();
+            if (!data?.data) return;
+            const local = JSON.parse(localStorage.getItem('liste_utilisateurs_2026') || '{}');
+            localStorage.setItem('liste_utilisateurs_2026', JSON.stringify({ ...data.data, ...local }));
+        } catch(e) { console.warn('Supabase users load failed:', e); }
+    }
+
+    async function syncUsersToSupabase() {
+        if (!_sb) return;
+        const users = JSON.parse(localStorage.getItem('liste_utilisateurs_2026') || '{}');
+        try {
+            await _sb.from('pronos').upsert(
+                { username: '__users__', data: users, updated_at: new Date().toISOString() },
+                { onConflict: 'username' }
+            );
+        } catch(e) { console.warn('Supabase users sync failed:', e); }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
+    // ── CONFIG ADMIN ───────────────────────────────────────────────────────
+    const ADMIN_USERS = ['Sep']; // Ajouter d'autres admins si besoin
+    const isAdmin = () => ADMIN_USERS.includes(CURRENT_USER);
 
     function getKey(baseKey) {
         // Récupère l'utilisateur actuel (mis à jour par ta fonction connexion)
@@ -635,15 +818,15 @@
         return CACHE_PRONOS;
     }
 
-    // Fonction unique pour sauvegarder
+    // Fonction unique pour sauvegarder (dual-write)
     function savePronosGlobal() {
         if (CACHE_PRONOS) {
-            // On utilise getKey pour savoir dans quel fichier enregistrer
             localStorage.setItem(getKey('mes_pronos_2026'), JSON.stringify(CACHE_PRONOS));
+            syncToSupabase(CURRENT_USER, CACHE_PRONOS);
         }
     }
 
-    let SIMULATED_DATE = "2026-05-15T12:00:00"; // À modifier pour tes tests
+    let SIMULATED_DATE = "2026-06-12T00:00:00"; // TEST — à remettre à null avant le vrai CDM
 
     function getAppState() {
         const maintenant = SIMULATED_DATE ? new Date(SIMULATED_DATE) : new Date();
@@ -756,10 +939,17 @@
             data[key] = val;
         }
 
-        // 3. Sauvegarder l'objet global mis à jour
+        // 3. Effacer la sélection TAB Phase 3 à chaque changement de score
+        // On efface p3tab_ (Phase 3) mais pas winner_ (pronostic Phase 1 conservé)
+        if (conf && conf.tiroir) {
+            const tabKey = `p3tab_${phaseId}_${matchId}`;
+            delete data[tabKey];
+            if (data[conf.tiroir]) delete data[conf.tiroir][tabKey];
+        }
+
         CACHE_PRONOS = data;
         savePronosGlobal();
-        
+
         // 4. Synchroniser (si la fonction existe)
         if (typeof syncProno === 'function') {
             syncProno(`score_${phaseId}_${matchId}_${team}`, val);
@@ -869,23 +1059,35 @@
     function renderMatchCard(m, phaseId, labelPhase, color) {
         const state = getAppState();
         const maintenant = getCurrentDate();
-        const dateMatch = new Date(m.date);
         const isPoule = (phaseId === 'poule');
+
+        // Résultat officiel — lu en premier pour conditionner le reste
+        const idStr = String(m.id);
+        const officiel = (typeof OFFICIEL_2026 !== 'undefined' && OFFICIEL_2026.scores)
+            ? OFFICIEL_2026.scores[idStr] : null;
+        const officielTermine = !!(officiel && (officiel.termine || officiel.live));
 
         // --- 1. LOGIQUE DE VERROUILLAGE ---
         let canEditScore = false;
         if (isPoule) {
+            const dateMatch = new Date(m.date);
             if (state === "AVANT" && maintenant < dateMatch) canEditScore = true;
         } else {
             const dateOuverturePhase2 = new Date("2026-06-25T06:00:00");
-            if (maintenant >= dateOuverturePhase2 && maintenant < dateMatch) canEditScore = true;
+            const ko16Ouvert = (phaseId !== '16') || match16eOuvert(m.id);
+            // Phase 3 : saisie possible si J3 des groupes concernés terminée et pas de résultat officiel
+            if (maintenant >= dateOuverturePhase2 && !officielTermine && ko16Ouvert) canEditScore = true;
         }
 
         let poulesFinies = isToutesPoulesTerminees();
         let canClickWinner = false;
         if (!isPoule) {
             if (state === "AVANT" && poulesFinies) canClickWinner = true;
-            if (state === "PHASE_FINALE" && maintenant < dateMatch) canClickWinner = true;
+            // Phase 3 : clic possible si 1/16e ouvert et pas de résultat officiel
+            if (state === "PHASE_FINALE" && !officielTermine) {
+                const ko16Ouvert = (phaseId !== '16') || match16eOuvert(m.id);
+                if (ko16Ouvert) canClickWinner = true;
+            }
         }
 
         // --- 2. RÉCUPÉRATION DES DONNÉES (MODE FANTÔME INCLUS) ---
@@ -905,7 +1107,7 @@
 
         const getDeep = (key) => {
             // 1. Recherche normale
-            let current = (nomTiroir && savedData[nomTiroir] ? savedData[nomTiroir][key] : null) || savedData[key];
+            let current = (nomTiroir && savedData[nomTiroir] && savedData[nomTiroir][key] !== undefined) ? savedData[nomTiroir][key] : savedData[key];
             
             // 2. Si c'est générique ou vide, on va voir le fantôme
             if (estGenerique(current)) {
@@ -917,6 +1119,9 @@
 
         let pronoNomA = "";
         let pronoNomB = "";
+
+        // manualWin lu tôt car utilisé dans le rendu des pronos ET dans le calcul des couleurs
+        const manualWin = getDeep(`winner_${phaseId}_${m.id}`);
 
         // 1. Noms officiels (Titre de la carte)
         let nomA = m.equipeA || (m.t1 ? m.t1.nom : "En attente");
@@ -955,12 +1160,34 @@
                 displayB = sourceDonnees[`team_16_${m.t2.id}_B`] || sourceDonnees[`team_16_${m.t2.id}_V`];
             }
 
-            // Rendu final
-            if (isReal(displayA) && displayA !== nomA) {
-                pronoNomA = `<div style="font-size: 0.72rem; color: #888; font-style: italic; margin-top: 2px; line-height: 1;">(${displayA})</div>`;
-            }
-            if (isReal(displayB) && displayB !== nomB) {
-                pronoNomB = `<div style="font-size: 0.72rem; color: #888; font-style: italic; margin-top: 2px; line-height: 1;">(${displayB})</div>`;
+            // Rappel du prono uniquement en Phase 2/3 (en Phase 1 les équipes sont déjà celles du joueur)
+            if (state !== "AVANT") {
+                const sameTeam = (a, b) => a && b && a.toLowerCase().trim() === b.toLowerCase().trim();
+
+                // Déduire le vainqueur Phase 1 : winner_ explicite OU bracket suivant
+                let phase1Winner = manualWin || null;
+                if (!phase1Winner && typeof BRACKET_SUIVANT !== 'undefined') {
+                    const next = (BRACKET_SUIVANT[phaseId] || {})[m.id];
+                    if (next) {
+                        const nextTeam = (sourceDonnees[`team_${next.p}_${next.id}_${next.s}`] || '').toLowerCase().trim();
+                        if (nextTeam && isReal(nextTeam)) {
+                            if (displayA && displayA.toLowerCase().trim() === nextTeam) phase1Winner = 'A';
+                            else if (displayB && displayB.toLowerCase().trim() === nextTeam) phase1Winner = 'B';
+                        }
+                    }
+                }
+
+                if (isReal(displayA)) {
+                    const star = sameTeam(displayA, nomA) ? '⭐ ' : '';
+                    // Vert = qualifié dans les pronos Phase 1, que la position soit exacte ou non
+                    const clrA = (phase1Winner === 'A') ? '#4ade80' : '#888';
+                    pronoNomA = `<div style="font-size: 0.72rem; color: ${clrA}; font-style: italic; margin-top: 2px; line-height: 1;">${star}(${displayA})</div>`;
+                }
+                if (isReal(displayB)) {
+                    const star = sameTeam(displayB, nomB) ? '⭐ ' : '';
+                    const clrB = (phase1Winner === 'B') ? '#4ade80' : '#888';
+                    pronoNomB = `<div style="font-size: 0.72rem; color: ${clrB}; font-style: italic; margin-top: 2px; line-height: 1;">${star}(${displayB})</div>`;
+                }
             }
         }
 
@@ -977,18 +1204,50 @@
 
         // --- CALCUL DES COULEURS DE VICTOIRE ---
         const hasScores = (scoreA !== null && scoreB !== null);
-        const isDraw = (hasScores && scoreA === scoreB);
 
-        // CORRECTION ICI : On cherche le vainqueur aussi dans le tiroir !
-        const manualWin = getDeep(`winner_${phaseId}_${m.id}`);
+        // TAB : égalité sur résultat officiel OU scores saisis par le joueur
+        const isDraw = officielTermine
+            ? (officiel.sA === officiel.sB)
+            : (hasScores && scoreA === scoreB);
+
+        // manualWin = pronostic Phase 1 du joueur (bracket) — ne change jamais en Phase 3
+        // tabWin    = sélection TAB Phase 3 (clé séparée p3tab_) — n'écrase pas manualWin
+        const tabWin = getDeep(`p3tab_${phaseId}_${m.id}`);
 
         const isWinnerA = (hasScores && scoreA > scoreB) || (manualWin === 'A' && (isDraw || state === "AVANT"));
         const isWinnerB = (hasScores && scoreB > scoreA) || (manualWin === 'B' && (isDraw || state === "AVANT"));
 
-        const colorNameA = isWinnerA ? '#4ade80' : 'white';
-        const colorNameB = isWinnerB ? '#4ade80' : 'white';
-        
-        // --- 3. LOGIQUE DES GAINS (Réintégrée) ---
+        // Vainqueur Phase 3 : score différent OU TAB cliqué (tabWin)
+        const phase3WinA = !officielTermine && state !== "AVANT" && ((!isDraw && isWinnerA) || (isDraw && tabWin === 'A'));
+        const phase3WinB = !officielTermine && state !== "AVANT" && ((!isDraw && isWinnerB) || (isDraw && tabWin === 'B'));
+
+        // Couleur des noms
+        let colorNameA, colorNameB;
+        if (state === "AVANT") {
+            colorNameA = isWinnerA ? '#4ade80' : 'white';
+            colorNameB = isWinnerB ? '#4ade80' : 'white';
+        } else if (officielTermine) {
+            colorNameA = officiel.sA > officiel.sB ? '#4ade80' : 'white';
+            colorNameB = officiel.sB > officiel.sA ? '#4ade80' : 'white';
+        } else {
+            // Phase 3 : nom blanc, l'aura du drapeau indique le vainqueur
+            colorNameA = 'white';
+            colorNameB = 'white';
+        }
+
+        const fontSizeTeam = (nom) => {
+            const n = (nom || "").length;
+            if (n > 14) return '0.65rem';
+            if (n > 10) return '0.75rem';
+            if (n > 7)  return '0.82rem';
+            return '0.9rem';
+        };
+        const fontSizeA = fontSizeTeam(nomA);
+        const fontSizeB = fontSizeTeam(nomB);
+        const hl = "color:#4ade80; font-weight:bold;";
+        const gris = "color:#666;";
+
+        // --- 3. LOGIQUE DES GAINS ---
         let gainsHtml = "";
         const clean = (str) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() : "";
 
@@ -1005,21 +1264,70 @@
 
             if (odds && odds.details) {
                 const parseOdds = (val) => val ? parseFloat(val.toString().replace(',', '.')) : 0;
-                const p1 = Math.round(parseOdds(odds.details.domicile.value) * 10);
-                const pN = Math.round(parseOdds(odds.details.nul.value) * 10);
-                const p2 = Math.round(parseOdds(odds.details.exterieur.value) * 10);
+                const _mul = odds.mpp ? 1 : 10;
+                const p1 = Math.round(parseOdds(odds.details.domicile.value) * _mul);
+                const pN = Math.round(parseOdds(odds.details.nul.value) * _mul);
+                const p2 = Math.round(parseOdds(odds.details.exterieur.value) * _mul);
 
-                let s1 = "color:#666;", sN = "color:#666;", s2 = "color:#666;";
+                let s1 = gris, sN = gris, s2 = gris;
                 if (hasScores) {
-                    if (scoreA > scoreB) s1 = "color:#4ade80; font-weight:bold;";
-                    else if (scoreA < scoreB) s2 = "color:#4ade80; font-weight:bold;";
-                    else sN = "color:#4ade80; font-weight:bold;";
+                    if (scoreA > scoreB) s1 = hl;
+                    else if (scoreA < scoreB) s2 = hl;
+                    else sN = hl;
+                } else if (!isPoule) {
+                    if (manualWin === 'A') s1 = hl;
+                    else if (manualWin === 'B') s2 = hl;
                 }
 
                 gainsHtml = `
                     <div style="font-size: 0.65rem; font-family: monospace; margin-top: 4px; opacity: 0.8;">
                         Gains : <span style="${s1}">${p1}</span> | <span style="${sN}">${pN}</span> | <span style="${s2}">${p2}</span> pts
                     </div>`;
+
+            } else if (!isPoule) {
+                // Phase 3 : cotes match-par-match intégrées dans liste_matches.js (COTES_MATCHS_KO)
+                const koEntry = typeof COTES_MATCHS_KO !== 'undefined'
+                    ? COTES_MATCHS_KO.find(c => String(c.id) === String(m.id)) : null;
+                if (koEntry && koEntry.details) {
+                    const parseOdds = (val) => val ? parseFloat(String(val).replace(',', '.')) : 0;
+                    const _mul = koEntry.mpp ? 1 : 10;
+                    const p1 = Math.round(parseOdds(koEntry.details.domicile.value) * _mul);
+                    const pN = Math.round(parseOdds(koEntry.details.nul.value) * _mul);
+                    const p2 = Math.round(parseOdds(koEntry.details.exterieur.value) * _mul);
+                    let s1 = gris, sN = gris, s2 = gris;
+                    if (hasScores) {
+                        if (scoreA > scoreB) s1 = hl;
+                        else if (scoreA < scoreB) s2 = hl;
+                        else sN = hl;
+                    } else if (manualWin === 'A') s1 = hl;
+                    else if (manualWin === 'B') s2 = hl;
+                    gainsHtml = `
+                        <div style="font-size: 0.65rem; font-family: monospace; margin-top: 4px; opacity: 0.8;">
+                            Gains : <span style="${s1}">${p1}</span> | <span style="${sN}">${pN}</span> | <span style="${s2}">${p2}</span> pts
+                        </div>`;
+                } else if (typeof PHASE_FINALE !== 'undefined') {
+                    // Fallback : cotes de qualification (bracket Phase 1/2, si pas de cotes KO)
+                    const champField = {
+                        '16': 'qualif_1_8', '8': 'qualif_1_4', '4': 'qualif_1_2',
+                        '2': 'finaliste', 'pf': 'vainqueur', 'f': 'vainqueur'
+                    }[phaseId] || 'vainqueur';
+                    const findV = (nom) => {
+                        if (!nom || nom.startsWith("En attente") || nom.includes("Gr.") || nom.startsWith("Match")) return null;
+                        const e = PHASE_FINALE.find(f => f.selection && f.selection.toLowerCase().trim() === nom.toLowerCase().trim());
+                        return e ? parseFloat(String(e.cotes_qualifs[champField]).replace(',', '.')) : null;
+                    };
+                    const cA = findV(nomA), cB = findV(nomB);
+                    if (cA && cB) {
+                        const ptsA = Math.round(cA * 10);
+                        const ptsB = Math.round(cB * 10);
+                        const sA = (manualWin === 'A' || (hasScores && scoreA > scoreB)) ? hl : gris;
+                        const sB = (manualWin === 'B' || (hasScores && scoreB > scoreA)) ? hl : gris;
+                        gainsHtml = `
+                            <div style="font-size: 0.65rem; font-family: monospace; margin-top: 4px; opacity: 0.8;">
+                                Gains : <span style="${sA}">${ptsA}</span> | <span style="${sB}">${ptsB}</span> pts
+                            </div>`;
+                    }
+                }
             }
         }
 
@@ -1030,28 +1338,27 @@
             font-weight: bold; font-size: 1rem; cursor: ${active ? 'text' : 'not-allowed'};
         `;
 
-        // --- LOGIQUE D'ARBITRAGE : RÉEL vs PRONO ---
-        const idStr = String(m.id);
-        const officiel = (typeof OFFICIEL_2026 !== 'undefined' && OFFICIEL_2026.scores) ? OFFICIEL_2026.scores[idStr] : null;
-        
-        // Debug spécifique pour le match du Mexique
-        if (idStr === "686902") {
-            console.error("DEBUG RENDU MEXIQUE:");
-            console.log("- m.id:", idStr);
-            console.log("- Objet Officiel trouvé:", officiel);
-            console.log("- Prono récupéré (valA_final):", valA_final);
+        // 1. Valeur à afficher dans l'input
+        // KO Phase 2/3 sans résultat officiel : inputs vides (évite les 0 fantômes de Phase 1)
+        let affichageInputA, affichageInputB;
+        if (officielTermine) {
+            affichageInputA = officiel.sA;
+            affichageInputB = officiel.sB;
+        } else if (isPoule) {
+            affichageInputA = valA_final !== "" ? valA_final : 0;
+            affichageInputB = valB_final !== "" ? valB_final : 0;
+        } else {
+            // KO sans officiel : n'affiche que ce que l'utilisateur a explicitement saisi en Phase 3
+            affichageInputA = (canEditScore && valA_final !== "") ? valA_final : (valA_final !== "" && state === "AVANT" ? valA_final : "");
+            affichageInputB = (canEditScore && valB_final !== "") ? valB_final : (valB_final !== "" && state === "AVANT" ? valB_final : "");
         }
 
-        // 1. Valeur à afficher dans l'input
-        let affichageInputA = (officiel && officiel.termine) ? officiel.sA : (valA_final || 0);
-        let affichageInputB = (officiel && officiel.termine) ? officiel.sB : (valB_final || 0);
-
-        // 2. Création du rappel du prono
+        // 2. Rappel du prono affiché sous le score officiel
         let rappelPronoHtml = "";
-        if (officiel && officiel.termine) {
+        if (officielTermine && (valA_final !== "" || valB_final !== "")) {
             rappelPronoHtml = `
                 <div style="font-size: 0.72rem; color: #fbbf24; margin-top: 4px; font-style: italic; font-weight: bold; line-height: 1;">
-                    Mon prono : ${valA_final || 0} - ${valB_final || 0}
+                    Mon prono : ${valA_final !== "" && valA_final !== null ? valA_final : "?"} - ${valB_final !== "" && valB_final !== null ? valB_final : "?"}
                 </div>
             `;
         }
@@ -1071,31 +1378,40 @@
                     <div style="flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 10px; cursor: ${canClickWinner ? 'pointer' : 'default'}; overflow: hidden;" 
                         onclick="${canClickWinner ? `toggleWinnerUniversal('${phaseId}', ${m.id}, 'A')` : ''}">
                         
-                        <div style="text-align: right;"> 
-                            <span id="team_name_${phaseId}_${m.id}_A" style="font-weight: 600; color: ${colorNameA}; font-size: 0.9rem;">${nomA}</span>
+                        <div style="text-align: right; min-width: 0;">
+                            <span id="team_name_${phaseId}_${m.id}_A" style="font-weight: 600; color: ${colorNameA}; font-size: ${fontSizeA}; word-break: break-word;">${nomA}</span>
                             ${pronoNomA} 
                         </div>
 
-                        <img src="${getFlag(nomA)}" style="width:24px; border-radius: 2px; flex-shrink:0; border: ${isWinnerA ? '2px solid #4ade80' : '2px solid transparent'}" onerror="this.style.visibility='hidden'">
+                        <img src="${getFlag(nomA)}" class="${phase3WinA ? 'flag-winner-aura' : ''}" style="width:24px; border-radius: 2px; flex-shrink:0; border: ${!phase3WinA && isWinnerA ? '2px solid #4ade80' : phase3WinA ? '' : '2px solid transparent'}" onerror="this.style.visibility='hidden'">
                     </div>
 
                     <div style="display: flex; flex-direction: column; align-items: center; min-width: 110px;">
                         <div style="display: flex; gap: 4px; align-items: center;">
-                            <input type="number" 
-                                id="score_${phaseId}_${m.id}_A" 
-                                value="${affichageInputA}"  /* REMPLACE valA_final ICI */
-                                ${!canEditScore ? 'readonly' : ''}
-                                style="${inputStyle(canEditScore && !(officiel && officiel.termine))}">
-                            
+                            <input type="number"
+                                id="score_${phaseId}_${m.id}_A"
+                                value="${affichageInputA}"
+                                ${!canEditScore ? 'readonly' : `oninput="saveScorePhase('${phaseId}', ${m.id}, 'A', this.value); autoNext(this)"`}
+                                style="${inputStyle(canEditScore && !officielTermine)}">
+
                             <span style="font-weight: bold; color: ${isDraw ? '#fbbf24' : color};">${isDraw ? 'TAB' : ':'}</span>
-                            
-                            <input type="number" 
-                                id="score_${phaseId}_${m.id}_B" 
-                                value="${affichageInputB}" /* REMPLACE valB_final ICI */
-                                ${!canEditScore ? 'readonly' : ''}
-                                style="${inputStyle(canEditScore && !(officiel && officiel.termine))}">
+
+                            <input type="number"
+                                id="score_${phaseId}_${m.id}_B"
+                                value="${affichageInputB}"
+                                ${!canEditScore ? 'readonly' : `oninput="saveScorePhase('${phaseId}', ${m.id}, 'B', this.value)"`}
+                                style="${inputStyle(canEditScore && !officielTermine)}">
                         </div>
 
+                        ${isDraw && canClickWinner ? (tabWin
+                            ? `<div style="font-size:0.62rem;color:#888;margin-top:4px;text-align:center;line-height:1.2;">TAB · ${tabWin === 'A' ? nomA : nomB} ✓ <span style="color:#555">(re-clic pour annuler)</span></div>`
+                            : `<div style="font-size:0.62rem;color:#fbbf24;margin-top:4px;text-align:center;line-height:1.2;">TAB — cliquez sur l'équipe<br>vainqueur aux tirs au but</div>`
+                        ) : ''}
+                        ${state === 'PHASE_FINALE' && phaseId === '16' && !officielTermine && !match16eOuvert(m.id) ? (() => {
+                            const grps = GROUPES_PAR_MATCH_16[m.id];
+                            const label = grps ? `J3 Gr.${grps[0]} & Gr.${grps[1]}` : 'tous les J3';
+                            return `<div style="font-size:0.62rem;color:#666;margin-top:4px;text-align:center;line-height:1.3;">🔒 Disponible après<br>${label}</div>`;
+                        })() : ''}
                         ${rappelPronoHtml} ${gainsHtml}
                         
                     </div>
@@ -1103,10 +1419,10 @@
                     <div style="flex: 1; display: flex; align-items: center; justify-content: flex-start; gap: 10px; cursor: ${canClickWinner ? 'pointer' : 'default'}; overflow: hidden;"
                         onclick="${canClickWinner ? `toggleWinnerUniversal('${phaseId}', ${m.id}, 'B')` : ''}">
                         
-                        <img src="${getFlag(nomB)}" style="width:24px; border-radius: 2px; flex-shrink:0; border: ${isWinnerB ? '2px solid #4ade80' : '2px solid transparent'}" onerror="this.style.visibility='hidden'">
+                        <img src="${getFlag(nomB)}" class="${phase3WinB ? 'flag-winner-aura' : ''}" style="width:24px; border-radius: 2px; flex-shrink:0; border: ${!phase3WinB && isWinnerB ? '2px solid #4ade80' : phase3WinB ? '' : '2px solid transparent'}" onerror="this.style.visibility='hidden'">
                         
-                        <div style="text-align: left;"> 
-                            <span id="team_name_${phaseId}_${m.id}_B" style="font-weight: 600; color: ${colorNameB}; font-size: 0.9rem;">${nomB}</span>
+                        <div style="text-align: left; min-width: 0;">
+                            <span id="team_name_${phaseId}_${m.id}_B" style="font-weight: 600; color: ${colorNameB}; font-size: ${fontSizeB}; word-break: break-word;">${nomB}</span>
                             ${pronoNomB}
                         </div>
 
@@ -1375,6 +1691,136 @@
         //console.log("💾 [Snapshot] " + Object.keys(memoire).length + " équipes mémorisées.");
     }
 
+    // Détermine le vainqueur d'un match KO depuis les scores Phase 3 ou le résultat officiel
+    function getWinnerKO(phaseId, matchId, nomA, nomB) {
+        const off = (typeof OFFICIEL_2026 !== 'undefined') ? OFFICIEL_2026.scores[String(matchId)] : null;
+        if (off && off.termine) {
+            if (off.vainqueur === 'A') return nomA;
+            if (off.vainqueur === 'B') return nomB;
+            if (off.sA > off.sB) return nomA;
+            if (off.sB > off.sA) return nomB;
+            return null;
+        }
+        const pronos = getPronos();
+        const conf = (typeof CONFIG_PHASES !== 'undefined') ? CONFIG_PHASES[phaseId] : null;
+        const tiroir = conf ? conf.tiroir : null;
+        const td = (tiroir && pronos[tiroir]) ? pronos[tiroir] : {};
+        const keyA = `score_${phaseId}_${matchId}_A`;
+        const keyB = `score_${phaseId}_${matchId}_B`;
+        const keyW = `winner_${phaseId}_${matchId}`;
+        // Cherche d'abord dans le tiroir, ensuite à la racine
+        const rawA = td[keyA] !== undefined ? td[keyA] : pronos[keyA];
+        const rawB = td[keyB] !== undefined ? td[keyB] : pronos[keyB];
+        const sA = parseInt(rawA);
+        const sB = parseInt(rawB);
+        if (!isNaN(sA) && !isNaN(sB)) {
+            if (sA > sB) return nomA;
+            if (sB > sA) return nomB;
+            // TAB : lire la clé p3tab_ (Phase 3), pas winner_ (Phase 1)
+            const tabKey = `p3tab_${phaseId}_${matchId}`;
+            const win = td[tabKey] || pronos[tabKey];
+            if (win === 'A') return nomA;
+            if (win === 'B') return nomB;
+        }
+        return null;
+    }
+
+    // Peuple .vainqueur sur chaque match d'une liste KO pour alimenter le bracket suivant
+    function peuplerVainqueurs(phaseId, liste) {
+        if (getAppState() === "AVANT") return;
+        liste.forEach(m => {
+            if (m.vainqueur) return;
+            const nomA = m.t1 ? m.t1.nom : (m.equipeA || '');
+            const nomB = m.t2 ? m.t2.nom : (m.equipeB || '');
+            const w = getWinnerKO(phaseId, m.id, nomA, nomB);
+            if (w) m.vainqueur = w;
+        });
+    }
+
+    // Applique directement les vainqueurs d'un tour dans les slots t1/t2 du tour suivant
+    // Contourne les conflits avec le fallback ghost de getResultat
+    function propagerVersToursuvant(listePrecedente, listeSuivante, mapping) {
+        if (getAppState() === "AVANT") return;
+        listePrecedente.forEach(m => {
+            if (!m.vainqueur) return;
+            const map = mapping[m.id];
+            if (!map) return;
+            const target = listeSuivante.find(x => x.id === map.nextId);
+            if (target) target[map.nextSide] = { nom: m.vainqueur, id: m.id };
+        });
+    }
+
+    // Groupes impliqués par match 1/16e — dérivés dynamiquement depuis les labels de COTES_MATCHS_KO
+    // Ex: label "1er Gr.A" ou "2e Gr.B" → extrait "A" ou "B" ; "3e*" → null
+    const GROUPES_PAR_MATCH_16 = (() => {
+        const map = {};
+        const ids16 = [687045,687046,687047,687048,687049,687050,687051,687052,
+                       687053,687054,687055,687056,687057,687058,687059,687060];
+        if (typeof COTES_MATCHS_KO === 'undefined') return {};
+        ids16.forEach(id => {
+            const entry = COTES_MATCHS_KO.find(c => String(c.id) === String(id));
+            if (!entry) { map[id] = null; return; }
+            const extractGr = label => {
+                const m = (label || '').match(/Gr\.([A-L])/i);
+                return m ? m[1].toUpperCase() : null;
+            };
+            const gA = extractGr(entry.details?.domicile?.label);
+            const gB = extractGr(entry.details?.exterieur?.label);
+            if (!gA && !gB) { map[id] = null; return; } // "3e*" ou inconnu
+            const grps = [...new Set([gA, gB].filter(Boolean))];
+            map[id] = grps.length ? grps : null;
+        });
+        return map;
+    })();
+
+    function groupeJ3Termine(codeGroupe) {
+        const matchesJ3 = CALENDRIER_CDM.filter(m =>
+            m.groupe === `Groupe ${codeGroupe}` && (m.date || "").includes("3e journée")
+        );
+        return matchesJ3.length > 0 && matchesJ3.every(m => {
+            const off = OFFICIEL_2026.scores[m.id];
+            return off && off.termine;
+        });
+    }
+
+    function match16eOuvert(matchId) {
+        const groupes = GROUPES_PAR_MATCH_16[parseInt(matchId)];
+        if (groupes === undefined) return true; // pas un 1/16e
+        if (groupes === null) {
+            // match de 3es : ouvert seulement quand tous les J3 sont terminés
+            return Object.values(GROUPES_PAR_MATCH_16)
+                .filter(g => g !== null)
+                .flat()
+                .filter((g, i, a) => a.indexOf(g) === i)  // unique
+                .every(g => groupeJ3Termine(g));
+        }
+        return groupes.every(g => groupeJ3Termine(g));
+    }
+
+    // Mappings 1/16e → 1/8e
+    const MAP_16_VERS_8 = {
+        687045:{nextId:687061,nextSide:'t1'}, 687048:{nextId:687061,nextSide:'t2'},
+        687047:{nextId:687062,nextSide:'t1'}, 687050:{nextId:687062,nextSide:'t2'},
+        687046:{nextId:687063,nextSide:'t1'}, 687049:{nextId:687063,nextSide:'t2'},
+        687051:{nextId:687064,nextSide:'t1'}, 687052:{nextId:687064,nextSide:'t2'},
+        687056:{nextId:687065,nextSide:'t1'}, 687055:{nextId:687065,nextSide:'t2'},
+        687054:{nextId:687066,nextSide:'t1'}, 687053:{nextId:687066,nextSide:'t2'},
+        687059:{nextId:687067,nextSide:'t1'}, 687058:{nextId:687067,nextSide:'t2'},
+        687057:{nextId:687068,nextSide:'t1'}, 687060:{nextId:687068,nextSide:'t2'},
+    };
+    // 1/8e → Quarts
+    const MAP_8_VERS_4 = {
+        687062:{nextId:687069,nextSide:'t1'}, 687061:{nextId:687069,nextSide:'t2'},
+        687065:{nextId:687070,nextSide:'t1'}, 687066:{nextId:687070,nextSide:'t2'},
+        687063:{nextId:687071,nextSide:'t1'}, 687064:{nextId:687071,nextSide:'t2'},
+        687067:{nextId:687072,nextSide:'t1'}, 687068:{nextId:687072,nextSide:'t2'},
+    };
+    // Quarts → Demies
+    const MAP_4_VERS_2 = {
+        687069:{nextId:687073,nextSide:'t1'}, 687070:{nextId:687073,nextSide:'t2'},
+        687071:{nextId:687074,nextSide:'t1'}, 687072:{nextId:687074,nextSide:'t2'},
+    };
+
     function getResultat(phaseSource, matchId, listeMatchesSource, libelleDefaut) {
         // 1. On cherche d'abord le vainqueur "réel" dans la liste des matchs
         const matchSource = listeMatchesSource.find(m => m.id === matchId);
@@ -1405,29 +1851,44 @@
     // --- SYSTÈME DE COMPTE ---
 
     // --- FONCTIONS INTERFACE ---
-    function handleInscription() {
+    async function handleInscription() {
         const u = document.getElementById('login-user').value.trim();
         const p = document.getElementById('login-pass').value;
         if (!u || !p) return alert("Identifiants vides !");
-        
+
+        await loadUsersFromSupabase(); // vérifier les comptes existants en ligne
         let users = JSON.parse(localStorage.getItem('liste_utilisateurs_2026')) || {};
         if (users[u]) return alert("Ce pseudo est déjà utilisé.");
 
         users[u] = { password: p };
         localStorage.setItem('liste_utilisateurs_2026', JSON.stringify(users));
+        await syncUsersToSupabase();
         alert("Compte créé ! Connecte-toi maintenant.");
     }
 
-    function handleConnexion() {
+    async function handleConnexion() {
         const u = document.getElementById('login-user').value.trim();
         const p = document.getElementById('login-pass').value;
+
+        await loadUsersFromSupabase(); // récupérer la liste à jour depuis Supabase
         let users = JSON.parse(localStorage.getItem('liste_utilisateurs_2026')) || {};
 
         if (users[u] && users[u].password === p) {
             localStorage.setItem('current_user', u);
-            // Important : On réinitialise le cache pour charger les bonnes données
+
+            // Migration complète invite → compte pour toutes les clés de session
+            ['mes_pronos_2026', 'mes_projections_fantomes', 'mes_fantomes_verrouilles'].forEach(baseKey => {
+                const cleUser   = `${u}_${baseKey}`;
+                const cleInvite = `invite_${baseKey}`;
+                if (!localStorage.getItem(cleUser) && localStorage.getItem(cleInvite)) {
+                    localStorage.setItem(cleUser, localStorage.getItem(cleInvite));
+                    localStorage.removeItem(cleInvite);
+                }
+            });
+
+            await syncFromSupabase(u); // récupérer les pronos depuis Supabase
             CACHE_PRONOS = null;
-            location.reload(); 
+            location.reload();
         } else {
             alert("Pseudo ou mot de passe incorrect.");
         }
@@ -1445,165 +1906,332 @@
             document.getElementById('auth-logged-in').style.display = 'flex';
             document.getElementById('display-username').innerText = CURRENT_USER;
         }
+        // Bouton admin : visible uniquement pour les admins
+        const adminBtn = document.getElementById('admin-nav-btn');
+        if (adminBtn) adminBtn.style.display = isAdmin() ? 'block' : 'none';
     }
 
     //########################################################################################################//
     // Fonction CLASSEMENT
     //########################################################################################################//
 
-    function calculerPointsUtilisateur(username) {
-        let points = 0;
+    function calculerDetailsPoints(username, pronosOverride = null, verrouOverride = null) {
+        // Aucun point en Phase 1 : les résultats réels n'existent pas encore
+        const etat = getAppState();
+        if (etat === "AVANT") {
+            return { poules: 0, bracket: 0, total: 0, meilleurProno: { match: "-", pts: 0 } };
+        }
+
         const prefix = username + "_";
-        
-        // 1. Récupération des données du joueur
-        const pronos = JSON.parse(localStorage.getItem(prefix + 'mes_pronos_2026')) || {};
-        const verrou = JSON.parse(localStorage.getItem(prefix + 'mes_fantomes_verrouilles')) || {};
-        
-        // --- PARTIE A : POINTS DES MATCHS (Scores exacts et issues) ---
-        // On compare pronos aux résultats réels (qu'on imagine stockés dans une variable globale RESULTATS_REELS)
-        if (typeof RESULTATS_REELS !== 'undefined') {
-            Object.keys(RESULTATS_REELS).forEach(matchKey => {
-                const reel = RESULTATS_REELS[matchKey]; // ex: { scoreA: 2, scoreB: 1 }
-                const prono = pronos[matchKey]; // ex: { scoreA: 2, scoreB: 1 } ou valeur directe selon ta structure
-                
-                if (prono) {
-                    // Logique de calcul (à adapter selon ton format de stockage)
-                    // if (exact) points += cote * 20; etc.
-                }
-            });
-        }
+        const pronos = pronosOverride !== null ? pronosOverride
+            : (JSON.parse(localStorage.getItem(prefix + 'mes_pronos_2026')) || {});
+        // Verrou = snapshot figé à la transition Phase 1→2.
+        // Si l'utilisateur n'a pas encore rechargé la page en Phase 2, le verrou n'existe pas :
+        // on utilise alors ses projections fantômes (contenu identique au moment du gel).
+        const verrou = verrouOverride !== null ? verrouOverride
+            : (JSON.parse(localStorage.getItem(prefix + 'mes_fantomes_verrouilles'))
+               || JSON.parse(localStorage.getItem(prefix + 'mes_projections_fantomes'))
+               || {});
 
-        // --- PARTIE B : POINTS DES QUALIFIÉS (Fantômes Verrouillés) ---
-        // C'est ici que ta logique intervient !
-        if (verrou && typeof PHASE_FINALE !== 'undefined') {
-            // On extrait toutes les équipes uniques présentes dans le verrou du joueur
-            const equipesPronostiquees = new Set(Object.values(verrou));
-
-            equipesPronostiquees.forEach(nomEquipe => {
-                // On cherche la cote dans PHASE_FINALE
-                const infoCote = PHASE_FINALE.find(f => f.selection === nomEquipe);
-                
-                if (infoCote) {
-                    // Est-elle en 1/16e ? (On vérifie dans le verrou si elle apparaît dans un match "team_16_")
-                    const estEn16eme = Object.keys(verrou).some(key => key.startsWith("team_16_") && verrou[key] === nomEquipe);
-                    
-                    if (estEn16eme) {
-                        const coteVal = parseFloat(infoCote.cotes_qualifs.qualif_1_16.replace(',', '.'));
-                        points += Math.round(coteVal * 10); 
-                        console.log(`${username} gagne ${Math.round(coteVal * 10)} pts pour la qualif de ${nomEquipe}`);
-                    }
-                    
-                    // On peut répéter pour qualif_1_8, 1_4, etc.
-                }
-            });
-        }
-
-        return points;
-    }
-
-    function calculerDetailsPoints(username) {
         let details = {
-            poules: 0,
-            predictions: 0,
-            total: 0,
+            poules:  0,   // points en dur : matchs de poules
+            bracket: 0,   // points meubles : qualifs 1/16e + matchs KO
+            total:   0,
             meilleurProno: { match: "-", pts: 0 }
         };
 
-        const prefix = username + "_";
-        const pronos = JSON.parse(localStorage.getItem(prefix + 'mes_pronos_2026')) || {};
-        const verrou = JSON.parse(localStorage.getItem(prefix + 'mes_fantomes_verrouilles')) || {};
+        const issueStr = (a, b) => a > b ? '1' : a < b ? '2' : 'N';
 
-        // --- 1. CALCUL POINTS MATCHS (Poules) ---
-        CALENDRIER_CDM.forEach(m => {
-            const officiel = OFFICIEL_2026.scores[m.id];
-            const monProno = pronos[m.id]; // On récupère l'objet {sA, sB}
+        // Retourne les points de base (déjà en pts, pas en cote brute)
+        const getBase = (entry, iss) => {
+            if (!entry || !entry.details) return null;
+            const champ = iss === '1' ? 'domicile' : iss === '2' ? 'exterieur' : 'nul';
+            const v = entry.details[champ] && entry.details[champ].value;
+            if (!v) return null;
+            const val = parseFloat(String(v).replace(',', '.'));
+            // MPP : valeur = points directs ; sinon cote bookmakeur × 10
+            return entry.mpp ? Math.round(val) : Math.round(val * 10);
+        };
 
-            if (officiel && officiel.termine && monProno) {
-                let ptsMatch = 0;
-                const pA = parseInt(monProno.sA);
-                const pB = parseInt(monProno.sB);
-                const sA = officiel.sA;
-                const sB = officiel.sB;
-
-                const scoreExact = (pA === sA && pB === sB);
-                const bonneIssue = (Math.sign(pA - pB) === Math.sign(sA - sB));
-
-                if (scoreExact) ptsMatch = 6; 
-                else if (bonneIssue) ptsMatch = 3;
-
-                details.poules += ptsMatch;
-
-                if (ptsMatch > details.meilleurProno.pts) {
-                    details.meilleurProno = { match: `${m.equipeA} - ${m.equipeB}`, pts: ptsMatch };
-                }
+        const ajouterPts = (base, exact, section, label) => {
+            const pts = exact ? base * 2 : base;
+            details[section] += pts;
+            if (pts > details.meilleurProno.pts) {
+                details.meilleurProno = { match: label, pts };
             }
+        };
+
+        const scoreKO = (phaseId, matchId, team) => {
+            const cfg = CONFIG_PHASES[phaseId];
+            if (!cfg) return NaN;
+            const key = `score_${phaseId}_${matchId}_${team}`;
+            const tiroir = pronos[cfg.tiroir];
+            const v = (tiroir && tiroir[key] !== undefined) ? tiroir[key] : pronos[key];
+            return (v !== undefined && v !== null && v !== '') ? parseInt(v) : NaN;
+        };
+
+        // ── 1. POULES ──────────────────────────────────────────────────────
+        CALENDRIER_CDM.forEach(m => {
+            if (!m.groupe || m.groupe.toLowerCase().includes("finale") || m.groupe.startsWith("1/")) return;
+
+            const officiel = OFFICIEL_2026.scores[m.id];
+            if (!officiel || (!officiel.termine && !officiel.live)) return;
+
+            const pA = parseInt(pronos[`scoreA_${m.id}`]);
+            const pB = parseInt(pronos[`scoreB_${m.id}`]);
+            if (isNaN(pA) || isNaN(pB)) return;
+
+            const pi = issueStr(pA, pB);
+            if (pi !== issueStr(officiel.sA, officiel.sB)) return;
+
+            const entry = typeof COTES_MATCHS !== 'undefined'
+                ? COTES_MATCHS.find(c => String(c.id) === String(m.id)) : null;
+            const base = getBase(entry, pi);
+            if (!base) return;
+
+            ajouterPts(base, pA === officiel.sA && pB === officiel.sB,
+                       'poules', `${m.equipeA} - ${m.equipeB}`);
         });
 
-        // --- 2. CALCUL POINTS PRÉDICTIONS (Cotes) ---
-        // On utilise OFFICIEL_2026.qualifies que tu rempliras à la main
-        const qualifsReels = OFFICIEL_2026.qualifies || {};
+        // ── 2. QUALIFICATIONS 1/16e (verrou Phase 1) ───────────────────────
+        const qualifsReels    = OFFICIEL_2026.qualifies || {};
+        const toutesEquipesKO = new Set(Object.values(qualifsReels));
+        const qualifiesConnus = Object.keys(qualifsReels).length > 0;
 
-        Object.keys(verrou).forEach(key => {
-            if (key.startsWith("team_16_")) {
-                const equipeJoueur = verrou[key];
-                const equipeReelle = qualifsReels[key];
+        // Classements provisoires depuis les scores réels (quand qualifies pas encore défini)
+        const groupesProv = {};
+        if (!qualifiesConnus) {
+            // Étape 1 : initialiser TOUTES les équipes de chaque groupe (même sans match joué)
+            CALENDRIER_CDM.forEach(m => {
+                if (!m.groupe || m.groupe.toLowerCase().includes("finale") || m.groupe.startsWith("1/")) return;
+                if (!m.equipeA || !m.equipeB) return;
+                if (!groupesProv[m.groupe]) groupesProv[m.groupe] = {};
+                [m.equipeA, m.equipeB].forEach(e => {
+                    if (!groupesProv[m.groupe][e])
+                        groupesProv[m.groupe][e] = { pts: 0, bp: 0, bc: 0, mj: 0 };
+                });
+            });
+            // Étape 2 : appliquer les résultats réels terminés
+            CALENDRIER_CDM.forEach(m => {
+                if (!m.groupe || m.groupe.toLowerCase().includes("finale") || m.groupe.startsWith("1/")) return;
+                const off = OFFICIEL_2026.scores[m.id];
+                if (!off || !off.termine) return;
+                const tA = groupesProv[m.groupe]?.[m.equipeA];
+                const tB = groupesProv[m.groupe]?.[m.equipeB];
+                if (!tA || !tB) return;
+                tA.mj++; tB.mj++; tA.bp += off.sA; tA.bc += off.sB; tB.bp += off.sB; tB.bc += off.sA;
+                if (off.sA > off.sB) tA.pts += 3;
+                else if (off.sB > off.sA) tB.pts += 3;
+                else { tA.pts++; tB.pts++; }
+            });
+        }
 
-                if (equipeJoueur && equipeJoueur === equipeReelle) {
-                    const infoCote = PHASE_FINALE.find(f => f.selection === equipeJoueur);
-                    if (infoCote) {
-                        const ptsCote = Math.round(parseFloat(infoCote.cotes_qualifs.qualif_1_16.replace(',', '.')) * 10);
-                        details.predictions += ptsCote;
+        // Retourne le rang provisoire d'une équipe dans son groupe (1-indexed)
+        // Retourne null si l'équipe n'a pas encore joué (classement sans sens)
+        const rangProvisoire = (nomEquipe) => {
+            for (const [groupe, teams] of Object.entries(groupesProv)) {
+                const liste = Object.entries(teams)
+                    .map(([n, s]) => ({ nom: n, ...s, diff: s.bp - s.bc }))
+                    .sort((a, b) => b.pts - a.pts || b.diff - a.diff || b.bp - a.bp);
+                const idx = liste.findIndex(t => t.nom.toLowerCase().trim() === nomEquipe.toLowerCase().trim());
+                if (idx < 0) continue;
+                // Au moins un match joué dans ce groupe pour que le classement ait du sens
+                if (liste[idx].mj === 0) return null;
+                return { rang: idx + 1, groupe, mj: liste[idx].mj };
+            }
+            return null;
+        };
+
+        const deja = new Set();
+
+        Object.keys(verrou)
+            .filter(k => k.startsWith("team_16_"))
+            .forEach(key => {
+                const equipe = verrou[key];
+                if (!equipe || deja.has(equipe)) return;
+                deja.add(equipe);
+
+                const info = typeof PHASE_FINALE !== 'undefined'
+                    ? PHASE_FINALE.find(f => f.selection.toLowerCase().trim() === equipe.toLowerCase().trim())
+                    : null;
+                if (!info) return;
+
+                const cote = parseFloat(String(info.cotes_qualifs.qualif_1_16).replace(',', '.'));
+                const base = Math.round(cote * 10);
+
+                let pts = 0, labelQualif = '';
+
+                if (qualifiesConnus) {
+                    // Bracket officiel connu : comparaison exacte
+                    if (qualifsReels[key] === equipe) {
+                        pts = base * 2;
+                        labelQualif = `${equipe} qualifié(e) — position exacte ✓`;
+                    } else if (toutesEquipesKO.has(equipe)) {
+                        pts = base;
+                        labelQualif = `${equipe} qualifié(e) en 1/16e ✓`;
+                    }
+                } else {
+                    // Bracket pas encore défini : classement provisoire
+                    const r = rangProvisoire(equipe);
+                    if (r && r.rang <= 2) {
+                        pts = base;
+                        labelQualif = `${equipe} provisoirement ${r.rang}${r.rang === 1 ? 'er' : 'e'} ${r.groupe} 🔄`;
                     }
                 }
+
+                if (pts > 0) {
+                    details.bracket += pts;
+                    if (pts > details.meilleurProno.pts) {
+                        details.meilleurProno = { match: labelQualif, pts };
+                    }
+                }
+            });
+
+        // ── 3. MATCHS PHASE ÉLIMINATOIRE (pronos réels Phase 3) ────────────
+        const phasesKO = [
+            { id: '16', debut: 687045, fin: 687060 },
+            { id: '8',  debut: 687061, fin: 687068 },
+            { id: '4',  debut: 687069, fin: 687072 },
+            { id: '2',  debut: 687073, fin: 687074 },
+            { id: 'pf', debut: 687075, fin: 687075 },
+            { id: 'f',  debut: 687076, fin: 687076 },
+        ];
+
+        phasesKO.forEach(({ id: phaseId, debut, fin }) => {
+            for (let matchId = debut; matchId <= fin; matchId++) {
+                const officiel = OFFICIEL_2026.scores[matchId];
+                if (!officiel || (!officiel.termine && !officiel.live)) continue;
+
+                const pA = scoreKO(phaseId, matchId, 'A');
+                const pB = scoreKO(phaseId, matchId, 'B');
+                if (isNaN(pA) || isNaN(pB)) continue;
+
+                const entry = typeof COTES_MATCHS_KO !== 'undefined'
+                    ? COTES_MATCHS_KO.find(c => String(c.id) === String(matchId)) : null;
+
+                const matchCal = CALENDRIER_CDM.find(m => String(m.id) === String(matchId));
+                const label = matchCal ? `${matchCal.equipeA} - ${matchCal.equipeB}` : `Match ${matchId}`;
+
+                if (officiel.sA === officiel.sB && officiel.vainqueur) {
+                    // Cas TAB : nul à 90min
+                    if (issueStr(pA, pB) !== 'N') continue;
+                    const baseN = getBase(entry, 'N');
+                    if (!baseN) continue;
+                    let pts = (pA === officiel.sA && pB === officiel.sB) ? baseN * 2 : baseN;
+                    const manualWin = pronos[`winner_${phaseId}_${matchId}`];
+                    if (manualWin === officiel.vainqueur) pts += Math.round(baseN * 0.5);
+                    details.bracket += pts;
+                    if (pts > details.meilleurProno.pts) details.meilleurProno = { match: label, pts };
+                } else {
+                    const pi = issueStr(pA, pB);
+                    if (pi !== issueStr(officiel.sA, officiel.sB)) continue;
+                    const baseKO = getBase(entry, pi);
+                    if (!baseKO) continue;
+                    ajouterPts(baseKO, pA === officiel.sA && pB === officiel.sB, 'bracket', label);
+                }
             }
         });
 
-        details.total = details.poules + details.predictions;
+        details.total = details.poules + details.bracket;
         return details;
     }
 
-    function afficherClassement() {
+    function afficherClassement(earnedCurrentUser = null) {
         const users = JSON.parse(localStorage.getItem('liste_utilisateurs_2026')) || {};
         let scores = [];
 
         Object.keys(users).forEach(u => {
-            const d = calculerDetailsPoints(u);
+            let d;
+            if (u === CURRENT_USER && earnedCurrentUser !== null) {
+                d = earnedCurrentUser;
+            } else {
+                d = calculerDetailsPoints(u);
+            }
             scores.push({ name: u, ...d });
         });
 
-        // Tri par points totaux
         scores.sort((a, b) => b.total - a.total);
 
-        let html = `
-            <table class="classement-table">
-                <thead>
-                    <tr>
-                        <th>Rang</th>
-                        <th>Joueur</th>
-                        <th>Poules</th>
-                        <th>Prédictions</th>
-                        <th>Total</th>
-                        <th>Meilleur Prono</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${scores.map((s, index) => `
-                        <tr class="${s.name === CURRENT_USER ? 'highlight-me' : ''}">
-                            <td>${index + 1}</td>
-                            <td><strong>${s.name}</strong></td>
-                            <td>${s.poules}</td>
-                            <td>${s.predictions}</td>
-                            <td class="total-pts">${s.total}</td>
-                            <td style="font-size: 0.75rem; font-style: italic;">
-                                ${s.meilleurProno.match} (${s.meilleurProno.pts} pts)
-                            </td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>`;
+        const maxPts = Math.max(...scores.map(s => s.total), 1);
+        const podiumStyle = ['🥇','🥈','🥉'];
+        const podiumBg    = [
+            'linear-gradient(135deg,#2a1f00,#3a2c00)',
+            'linear-gradient(135deg,#1a1a1a,#2a2a2a)',
+            'linear-gradient(135deg,#1a1000,#2a1a00)'
+        ];
+        const podiumBorder = ['#d4af37','#aaa','#cd7f32'];
+        const avatarColors = ['#e74c3c','#3498db','#2ecc71','#9b59b6','#e67e22','#1abc9c','#e91e63','#00bcd4'];
+
+        const cards = scores.map((s, i) => {
+            const isPodium   = i < 3;
+            const isMe       = s.name === CURRENT_USER;
+            const pct        = Math.round((s.total / maxPts) * 100);
+            const pctPoules  = s.total > 0 ? Math.round(s.poules  / s.total * 100) : 0;
+            const pctBracket = s.total > 0 ? Math.round(s.bracket / s.total * 100) : 0;
+            const avatarCol  = avatarColors[i % avatarColors.length];
+            const border     = isMe ? '#4ade80' : (isPodium ? podiumBorder[i] : '#222');
+            const bg         = isPodium ? podiumBg[i] : (isMe ? 'linear-gradient(135deg,#0d2010,#112018)' : '#0d0d0d');
+            const rankBadge  = isPodium
+                ? `<span style="font-size:1.6rem;line-height:1;">${podiumStyle[i]}</span>`
+                : `<span style="width:28px;height:28px;border-radius:50%;background:#1a1a1a;border:1px solid #333;display:inline-flex;align-items:center;justify-content:center;font-size:0.75rem;color:#888;font-weight:bold;">${i+1}</span>`;
+
+            return `
+            <div style="
+                background:${bg}; border:1.5px solid ${border}; border-radius:10px;
+                padding:14px 16px; margin-bottom:10px; position:relative;
+                box-shadow:${isPodium ? '0 2px 12px rgba(212,175,55,0.12)' : 'none'};
+                ${isMe ? 'box-shadow:0 0 0 1px #4ade8044;' : ''}
+            ">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <!-- Rang -->
+                    <div style="min-width:32px; text-align:center;">${rankBadge}</div>
+
+                    <!-- Avatar lettre -->
+                    <div style="width:38px;height:38px;border-radius:50%;background:${avatarCol};display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:1rem;color:#fff;flex-shrink:0;">
+                        ${s.name.charAt(0).toUpperCase()}
+                    </div>
+
+                    <!-- Nom + barre de progression -->
+                    <div style="flex:1; min-width:0;">
+                        <div style="display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;">
+                            <span style="font-weight:bold; font-size:${isPodium ? '1.05rem' : '0.95rem'}; color:${isMe ? '#4ade80' : '#eee'};">
+                                ${s.name}${isMe ? ' <span style="font-size:0.7rem;color:#4ade80;font-weight:normal;">(moi)</span>' : ''}
+                            </span>
+                            ${s.meilleurProno.pts > 0 ? `<span style="font-size:0.7rem;color:#888;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;" title="Meilleur prono : ${s.meilleurProno.match}">⭐ +${s.meilleurProno.pts} pts</span>` : ''}
+                        </div>
+
+                        <!-- Barre composite -->
+                        <div style="margin-top:6px; height:6px; border-radius:3px; background:#1a1a1a; overflow:hidden; display:flex;">
+                            <div style="width:${pctPoules}%; background:#4ade80; border-radius:3px 0 0 3px; transition:width 0.4s;"></div>
+                            <div style="width:${pctBracket}%; background:#60a5fa; transition:width 0.4s;"></div>
+                        </div>
+                        <div style="display:flex; gap:10px; margin-top:4px; font-size:0.68rem; color:#666;">
+                            <span>🟢 Poules : <b style="color:#4ade80;">${s.poules}</b></span>
+                            <span>🔵 Bracket : <b style="color:#60a5fa;">${s.bracket}</b></span>
+                        </div>
+                    </div>
+
+                    <!-- Total + bouton stats -->
+                    <div style="text-align:right; flex-shrink:0; display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+                        <div style="font-size:${isPodium ? '1.5rem' : '1.25rem'}; font-weight:bold; color:${isPodium ? podiumBorder[i] : (isMe ? '#4ade80' : '#ddd')}; font-family:monospace; line-height:1;">
+                            ${s.total}
+                        </div>
+                        <div style="font-size:0.65rem; color:#555;">pts</div>
+                        <button onclick="ouvrirStatsJoueur('${s.name.replace(/'/g,"\\'")}', ${i})"
+                            style="background:rgba(255,255,255,0.06); border:1px solid #333; color:#aaa; border-radius:14px; padding:3px 10px; font-size:0.7rem; cursor:pointer; white-space:nowrap;"
+                            title="Voir les stats de ${s.name}">📊 Stats</button>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+
+        const legend = `<div style="display:flex;gap:16px;justify-content:center;margin-bottom:12px;font-size:0.72rem;color:#666;">
+            <span>🟢 Points Poules (définitifs)</span>
+            <span>🔵 Points Bracket (évolutifs)</span>
+        </div>`;
 
         const container = document.getElementById('classement-container');
-        if(container) container.innerHTML = html;
+        if (container) container.innerHTML = legend + cards;
     }
 
     //########################################################################################################//
@@ -1624,10 +2252,17 @@
         // Si on n'est plus en phase "AVANT", on verrouille
         if (etatActuel !== "AVANT") {
             if (!localStorage.getItem(keyVerrou)) {
+                // Auto-sauvegarde des inputs actifs uniquement (pas les disabled = scores officiels)
+                document.querySelectorAll('input[type="number"]:not([disabled])').forEach(inp => {
+                    if (!inp.id || inp.value === '') return;
+                    const val = parseInt(inp.value);
+                    if (!isNaN(val)) { savedData[inp.id] = val; CACHE_PRONOS = savedData; }
+                });
+                savePronosGlobal();
+
                 const projections = localStorage.getItem(keyFantomes);
                 if (projections) {
                     localStorage.setItem(keyVerrou, projections);
-                    //console.log(`🔒 Bascule vers ${etatActuel} : Verrou activé pour ${CURRENT_USER || 'invité'}`);
                 }
             }
         } else {
@@ -1641,6 +2276,7 @@
         // On log la source, mais on ne bloque plus le script
         //console.log("--> DÉBUT updateAll (Source : " + (arguments.callee.caller ? arguments.callee.caller.name : "inconnue") + ")");
 
+        let _earnedResult = null;
         try {
             const activeId = document.activeElement ? document.activeElement.id : null;
             const app = document.getElementById('app');
@@ -1651,10 +2287,11 @@
             let totalPointsFinales = 0; // Initialisé à 0
             const groupes = {};
             let currentDayDetected = 0;
+            let currentDateSub = "";
 
         // 1. Logique des Poules et calcul totalPointsPoules
         CALENDRIER_CDM.forEach(m => {
-            if (!m.groupe || m.groupe.includes("finale")) return;
+            if (!m.groupe || m.groupe.toLowerCase().includes("finale")) return;
 
             // DÉTECTION ET GÉNÉRATION DES EN-TÊTES DE JOURNÉE ---
             const dateNettoyee = (m.date || "").toLowerCase();
@@ -1667,10 +2304,23 @@
 
             if (idJournee && currentDayDetected !== idJournee) {
                 currentDayDetected = idJournee;
+                currentDateSub = "";
                 htmlCalendrier += `
-                    <h3 id="${idJournee}" style="margin: 30px 0 15px 0; color: var(--gold); border-bottom: 1px solid #333; padding-bottom: 5px; font-size: 1.2rem;">
-                        ${titreJournee} <span style="font-size: 0.8rem; color: #888; font-weight: normal; margin-left: 10px;">— ${m.date}</span>
+                    <h3 id="${idJournee}" style="margin: 30px 0 10px 0; color: var(--gold); border-bottom: 1px solid #333; padding-bottom: 5px; font-size: 1.2rem;">
+                        ${titreJournee}
                     </h3>`;
+            }
+
+            // SÉPARATEUR PAR JOUR (date extraite après " - ")
+            const datePart = m.date ? m.date.split(" - ").pop() : "";
+            if (idJournee && datePart && datePart !== currentDateSub) {
+                currentDateSub = datePart;
+                htmlCalendrier += `
+                    <div style="display:flex; align-items:center; gap:8px; margin:12px 0 8px 0; font-size:0.78rem; color:#666;">
+                        <span style="flex:1; height:1px; background:#2a2a2a;"></span>
+                        <span>📅 ${datePart}</span>
+                        <span style="flex:1; height:1px; background:#2a2a2a;"></span>
+                    </div>`;
             }
 
             const gCode = m.groupe.replace("Groupe ", "").trim();
@@ -1692,19 +2342,18 @@
 
             const realA = officielMatch ? officielMatch.sA : (reelMatch ? reelMatch.scoreA : null);
             const realB = officielMatch ? officielMatch.sB : (reelMatch ? reelMatch.scoreB : null);
-            const estTermine = officielMatch ? officielMatch.termine : (realA !== null);
+            const estLive    = !!(officielMatch && officielMatch.live && !officielMatch.termine);
+            const estTermine = officielMatch ? (officielMatch.termine || officielMatch.live) : (realA !== null);
 
             const valA = (sA !== undefined && sA !== null && sA !== "") ? sA : "";
             const valB = (sB !== undefined && sB !== null && sB !== "") ? sB : "";
 
             // --- CALCUL DU CLASSEMENT ---
             let scA = "", scB = "";
-            if (isLocked) {
-                if (realA !== null && realB !== null && estTermine) {
-                    scA = realA; scB = realB;
-                }
-            } else {
-                scA = valA; scB = valB;
+            if (realA !== null && realB !== null && estTermine) {
+                scA = realA; scB = realB; // score officiel (terminé ou live)
+            } else if (!isLocked) {
+                scA = valA; scB = valB;   // prono joueur en Phase 1 sans résultat
             }
 
             if (scA !== "" && scB !== "") {
@@ -1726,24 +2375,28 @@
             let couleurTexte = "#fff", opacite = "1";
 
             // Détermination des couleurs et valeurs d'affichage (Arbitrage Final)
-            if (isLocked) {
-                if (realA !== null && estTermine) {
-                    affichageA = realA; affichageB = realB;
-                    couleurTexte = "var(--gold)";
-                    inputBorderColor = "#fbbf24"; // Bordure dorée pour les matchs finis
-                } else {
-                    affichageA = 0; affichageB = 0;
-                    couleurTexte = "#666"; opacite = "0.5";
-                }
+            if (estLive) {
+                // Live : les inputs gardent la PRONO, le score officiel s'affiche séparément
+                // affichageA/B = valA/B déjà défini par défaut — on ne touche pas
+                inputBorderColor = "#e74c3c";
+            } else if (realA !== null && estTermine) {
+                // Match terminé : score officiel dans les inputs
+                affichageA = realA; affichageB = realB;
+                couleurTexte = "var(--gold)";
+                inputBorderColor = "#fbbf24";
+            } else if (isLocked) {
+                affichageA = 0; affichageB = 0;
+                couleurTexte = "#666"; opacite = "0.5";
             }
 
             if (typeof COTES_MATCHS !== 'undefined') {
                 let odds = COTES_MATCHS.find(c => c.id && String(c.id) === String(m.id));
                 if (odds && odds.details) {
                     const parseOdds = (v) => v ? parseFloat(v.toString().replace(',', '.')) : 0;
-                    const p1 = Math.round(parseOdds(odds.details.domicile.value) * 10);
-                    const pN = Math.round(parseOdds(odds.details.nul.value) * 10);
-                    const p2 = Math.round(parseOdds(odds.details.exterieur.value) * 10);
+                    const _mul = odds.mpp ? 1 : 10;
+                    const p1 = Math.round(parseOdds(odds.details.domicile.value) * _mul);
+                    const pN = Math.round(parseOdds(odds.details.nul.value) * _mul);
+                    const p2 = Math.round(parseOdds(odds.details.exterieur.value) * _mul);
 
                     let userChoice = null;
                     if (valA !== "" && valB !== "") {
@@ -1753,7 +2406,10 @@
 
                     if (!isLocked) {
                         if (userChoice) totalPointsPoules += (userChoice === '1' ? p1 : (userChoice === '2' ? p2 : pN));
-                        gainsHtml = `<div style="font-size:0.9rem; color:#888; margin-top:6px;">Gains : ${p1} | ${pN} | ${p2} pts</div>`;
+                        const cs1 = userChoice === '1' ? "color:#4ade80; font-weight:bold;" : "color:#666;";
+                        const csN = userChoice === 'N' ? "color:#4ade80; font-weight:bold;" : "color:#666;";
+                        const cs2 = userChoice === '2' ? "color:#4ade80; font-weight:bold;" : "color:#666;";
+                        gainsHtml = `<div style="font-size:0.9rem; color:#888; margin-top:6px;">Gains : <span style="${cs1}">${p1}</span> | <span style="${csN}">${pN}</span> | <span style="${cs2}">${p2}</span> pts</div>`;
                     } else if (realA !== null && userChoice) {
                         const winReel = realA > realB ? '1' : (realA < realB ? '2' : 'N');
                         const isExact = (parseInt(valA) === realA && parseInt(valB) === realB);
@@ -1785,18 +2441,34 @@
                     </div>
 
                     <div style="display: flex; flex-direction: column; align-items: center; min-width: 150px;">
+                        ${!estTermine && !estLive && m.heure ? `<div style="font-size:0.62rem; color:#666; margin-bottom:3px;">${m.heure}</div>` : ''}
+                        ${estLive ? `
+                        <div style="font-size:0.65rem; font-weight:bold; color:#e74c3c; letter-spacing:0.06em; margin-bottom:3px; display:flex; align-items:center; gap:4px;">
+                            <span style="width:6px;height:6px;border-radius:50%;background:#e74c3c;display:inline-block;animation:aura-pulse 1s ease-in-out infinite;"></span>
+                            LIVE${officielMatch?.statut ? ' · ' + officielMatch.statut : ''}
+                        </div>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <span style="width:42px;height:34px;display:flex;align-items:center;justify-content:center;background:#1a0000;border:1px solid #e74c3c;border-radius:4px;font-weight:bold;font-size:1rem;color:#e74c3c;">${realA}</span>
+                            <span style="color:#e74c3c;font-weight:bold;">:</span>
+                            <span style="width:42px;height:34px;display:flex;align-items:center;justify-content:center;background:#1a0000;border:1px solid #e74c3c;border-radius:4px;font-weight:bold;font-size:1rem;color:#e74c3c;">${realB}</span>
+                        </div>
+                        ${valA !== "" || valB !== "" ? `<div style="color:#888;font-size:0.7rem;margin-top:4px;font-style:italic;">Prono: ${valA !== "" ? valA : "?"}-${valB !== "" ? valB : "?"}</div>` : ''}
+                        ` : `
                         <div style="display: flex; gap: 6px; align-items: center;">
-                            <input type="number" value="${affichageA}" ${isLocked ? 'disabled' : ''} 
-                                style="width: 42px; height: 34px; text-align: center; background: #000; 
-                                border: 1px solid ${inputBorderColor}; color: ${couleurTexte}; 
+                            <input type="number" id="scoreA_${m.id}" value="${affichageA}" ${(isLocked || (realA !== null && estTermine)) ? 'disabled' : ''}
+                                oninput="saveScore('${m.id}', 'A', this.value); autoNext(this)"
+                                style="width: 42px; height: 34px; text-align: center; background: #000;
+                                border: 1px solid ${inputBorderColor}; color: ${couleurTexte};
                                 border-radius: 4px; font-weight: bold; opacity: ${opacite};">
                             <span style="color: var(--gold); font-weight: bold;">:</span>
-                            <input type="number" value="${affichageB}" ${isLocked ? 'disabled' : ''} 
-                                style="width: 42px; height: 34px; text-align: center; background: #000; 
-                                border: 1px solid ${inputBorderColor}; color: ${couleurTexte}; 
+                            <input type="number" id="scoreB_${m.id}" value="${affichageB}" ${(isLocked || (realA !== null && estTermine)) ? 'disabled' : ''}
+                                oninput="saveScore('${m.id}', 'B', this.value)"
+                                style="width: 42px; height: 34px; text-align: center; background: #000;
+                                border: 1px solid ${inputBorderColor}; color: ${couleurTexte};
                                 border-radius: 4px; font-weight: bold; opacity: ${opacite};">
                         </div>
-                        ${isLocked ? `<div style="color:#888; font-size:0.7rem; margin-top:4px; font-style:italic;">Prono: ${valA || 0}-${valB || 0}</div>` : ''}
+                        ${(isLocked || (realA !== null && estTermine)) && (valA !== "" || valB !== "") ? `<div style="color:#888; font-size:0.7rem; margin-top:4px; font-style:italic;">Prono: ${valA !== "" ? valA : "?"}-${valB !== "" ? valB : "?"}</div>` : ''}
+                        `}
                         <div class="gains-container">${gainsHtml}</div>
                     </div>
 
@@ -1892,10 +2564,9 @@
             // 3. Calcul des Points de Phase Finale ET Synchronisation Calendrier
             // 1. On génère les 16èmes
             const les16emes = genererAffiches16emes(resGroupesTriés, top8);
-            // 2. On synchronise avec le calendrier (MAJ de CALENDRIER_CDM + ajout de .nomA / .nomB)
             synchroniserCalendrier(les16emes);
+            peuplerVainqueurs('16', les16emes); // Phase 3 : propage les vainqueurs vers les 1/8es
 
-            // 3. Calcul des points (la boucle est plus simple maintenant)
             les16emes.forEach(m => {
                 const estVraiPays = (n) => n && !n.includes("Gr.") && !n.includes("Match") && !n.includes("attente");
 
@@ -1919,6 +2590,9 @@
                 { id: 687068, label: "Match 96 - Mardi 07 Juillet 2026", t1: getResultat('16', 687057, les16emes, "Match 85"), t2: getResultat('16', 687060, les16emes, "Match 87") }
             ];
 
+            propagerVersToursuvant(les16emes, les8emes, MAP_16_VERS_8);
+            peuplerVainqueurs('8', les8emes);
+
             // Calcul points 8èmes
             les8emes.forEach(m => {
                 if (m.t1 && !m.t1.nom.includes("Match")) {
@@ -1937,6 +2611,9 @@
                 { id: 687072,label: "Match 100 - Dimanche 12 Juillet 2026", t1: getResultat('8', 687067, les8emes, "Match 95"), t2: getResultat('8', 687068, les8emes, "Match 96") }
             ];
 
+            propagerVersToursuvant(les8emes, lesQuarts, MAP_8_VERS_4);
+            peuplerVainqueurs('4', lesQuarts);
+
             // Calcul points Quarts
             lesQuarts.forEach(m => {
                 if (m.t1 && !m.t1.nom.includes("Match")) {
@@ -1953,6 +2630,9 @@
                 { id: 687074, label: "Match 102 - Mercredi 15 Juillet 2026", t1: getResultat('4', 687071, lesQuarts, "Match 99"), t2: getResultat('4', 687072, lesQuarts, "Match 100") }
             ];
 
+            propagerVersToursuvant(lesQuarts, lesDemies, MAP_4_VERS_2);
+            peuplerVainqueurs('2', lesDemies);
+
             // Calcul points Demies
             lesDemies.forEach(m => {
                 if (m.t1 && !m.t1.nom.includes("Match")) {
@@ -1965,8 +2645,27 @@
 
             // --- FINALES ---
             // 1. Définition des objets
-            const finaleObj = { id: 687076, label: "Match 104 - Dimanche 19 Juillet 2026", t1: getResultat('2', 687073, lesDemies, "V. Demi 1"), t2: getResultat('2', 687074, lesDemies, "V. Demi 2") };
+            const finaleObj  = { id: 687076, label: "Match 104 - Dimanche 19 Juillet 2026", t1: getResultat('2', 687073, lesDemies, "V. Demi 1"), t2: getResultat('2', 687074, lesDemies, "V. Demi 2") };
             const pFinaleObj = { id: 687075, label: "Match 103 - Samedi 18 Juillet 2026", t1: getResultat('2', 687073, lesDemies, "P. Demi 1", true), t2: getResultat('2', 687074, lesDemies, "P. Demi 2", true) };
+            // Propagation Phase 3 : demies → finale et petite finale
+            if (getAppState() !== "AVANT") {
+                const d73 = lesDemies.find(x => x.id === 687073);
+                const d74 = lesDemies.find(x => x.id === 687074);
+
+                // Finale : vainqueurs des demies
+                if (d73?.vainqueur) finaleObj.t1 = { nom: d73.vainqueur, id: 687073 };
+                if (d74?.vainqueur) finaleObj.t2 = { nom: d74.vainqueur, id: 687074 };
+
+                // Petite finale : perdants des demies
+                if (d73?.vainqueur && d73.t1 && d73.t2) {
+                    const perdant73 = d73.vainqueur === d73.t1.nom ? d73.t2.nom : d73.t1.nom;
+                    pFinaleObj.t1 = { nom: perdant73, id: 687073 };
+                }
+                if (d74?.vainqueur && d74.t1 && d74.t2) {
+                    const perdant74 = d74.vainqueur === d74.t1.nom ? d74.t2.nom : d74.t1.nom;
+                    pFinaleObj.t2 = { nom: perdant74, id: 687074 };
+                }
+            }
 
             // Fonction de vérification pour ne compter que les vrais pays
             const estVraiPays = (n) => n && !n.includes("Demi") && !n.includes("V.") && !n.includes("P.") && !n.includes("attente");
@@ -1997,39 +2696,41 @@
             // ÉTAPE FINALE : AFFICHAGE GLOBAL
             // =========================================================
 
-            // 1. On calcule le total général maintenant que tout est prêt
-            const totalGeneral = totalPointsPoules + totalPointsFinales;
+            // Points réels du joueur connecté
+            const sessionPronos = getPronos();
+            const sessionVerrou = JSON.parse(localStorage.getItem(getKey('mes_fantomes_verrouilles'))) || {};
+            const earned = calculerDetailsPoints(CURRENT_USER || '', sessionPronos, sessionVerrou);
+            _earnedResult = earned;
 
-            // 2. On prépare le HTML du badge avec les chiffres définitifs
+            // Delta bracket : compare avec la valeur enregistrée à l'ouverture de session
+            const cleDelta = getKey('bracket_session_start');
+            if (sessionStorage.getItem(cleDelta) === null) {
+                sessionStorage.setItem(cleDelta, String(earned.bracket));
+            }
+            const bracketDebut = parseInt(sessionStorage.getItem(cleDelta) || '0');
+            const deltaBracket = earned.bracket - bracketDebut;
+            const deltaHtml = deltaBracket > 0
+                ? `<span style="color:#4ade80;font-size:0.75rem;"> (+${deltaBracket})</span>`
+                : deltaBracket < 0
+                    ? `<span style="color:#f87171;font-size:0.75rem;"> (${deltaBracket})</span>`
+                    : '';
+
+            // 2. Badge : Poules (en dur) | Bracket (meubles) | Total
             const badgeTotalHtml = `
-                <div id="points-cumules" style="
-                    position: fixed; 
-                    top: 10px; 
-                    left: 50%; 
-                    transform: translateX(-50%); 
-                    z-index: 9999; 
-                    background: #1a1a1a; 
-                    border: 2px solid var(--gold); 
-                    color: white; 
-                    padding: 12px; 
-                    border-radius: 12px; 
-                    text-align: center; 
-                    width: 90%; 
-                    max-width: 350px; 
-                    box-shadow: 0 4px 20px rgba(0,0,0,0.8);
-                ">
-                    <div style="display: flex; justify-content: space-around; margin-bottom: 5px; border-bottom: 1px solid #333; padding-bottom: 5px;">
+                <div id="points-cumules" style="position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:9999;background:#1a1a1a;border:2px solid var(--gold);color:white;padding:12px 16px;border-radius:12px;text-align:center;width:92%;max-width:380px;box-shadow:0 4px 20px rgba(0,0,0,0.8);">
+                    <div style="display:flex;justify-content:space-around;margin-bottom:6px;border-bottom:1px solid #333;padding-bottom:6px;gap:6px;">
                         <div>
-                            <div style="font-size: 0.6rem; color: #aaa;">POULES</div>
-                            <div style="font-weight: bold; color: white;">${totalPointsPoules}</div>
+                            <div style="font-size:0.58rem;color:#aaa;text-transform:uppercase;letter-spacing:0.05em;">Poules ●</div>
+                            <div style="font-weight:bold;color:white;font-size:1.1rem;">${earned.poules}</div>
                         </div>
-                        <div>
-                            <div style="font-size: 0.6rem; color: #aaa;">PHASES FINALES</div>
-                            <div style="font-weight: bold; color: white;">${totalPointsFinales}</div>
+                        <div style="border-left:1px solid #444;padding-left:10px;">
+                            <div style="font-size:0.58rem;color:#aaa;text-transform:uppercase;letter-spacing:0.05em;">Pts Provisoires ◆</div>
+                            <div style="font-weight:bold;color:white;font-size:1.1rem;">${earned.bracket}${deltaHtml}</div>
                         </div>
                     </div>
-                    <div style="font-size: 0.7rem; text-transform: uppercase; color: #aaa;">Total Général</div>
-                    <div style="font-size: 1.8rem; font-weight: bold; color: var(--gold);">${totalGeneral} <span style="font-size: 1rem;">pts</span></div>
+                    <div style="font-size:0.65rem;text-transform:uppercase;color:#aaa;">Total Général</div>
+                    <div style="font-size:1.8rem;font-weight:bold;color:var(--gold);">${earned.total} <span style="font-size:1rem;">pts</span></div>
+                    ${earned.meilleurProno.pts > 0 ? `<div style="font-size:0.65rem;color:#888;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">⭐ ${earned.meilleurProno.match} (+${earned.meilleurProno.pts} pts)</div>` : ''}
                 </div>
             `;
 
@@ -2038,6 +2739,7 @@
                 if (app) {
                     app.style.paddingTop = "80px";
                     app.innerHTML = htmlCalendrier; // On met le calendrier dans app
+                    console.log(`📅 htmlCalendrier : ${htmlCalendrier.length} chars, J1=${htmlCalendrier.includes('journee-1')}, J2=${htmlCalendrier.includes('journee-2')}, J3=${htmlCalendrier.includes('journee-3')}`);
                 }
 
                 // Et on injecte le badge directement dans le body (ou un conteneur global)
@@ -2093,9 +2795,391 @@
             } catch (error) {
                 console.error("GROS PLANTAGE DANS UPDATEALL :", error);
             }
-            
+
+            // Classement toujours en sync avec le badge (quelle que soit la source du déclenchement)
+            if (typeof afficherClassement === 'function') {
+                afficherClassement(_earnedResult);
+            }
+
             console.log("--> FIN updateAll");
+            return _earnedResult;
         }
+
+    // ── STATS INDIVIDUELLES ───────────────────────────────────────────────────
+    function ouvrirStatsJoueur(username, rang) {
+        const overlay = document.getElementById('stats-joueur-overlay');
+        const content = document.getElementById('stats-joueur-content');
+        if (!overlay || !content) return;
+
+        const pronos = JSON.parse(localStorage.getItem(username + '_mes_pronos_2026')) || {};
+        const d = calculerDetailsPoints(username);
+        const issueStr = (a, b) => a > b ? '1' : a < b ? '2' : 'N';
+
+        let correct = 0, incorrect = 0, total = 0;
+        let curBon = 0, curMauv = 0, maxBon = 0, maxMauv = 0;
+        let kamikazes = 0, senateurs = 0, exactScore = 0;
+        let meilleurGain = 0, meilleurMatch = '—';
+
+        const matchsTermines = CALENDRIER_CDM.filter(m => {
+            if (!m.groupe || m.groupe.toLowerCase().includes("finale") || m.groupe.startsWith("1/")) return false;
+            const off = OFFICIEL_2026.scores[m.id];
+            return off && (off.termine || off.live);
+        }).sort((a, b) => {
+            const ts = m => (m.timestamp || '').split('/').reverse().join('') + (m.timestamp||'').slice(11);
+            return ts(a).localeCompare(ts(b));
+        });
+
+        matchsTermines.forEach(m => {
+            const off = OFFICIEL_2026.scores[m.id];
+            const pA = parseInt(pronos[`scoreA_${m.id}`]);
+            const pB = parseInt(pronos[`scoreB_${m.id}`]);
+            if (isNaN(pA) || isNaN(pB)) return;
+            total++;
+
+            const pi = issueStr(pA, pB);
+            const oi = issueStr(off.sA, off.sB);
+            const bonIssue = pi === oi;
+            const exact    = bonIssue && pA === off.sA && pB === off.sB;
+
+            const entry = typeof COTES_MATCHS !== 'undefined'
+                ? COTES_MATCHS.find(c => String(c.id) === String(m.id)) : null;
+            const getVal = champ => {
+                const rawV = entry?.details?.[champ]?.value;
+                if (!rawV) return null;
+                const f = parseFloat(String(rawV).replace(',', '.'));
+                return entry.mpp ? Math.round(f) : Math.round(f * 10);
+            };
+            const p1 = getVal('domicile'), pN = getVal('nul'), p2 = getVal('exterieur');
+            const champ = pi === '1' ? 'domicile' : pi === '2' ? 'exterieur' : 'nul';
+            const pts = getVal(champ) || 0;
+
+            if (bonIssue) {
+                correct++;
+                curBon++;
+                curMauv = 0;
+                maxBon = Math.max(maxBon, curBon);
+                if (exact) exactScore++;
+                const gain = exact ? pts * 2 : pts;
+                if (gain > meilleurGain) {
+                    meilleurGain = gain;
+                    meilleurMatch = `${m.equipeA} - ${m.equipeB}`;
+                }
+                if (p1 !== null && p2 !== null) {
+                    const maxPts = Math.max(p1 || 0, pN || 0, p2 || 0);
+                    const minPts = Math.min(p1 ?? Infinity, pN ?? Infinity, p2 ?? Infinity);
+                    if (pts === maxPts) kamikazes++;
+                    if (pts === minPts) senateurs++;
+                }
+            } else {
+                incorrect++;
+                curMauv++;
+                curBon = 0;
+                maxMauv = Math.max(maxMauv, curMauv);
+            }
+        });
+
+        const pctBon  = total > 0 ? Math.round(correct  / total * 100) : 0;
+        const pctExact = total > 0 ? Math.round(exactScore / total * 100) : 0;
+        const podiumEmoji = ['🥇','🥈','🥉'][rang] || `#${rang+1}`;
+        const avatarColors = ['#e74c3c','#3498db','#2ecc71','#9b59b6','#e67e22','#1abc9c','#e91e63','#00bcd4'];
+        const avCol = avatarColors[rang % avatarColors.length];
+
+        const stat = (label, val, color='#ddd', sub='') => `
+            <div style="background:#111;border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+                <span style="color:#888;font-size:0.8rem;">${label}${sub ? `<br><span style="font-size:0.68rem;color:#555;">${sub}</span>` : ''}</span>
+                <span style="font-weight:bold;font-size:0.95rem;color:${color};">${val}</span>
+            </div>`;
+
+        const gauge = (pct, col) => `
+            <div style="height:5px;background:#1a1a1a;border-radius:3px;overflow:hidden;margin-top:4px;">
+                <div style="width:${pct}%;height:100%;background:${col};border-radius:3px;"></div>
+            </div>`;
+
+        content.innerHTML = `
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;">
+                <div style="width:48px;height:48px;border-radius:50%;background:${avCol};display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:1.3rem;color:#fff;">${username.charAt(0).toUpperCase()}</div>
+                <div>
+                    <div style="font-size:1.1rem;font-weight:bold;color:#eee;">${username}</div>
+                    <div style="font-size:0.8rem;color:#888;">${podiumEmoji} Rang · ${d.total} pts au total</div>
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                ${stat('Pronos joués', total, '#ddd')}
+                ${stat('⭐ Perfects', exactScore + ' (' + pctExact + '%)', '#fbbf24', 'score pile-poil → bonus ×2')}
+                ${stat('✅ Bons pronos', correct + ' (' + pctBon + '%)', '#4ade80')}
+                ${stat('❌ Mauvais pronos', incorrect + ' (' + (100-pctBon) + '%)', '#f87171')}
+            </div>
+
+            <div style="background:#111;border-radius:8px;padding:10px 14px;margin-bottom:8px;">
+                <div style="font-size:0.75rem;color:#888;margin-bottom:6px;">Taux de réussite</div>
+                <div style="display:flex;gap:6px;align-items:center;">
+                    <span style="font-size:1.2rem;font-weight:bold;color:#4ade80;">${pctBon}%</span>
+                    <div style="flex:1;">${gauge(pctBon,'#4ade80')}</div>
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                ${stat('🔥 Série max gagnante', maxBon + ' consécutif(s)', '#fbbf24')}
+                ${stat('💀 Série max perdante', maxMauv + ' consécutif(s)', '#f87171')}
+                ${stat('🗡️ Kamikazes', kamikazes + ' prono(s)', '#a78bfa', 'paris ≥ 100 pts réussis')}
+                ${stat('🏛️ Sénateurs', senateurs + ' prono(s)', '#67e8f9', 'paris ≤ 50 pts réussis')}
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                ${stat('🟢 Points Poules', d.poules + ' pts', '#4ade80', 'définitifs')}
+                ${stat('🔵 Points Bracket', d.bracket + ' pts', '#60a5fa', 'évolutifs')}
+            </div>
+
+            ${meilleurGain > 0 ? `<div style="background:#111;border-radius:8px;padding:10px 14px;font-size:0.8rem;">
+                <span style="color:#888;">⭐ Meilleur prono : </span>
+                <span style="color:#fbbf24;font-weight:bold;">${meilleurMatch}</span>
+                <span style="color:#888;"> (+${meilleurGain} pts)</span>
+            </div>` : ''}
+        `;
+
+        document.getElementById('stats-joueur-nom').textContent = username;
+        overlay.style.display = 'flex';
+    }
+
+    // ── CLASSEMENTS ANNEXES ───────────────────────────────────────────────────
+    function ouvrirClassementsAnnexes() {
+        const overlay = document.getElementById('annexes-overlay');
+        const content = document.getElementById('annexes-content');
+        if (!overlay || !content) return;
+
+        const users = JSON.parse(localStorage.getItem('liste_utilisateurs_2026')) || {};
+        const userList = Object.keys(users);
+        if (userList.length === 0) {
+            content.innerHTML = '<p style="text-align:center;color:#888">Aucun joueur enregistré.</p>';
+            overlay.style.display = 'block';
+            return;
+        }
+
+        const issueStr = (a, b) => a > b ? '1' : a < b ? '2' : 'N';
+
+        // Retourne les pts de base pour une issue donnée (respecte MPP vs bookmakeur)
+        const getPts = (entry, iss) => {
+            if (!entry?.details) return null;
+            const champ = iss === '1' ? 'domicile' : iss === '2' ? 'exterieur' : 'nul';
+            const v = entry.details[champ]?.value;
+            if (!v) return null;
+            const f = parseFloat(String(v).replace(',', '.'));
+            return entry.mpp ? Math.round(f) : Math.round(f * 10);
+        };
+
+        // Matchs de poule terminés triés chronologiquement
+        const matchsTermines = CALENDRIER_CDM.filter(m => {
+            if (!m.groupe || m.groupe.toLowerCase().includes("finale") || m.groupe.startsWith("1/")) return false;
+            const off = OFFICIEL_2026.scores[m.id];
+            return off && (off.termine || off.live);
+        }).sort((a, b) => {
+            const ts = m => (m.timestamp || '').split('/').reverse().join('') + (m.timestamp||'').slice(11);
+            return ts(a).localeCompare(ts(b));
+        });
+
+        // Journées pour le calcul des remontées/descentes
+        const journees = ['1re journée', '2e journée', '3e journée'];
+
+        // ── Collecte des stats par joueur ────────────────────────────────────
+        const stats = {};
+        const ptsCumulParJournee = {}; // u -> [ptsJ1, ptsJ1+J2, ptsJ1+J2+J3]
+
+        userList.forEach(u => {
+            const pronos = JSON.parse(localStorage.getItem(u + '_mes_pronos_2026')) || {};
+            const d = calculerDetailsPoints(u);
+
+            let correct = 0, incorrect = 0, total = 0, perfectCount = 0;
+            let curBon = 0, curMauv = 0, maxBon = 0, maxMauv = 0;
+            let kamikazes = 0, senateurs = 0;
+            let meilleurGain = 0, plusPetitGain = Infinity;
+
+            // Cumul par journée (pour Jesus / Fers)
+            let cumulJ = 0;
+            const cumulParJournee = journees.map(jour => {
+                const matchsJour = matchsTermines.filter(m => (m.date || '').includes(
+                    jour === '1re journée' ? '1re' : jour === '2e journée' ? '2e' : '3e'
+                ));
+                matchsJour.forEach(m => {
+                    const off = OFFICIEL_2026.scores[m.id];
+                    const pA = parseInt(pronos[`scoreA_${m.id}`]);
+                    const pB = parseInt(pronos[`scoreB_${m.id}`]);
+                    if (isNaN(pA) || isNaN(pB)) return;
+                    const pi = issueStr(pA, pB);
+                    if (pi !== issueStr(off.sA, off.sB)) return;
+                    const entry = typeof COTES_MATCHS !== 'undefined'
+                        ? COTES_MATCHS.find(c => String(c.id) === String(m.id)) : null;
+                    const pts = getPts(entry, pi);
+                    if (!pts) return;
+                    cumulJ += (pA === off.sA && pB === off.sB) ? pts * 2 : pts;
+                });
+                return cumulJ;
+            });
+            ptsCumulParJournee[u] = cumulParJournee;
+
+            matchsTermines.forEach(m => {
+                const off = OFFICIEL_2026.scores[m.id];
+                const pA = parseInt(pronos[`scoreA_${m.id}`]);
+                const pB = parseInt(pronos[`scoreB_${m.id}`]);
+                if (isNaN(pA) || isNaN(pB)) return;
+                total++;
+
+                const pi  = issueStr(pA, pB);
+                const oi  = issueStr(off.sA, off.sB);
+                const bon = pi === oi;
+                const exact = bon && pA === off.sA && pB === off.sB;
+
+                const entry = typeof COTES_MATCHS !== 'undefined'
+                    ? COTES_MATCHS.find(c => String(c.id) === String(m.id)) : null;
+                const p1 = getPts(entry, '1');
+                const pN = getPts(entry, 'N');
+                const p2 = getPts(entry, '2');
+                const ptsChose = pi === '1' ? p1 : pi === '2' ? p2 : pN;
+                if (!ptsChose) return;
+
+                if (bon) {
+                    correct++;
+                    if (exact) perfectCount++;
+                    curBon++; curMauv = 0;
+                    maxBon = Math.max(maxBon, curBon);
+                    const gain = exact ? ptsChose * 2 : ptsChose;
+                    if (gain > meilleurGain)  meilleurGain = gain;
+                    if (gain < plusPetitGain) plusPetitGain = gain;
+
+                    // Kamikaze : a choisi la plus grosse cote parmi les 3
+                    const maxPts = Math.max(p1 || 0, pN || 0, p2 || 0);
+                    if (ptsChose === maxPts) kamikazes++;
+
+                    // Sénateur : a choisi la plus petite cote parmi les 3
+                    const minPts = Math.min(p1 || Infinity, pN || Infinity, p2 || Infinity);
+                    if (ptsChose === minPts) senateurs++;
+                } else {
+                    incorrect++;
+                    curMauv++; curBon = 0;
+                    maxMauv = Math.max(maxMauv, curMauv);
+                }
+            });
+
+            if (plusPetitGain === Infinity) plusPetitGain = 0;
+
+            stats[u] = {
+                name: u, correct, incorrect, total, perfectCount,
+                maxBon, maxMauv, kamikazes, senateurs,
+                meilleurGain, plusPetitGain,
+                pctBon:  total > 0 ? Math.round(correct   / total * 100) : 0,
+                pctMauv: total > 0 ? Math.round(incorrect  / total * 100) : 0,
+                poules:  d.poules, bracket: d.bracket, total_pts: d.total,
+            };
+        });
+
+        // ── Remontées / Descentes par journée (en PLACES au classement) ────────
+        // Rang de chaque joueur à la fin de chaque journée
+        const rangsParJournee = {}; // u -> [rangJ1, rangJ2, rangJ3]
+        userList.forEach(u => { rangsParJournee[u] = []; });
+
+        journees.forEach((_, jIdx) => {
+            const sorted = [...userList].sort((a, b) =>
+                (ptsCumulParJournee[b]?.[jIdx] ?? 0) - (ptsCumulParJournee[a]?.[jIdx] ?? 0)
+            );
+            sorted.forEach((u, rankIdx) => { rangsParJournee[u][jIdx] = rankIdx + 1; });
+        });
+
+        const maxRemontee = {}; // u -> max places gagnées en une journée
+        const maxDescente = {}; // u -> max places perdues en une journée
+        userList.forEach(u => { maxRemontee[u] = 0; maxDescente[u] = 0; });
+
+        journees.forEach((_, jIdx) => {
+            if (jIdx === 0) return;
+            userList.forEach(u => {
+                const rangAvant = rangsParJournee[u][jIdx - 1] ?? userList.length;
+                const rangApres = rangsParJournee[u][jIdx]     ?? userList.length;
+                const delta = rangAvant - rangApres; // positif = montée (rang plus petit = mieux)
+                if (delta > maxRemontee[u]) maxRemontee[u] =  delta;
+                if (delta < 0 && -delta > maxDescente[u]) maxDescente[u] = -delta;
+            });
+        });
+
+        // Ajouter au stats
+        userList.forEach(u => {
+            if (stats[u]) {
+                stats[u].maxRemontee = maxRemontee[u];
+                stats[u].maxDescente = maxDescente[u];
+            }
+        });
+
+        const arr = Object.values(stats);
+        const medals = ['🥇','🥈','🥉'];
+        const top = (fn, n = 3, asc = false) => {
+            return [...arr].filter(s => s.total > 0)
+                .sort((a, b) => asc ? fn(a) - fn(b) : fn(b) - fn(a))
+                .slice(0, n);
+        };
+
+        const section = (emoji, titre, sous, joueurs, valFn) => {
+            if (!joueurs.length) return '';
+            const rows = joueurs.map((s, i) => `<tr style="border-bottom:1px solid #222;">
+                <td style="padding:5px 8px;color:#888;">${medals[i] || (i+1)+'.'}</td>
+                <td style="padding:5px 8px;font-weight:bold;color:#ddd;">${s.name}</td>
+                <td style="padding:5px 8px;text-align:right;color:var(--gold);font-weight:bold;">${valFn(s)}</td>
+            </tr>`).join('');
+            return `<div style="margin-bottom:18px;">
+                <div style="color:var(--gold);font-weight:bold;font-size:0.95rem;margin-bottom:3px;">${emoji} ${titre}</div>
+                <div style="color:#666;font-size:0.72rem;margin-bottom:5px;font-style:italic;">${sous}</div>
+                <table style="width:100%;border-collapse:collapse;background:#0d0d0d;border-radius:6px;overflow:hidden;">${rows}</table>
+            </div>`;
+        };
+
+        const noData = arr.every(s => s.total === 0);
+        if (noData) {
+            content.innerHTML = '<p style="text-align:center;color:#888;margin-top:20px;">Disponible dès les premiers matchs terminés.</p>';
+            overlay.style.display = 'block';
+            return;
+        }
+
+        content.innerHTML = [
+            section('⭐','Les Perfects','Plus grand nombre de scores exacts (bonus ×2)',
+                top(s => s.perfectCount),
+                s => s.perfectCount + ' perfect(s)'),
+            section('🗡️','Les Kamikazes','Bons pronos sur LA PLUS GROSSE cote proposée',
+                top(s => s.kamikazes),
+                s => s.kamikazes + ' prono(s) sur ' + s.correct + ' bons'),
+            section('🏛️','Les Sénateurs','Bons pronos sur LA PLUS PETITE cote proposée',
+                top(s => s.senateurs),
+                s => s.senateurs + ' prono(s) sur ' + s.correct + ' bons'),
+            section('🎯','Les Gars Sûrs','Pourcentage de bons pronostics',
+                top(s => s.pctBon),
+                s => s.pctBon + '% (' + s.correct + '/' + s.total + ')'),
+            section('😬','Les Stéphanes Guy','Pourcentage de mauvais pronostics',
+                top(s => s.pctMauv),
+                s => s.pctMauv + '% (' + s.incorrect + '/' + s.total + ')'),
+            section('🔥','La Bonne Gagneuse','Plus longue série de bons pronos consécutifs',
+                top(s => s.maxBon),
+                s => s.maxBon + ' consécutif(s)'),
+            section('💀','La FFL – Fédération Française de la Lose','Plus longue série de mauvais pronos consécutifs',
+                top(s => s.maxMauv),
+                s => s.maxMauv + ' consécutif(s)'),
+            section('⬆️','Les Jesus du Jour','Plus grosse remontée au classement en une journée',
+                top(s => s.maxRemontee),
+                s => s.maxRemontee > 0 ? '+' + s.maxRemontee + ' place(s)' : '—'),
+            section('⬇️','Les Fers à Repasser','Plus grosse chute au classement en une journée',
+                top(s => s.maxDescente),
+                s => s.maxDescente > 0 ? '-' + s.maxDescente + ' place(s)' : '—'),
+            section('🔮','Les Nostradamus','Plus de points bracket KO (1/16e et au-delà)',
+                top(s => s.bracket),
+                s => s.bracket + ' pts bracket'),
+            section('🤡','Les Gilberts','Moins de points bracket KO (1/16e et au-delà)',
+                top(s => s.bracket, 3, true),
+                s => s.bracket + ' pts bracket'),
+            section('💰','Les Premiers de Cordée','Plus gros gain sur UN seul prono',
+                top(s => s.meilleurGain),
+                s => s.meilleurGain + ' pts (1 match)'),
+            section('🌍','Le 1/3 Monde','Le meilleur prono le moins impressionnant',
+                top(s => s.meilleurGain, 3, true).filter(s => s.correct > 0),
+                s => 'meilleur prono : ' + s.meilleurGain + ' pts'),
+        ].join('');
+
+        overlay.style.display = 'block';
+    }
 
     function afficherClassements(resGroupesTriés) {
         const zone = document.getElementById('zone-classements') || document.getElementById('zone-resultats');
@@ -2189,12 +3273,35 @@
         zone.innerHTML = html;
     }
 
+    function navScroll(id) {
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function toggleSideNav() {
+        const nav = document.getElementById('side-nav');
+        const icon = document.getElementById('nav-toggle-icon');
+        const collapsed = nav.classList.toggle('collapsed');
+        icon.textContent = collapsed ? '▶' : '◀';
+        localStorage.setItem('side_nav_collapsed', collapsed ? '1' : '0');
+    }
+
     function toggleLuckyMenu() {
         const menu = document.getElementById('lucky-menu');
         const overlay = document.getElementById('modal-overlay');
-        document.getElementById('reset-menu').style.display = 'none'; // Ferme le Reset si ouvert
+        document.getElementById('reset-menu').style.display = 'none';
 
         if (menu.style.display === 'none' || menu.style.display === '') {
+            // Grise les options poules/journées en Phase 3
+            const phase3 = getAppState() === 'PHASE_FINALE';
+            ['lucky-btn-poules','lucky-btn-tout','lucky-btn-j1','lucky-btn-j2','lucky-btn-j3'].forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.disabled = phase3;
+                el.style.opacity = phase3 ? '0.35' : '';
+                el.style.cursor  = phase3 ? 'not-allowed' : '';
+                el.style.pointerEvents = phase3 ? 'none' : '';
+            });
             menu.style.display = 'block';
             overlay.style.display = 'block';
         } else {
@@ -2215,10 +3322,284 @@
         }
     }
 
+    // ══════════════════════════════════════════════════════════════════════
+    // ADMIN PANEL
+    // ══════════════════════════════════════════════════════════════════════
+
+    let _adminOnglet = 'joueurs';
+
+    function ouvrirAdmin() {
+        if (!isAdmin()) return;
+        fermerLesMenus();
+        const panel = document.getElementById('admin-panel');
+        const overlay = document.getElementById('modal-overlay');
+        panel.style.display = 'flex';
+        overlay.style.display = 'block';
+        adminRenderOnglet(_adminOnglet);
+    }
+
+    function fermerAdmin() {
+        document.getElementById('admin-panel').style.display = 'none';
+        document.getElementById('modal-overlay').style.display = 'none';
+    }
+
+    function adminTab(onglet) {
+        _adminOnglet = onglet;
+        document.querySelectorAll('.admin-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === onglet));
+        adminRenderOnglet(onglet);
+    }
+
+    function adminRenderOnglet(onglet) {
+        const zone = document.getElementById('admin-content');
+        if (onglet === 'joueurs')    zone.innerHTML = adminHtmlJoueurs();
+        if (onglet === 'controle')   zone.innerHTML = adminHtmlControle();
+        if (onglet === 'resultats')  zone.innerHTML = adminHtmlResultats();
+        if (onglet === 'export')     zone.innerHTML = adminHtmlExport();
+    }
+
+    // ── ONGLET JOUEURS ────────────────────────────────────────────────────
+    function adminHtmlJoueurs() {
+        const users = JSON.parse(localStorage.getItem('liste_utilisateurs_2026')) || {};
+        const noms = Object.keys(users).sort();
+        if (!noms.length) return '<p style="color:#666;text-align:center;margin-top:30px;">Aucun joueur enregistré.</p>';
+
+        const rows = noms.map(u => {
+            const raw = localStorage.getItem(`${u}_mes_pronos_2026`);
+            let pronos = {};
+            try { pronos = raw ? JSON.parse(raw) : {}; } catch {}
+            const nbPronos = Object.keys(pronos).filter(k => k.startsWith('scoreA_') || (k.match(/score_\w+_\d+_A$/))).length;
+            const pts = (() => { try { return calculerDetailsPoints(u).total; } catch { return '?'; } })();
+            const badge = ADMIN_USERS.includes(u) ? ' <span style="color:#e74c3c;font-size:0.7em;">ADMIN</span>' : '';
+            return `<tr>
+                <td style="color:${u === CURRENT_USER ? 'var(--gold)' : '#ddd'}">${u}${badge}</td>
+                <td style="color:#888;">${nbPronos} pronos</td>
+                <td style="color:#4ade80;font-weight:bold;">${pts} pts</td>
+                <td style="display:flex;gap:5px;flex-wrap:wrap;">
+                    <button class="admin-btn admin-btn-info" onclick="adminVoirPronos('${u}')">👁 Pronos</button>
+                    <button class="admin-btn" style="background:#1a3a1a;color:#4ade80;" onclick="adminResetJoueur('${u}')">🔄 Reset phase</button>
+                    ${u !== CURRENT_USER ? `<button class="admin-btn admin-btn-del" onclick="adminSupprimerJoueur('${u}')">🗑 Supprimer</button>` : ''}
+                </td>
+            </tr>`;
+        }).join('');
+
+        return `<table class="admin-table">
+            <thead><tr><th>Joueur</th><th>Pronos</th><th>Points</th><th>Actions</th></tr></thead>
+            <tbody>${rows}</tbody>
+        </table>`;
+    }
+
+    function adminSupprimerJoueur(username) {
+        if (!confirm(`Supprimer définitivement "${username}" et toutes ses données ?\nCette action est irréversible.`)) return;
+        const users = JSON.parse(localStorage.getItem('liste_utilisateurs_2026')) || {};
+        delete users[username];
+        localStorage.setItem('liste_utilisateurs_2026', JSON.stringify(users));
+        Object.keys(localStorage).filter(k => k.startsWith(username + '_')).forEach(k => localStorage.removeItem(k));
+        updateAll();
+        adminRenderOnglet('joueurs');
+    }
+
+    function adminVoirPronos(username) {
+        const raw = localStorage.getItem(`${username}_mes_pronos_2026`);
+        let pronos = {};
+        try { pronos = raw ? JSON.parse(raw) : {}; } catch {}
+        const lignes = Object.entries(pronos)
+            .filter(([k]) => !k.startsWith('{'))
+            .sort(([a],[b]) => a.localeCompare(b))
+            .map(([k,v]) => {
+                const val = typeof v === 'object' ? JSON.stringify(v).substring(0,40)+'…' : String(v);
+                return `<tr><td style="color:#888;font-family:monospace;font-size:0.75em;">${k}</td><td style="color:#ddd;font-size:0.75em;">${val}</td></tr>`;
+            }).join('');
+        document.getElementById('admin-content').innerHTML = `
+            <button class="admin-btn admin-btn-info" onclick="adminRenderOnglet('joueurs')" style="margin-bottom:12px;">← Retour</button>
+            <div class="admin-section-title">Pronos de ${username}</div>
+            <table class="admin-table"><thead><tr><th>Clé</th><th>Valeur</th></tr></thead>
+            <tbody>${lignes || '<tr><td colspan="2" style="color:#666">Aucun prono</td></tr>'}</tbody></table>`;
+    }
+
+    function adminResetJoueur(username) {
+        const phases = ['J1','J2','J3','POULES','TABLEAU_FINAL'];
+        const choix = prompt(`Reset pronos de "${username}" pour :\nJ1, J2, J3, POULES, TABLEAU_FINAL\n\nSaisir la cible :`);
+        if (!choix || !phases.includes(choix.trim().toUpperCase())) { alert('Cible invalide.'); return; }
+        const cible = choix.trim().toUpperCase();
+        const key = `${username}_mes_pronos_2026`;
+        const raw = localStorage.getItem(key);
+        if (!raw) return;
+        let data = JSON.parse(raw);
+        const TIROIRSPHASE = {TABLEAU_FINAL:['16EMES','8EMES','QUARTS','DEMIS','PETITE_FINALE','FINALE']};
+        if (cible === 'TABLEAU_FINAL') {
+            (TIROIRSPHASE.TABLEAU_FINAL).forEach(t => delete data[t]);
+            Object.keys(data).forEach(k => { if (/(_16_|winner_16|_8_|winner_8|_4_|winner_4|_2_|winner_2|_f_|_pf_)/.test(k)) delete data[k]; });
+        } else if (cible === 'POULES') {
+            Object.keys(data).forEach(k => { if (k.startsWith('scoreA_') || k.startsWith('scoreB_')) delete data[k]; });
+        } else {
+            Object.keys(data).forEach(k => {
+                const idMatch = k.split('_')[1];
+                const m = CALENDRIER_CDM.find(x => x.id == idMatch);
+                if (!m) return;
+                const j = m.date.includes('1re') ? 'J1' : m.date.includes('2e') ? 'J2' : m.date.includes('3e') ? 'J3' : '';
+                if (j === cible) delete data[k];
+            });
+        }
+        localStorage.setItem(key, JSON.stringify(data));
+        if (username === CURRENT_USER) { CACHE_PRONOS = null; }
+        updateAll();
+        adminRenderOnglet('joueurs');
+    }
+
+    // ── ONGLET CONTRÔLE ───────────────────────────────────────────────────
+    function adminHtmlControle() {
+        const simDate = SIMULATED_DATE || '(date réelle)';
+        return `
+        <div class="admin-section-title">Date simulée actuelle : <span style="color:var(--gold)">${simDate}</span></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;">
+            <button class="admin-btn admin-btn-info" onclick="SIMULATED_DATE='2026-05-15T10:00:00'; localStorage.removeItem(getKey('mes_fantomes_verrouilles')); CACHE_PRONOS=null; updateAll(); adminRenderOnglet('controle')">Phase 1</button>
+            <button class="admin-btn admin-btn-info" onclick="SIMULATED_DATE='2026-06-11T21:01:00'; updateAll(); adminRenderOnglet('controle')">Phase 2</button>
+            <button class="admin-btn admin-btn-info" onclick="SIMULATED_DATE='2026-06-26T10:00:00'; simulerResultatsJusqua(); adminRenderOnglet('controle')">Phase 3 (26/06)</button>
+            <button class="admin-btn" style="background:#1a3a00;color:#4ade80;" onclick="SIMULATED_DATE=null; updateAll(); adminRenderOnglet('controle')">Vraie date</button>
+        </div>
+
+        <div class="admin-section-title">🧪 Simulation par journée (scores cumulatifs — J2 ne réécrit pas J1)</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+            <button class="admin-btn" style="background:#0d2200;color:#4ade80;border:1px solid #4ade80;"
+                onclick="const n=simulerJournee(1); adminRenderOnglet('controle'); alert('J1 : '+n+' matchs générés.')">
+                ▶ Simuler J1
+            </button>
+            <button class="admin-btn" style="background:#0d1a2a;color:#60a5fa;border:1px solid #60a5fa;"
+                onclick="const n=simulerJournee(2); adminRenderOnglet('controle'); alert('J2 : '+n+' matchs générés (J1 intact).')">
+                ▶ Simuler J2
+            </button>
+            <button class="admin-btn" style="background:#1a0d00;color:#fbbf24;border:1px solid #fbbf24;"
+                onclick="const n=simulerJournee(3); adminRenderOnglet('controle'); alert('J3 : '+n+' matchs générés (J1+J2 intacts). Phase 3 active.')">
+                ▶ Simuler J3
+            </button>
+            <button class="admin-btn admin-btn-danger"
+                onclick="if(confirm('Effacer TOUS les scores simulés des poules ?')){Object.keys(OFFICIEL_2026.scores).forEach(k=>{const m=CALENDRIER_CDM.find(x=>String(x.id)===String(k));if(m&&(m.groupe||'').startsWith('Groupe'))delete OFFICIEL_2026.scores[k];}); SIMULATED_DATE='2026-06-11T21:01:00'; updateAll(); adminRenderOnglet('controle'); alert('Scores effacés.');}">
+                🗑 Réinitialiser poules
+            </button>
+        </div>
+        <div style="font-size:0.72rem;color:#555;margin-bottom:10px;font-style:italic;">
+            Les scores existants ne sont jamais modifiés — seuls les matchs non encore scoreés sont générés.
+        </div>
+
+        <div class="admin-section-title">Simulation progressive Phase 3</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;">
+            ${[['25/06 23h30','2026-06-25T23:30:00','J3 A+B'],['26/06 10h','2026-06-26T10:00:00','J3 C+D'],
+               ['26/06 23h','2026-06-26T23:00:00','J3 E+F'],['27/06 10h','2026-06-27T10:00:00','J3 G+H'],
+               ['27/06 23h','2026-06-27T23:00:00','J3 I+J'],['28/06 fin','2026-06-28T23:59:00','Tout ouvert']]
+              .map(([l,d,s]) => `<button class="admin-btn admin-btn-info" onclick="SIMULATED_DATE='${d}'; simulerResultatsJusqua(); adminRenderOnglet('controle')" title="${s}">${l}<br><small>${s}</small></button>`).join('')}
+        </div>
+
+        <div class="admin-section-title">Saisie libre</div>
+        <div style="display:flex;gap:6px;align-items:center;">
+            <input type="datetime-local" id="adm-sim-dt" value="2026-06-26T10:00"
+                style="flex:1;font-size:0.8em;background:#1a1a1a;color:#ddd;border:1px solid #444;border-radius:4px;padding:4px 6px;">
+            <button class="admin-btn admin-btn-info" onclick="SIMULATED_DATE=document.getElementById('adm-sim-dt').value+':00'; simulerResultatsJusqua(); adminRenderOnglet('controle')">▶ Appliquer</button>
+        </div>`;
+    }
+
+    // ── ONGLET RÉSULTATS ──────────────────────────────────────────────────
+    function adminHtmlResultats() {
+        const scores = OFFICIEL_2026.scores || {};
+        const qualifies = OFFICIEL_2026.qualifies || {};
+
+        const rowsScores = Object.entries(scores).sort(([a],[b]) => a.localeCompare(b, undefined, {numeric:true})).map(([id, s]) => {
+            const m = CALENDRIER_CDM.find(x => String(x.id) === String(id));
+            const label = m ? (m.equipeA||'?') + ' - ' + (m.equipeB||'?') : `ID ${id}`;
+            const statut = s.live ? '🔴 LIVE' : s.termine ? '✅' : '⏳';
+            return `<tr>
+                <td style="font-family:monospace;color:#666">${id}</td>
+                <td style="color:#ddd;font-size:0.85em">${label}</td>
+                <td style="text-align:center"><input type="number" value="${s.sA}" min="0" max="20" style="width:36px;background:#1a1a1a;color:white;border:1px solid #444;border-radius:3px;text-align:center"
+                    onchange="adminSetScore('${id}','sA',this.value)"></td>
+                <td style="text-align:center"><input type="number" value="${s.sB}" min="0" max="20" style="width:36px;background:#1a1a1a;color:white;border:1px solid #444;border-radius:3px;text-align:center"
+                    onchange="adminSetScore('${id}','sB',this.value)"></td>
+                <td style="text-align:center">${statut}</td>
+                <td><button class="admin-btn admin-btn-del" onclick="adminSupprimerScore('${id}')">✕</button></td>
+            </tr>`;
+        }).join('');
+
+        const addForm = `
+        <div class="admin-section-title">Ajouter / modifier un score</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+            <input id="adm-score-id" placeholder="ID match" style="width:90px;background:#1a1a1a;color:#ddd;border:1px solid #444;border-radius:4px;padding:4px 6px;font-size:0.8em;">
+            <input id="adm-score-a" type="number" placeholder="sA" min="0" max="20" style="width:48px;background:#1a1a1a;color:#ddd;border:1px solid #444;border-radius:4px;padding:4px 6px;font-size:0.8em;">
+            <span style="color:#666">-</span>
+            <input id="adm-score-b" type="number" placeholder="sB" min="0" max="20" style="width:48px;background:#1a1a1a;color:#ddd;border:1px solid #444;border-radius:4px;padding:4px 6px;font-size:0.8em;">
+            <label style="color:#888;font-size:0.78em;display:flex;align-items:center;gap:3px;">
+                <input type="checkbox" id="adm-score-termine" checked> Terminé
+            </label>
+            <button class="admin-btn" style="background:#1a3a1a;color:#4ade80;" onclick="adminAjouterScore()">+ Ajouter</button>
+        </div>`;
+
+        return `
+        <div class="admin-section-title">Scores officiels (${Object.keys(scores).length})</div>
+        <table class="admin-table">
+            <thead><tr><th>ID</th><th>Match</th><th>A</th><th>B</th><th>Statut</th><th></th></tr></thead>
+            <tbody>${rowsScores || '<tr><td colspan="6" style="color:#666;text-align:center">Aucun score officiel</td></tr>'}</tbody>
+        </table>
+        ${addForm}`;
+    }
+
+    function adminSetScore(id, champ, val) {
+        if (!OFFICIEL_2026.scores[id]) OFFICIEL_2026.scores[id] = { sA:0, sB:0, termine:true };
+        OFFICIEL_2026.scores[id][champ] = parseInt(val) || 0;
+        updateAll();
+    }
+
+    function adminSupprimerScore(id) {
+        delete OFFICIEL_2026.scores[id];
+        updateAll();
+        adminRenderOnglet('resultats');
+    }
+
+    function adminAjouterScore() {
+        const id = document.getElementById('adm-score-id').value.trim();
+        const sA = parseInt(document.getElementById('adm-score-a').value);
+        const sB = parseInt(document.getElementById('adm-score-b').value);
+        const termine = document.getElementById('adm-score-termine').checked;
+        if (!id || isNaN(sA) || isNaN(sB)) { alert('ID et scores requis.'); return; }
+        OFFICIEL_2026.scores[id] = { sA, sB, termine, live: false };
+        updateAll();
+        adminRenderOnglet('resultats');
+    }
+
+    // ── ONGLET EXPORT ─────────────────────────────────────────────────────
+    function adminHtmlExport() {
+        const users = JSON.parse(localStorage.getItem('liste_utilisateurs_2026')) || {};
+        const allData = {};
+        Object.keys(users).forEach(u => {
+            try { allData[u] = JSON.parse(localStorage.getItem(`${u}_mes_pronos_2026`) || '{}'); } catch {}
+        });
+
+        const scoresJs = Object.entries(OFFICIEL_2026.scores).map(([id, s]) => {
+            const t = s.termine ? 'true' : 'false';
+            const l = s.live ? 'true' : 'false';
+            const st = s.statut ? `, statut: "${s.statut}"` : '';
+            return `OFFICIEL_2026.scores["${id}"] = { sA: ${s.sA}, sB: ${s.sB}, termine: ${t}, live: ${l}${st} };`;
+        }).join('\n');
+
+        const qualifJs = Object.entries(OFFICIEL_2026.qualifies || {}).map(([k,v]) =>
+            `OFFICIEL_2026.qualifies["${k}"] = "${v}";`).join('\n');
+
+        const resultatsJs = `// resultats.js\n\n// === PHASE DE GROUPES ===\n${scoresJs}\n\n// === QUALIFIÉS 1/16e ===\n${qualifJs || '// (vide)'}`;
+
+        return `
+        <div class="admin-section-title">Export pronos (tous les joueurs)</div>
+        <button class="admin-btn admin-btn-info" onclick="navigator.clipboard.writeText(document.getElementById('export-json').value).then(()=>alert('Copié!'))" style="margin-bottom:8px;">📋 Copier JSON</button>
+        <textarea id="export-json" readonly style="width:100%;height:120px;background:#0d0d0d;color:#4ade80;border:1px solid #333;border-radius:4px;font-family:monospace;font-size:0.7em;padding:8px;">${JSON.stringify(allData, null, 2)}</textarea>
+
+        <div class="admin-section-title" style="margin-top:16px;">Contenu resultats.js (à copier dans le fichier)</div>
+        <button class="admin-btn admin-btn-info" onclick="navigator.clipboard.writeText(document.getElementById('export-resultats').value).then(()=>alert('Copié!'))" style="margin-bottom:8px;">📋 Copier resultats.js</button>
+        <textarea id="export-resultats" readonly style="width:100%;height:150px;background:#0d0d0d;color:#fbbf24;border:1px solid #333;border-radius:4px;font-family:monospace;font-size:0.7em;padding:8px;">${resultatsJs}</textarea>`;
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+
     // Fonction utilitaire pour tout fermer d'un coup
     function fermerLesMenus() {
         document.getElementById('lucky-menu').style.display = 'none';
         document.getElementById('reset-menu').style.display = 'none';
+        const ap = document.getElementById('admin-panel'); if (ap) ap.style.display = 'none';
         document.getElementById('modal-overlay').style.display = 'none';
     }
 
@@ -2238,16 +3619,127 @@
         return [sA, sB];
     }
 
+    // Génère les scores d'UNE journée sans toucher aux journées déjà simulées
+    function simulerJournee(numJournee) {
+        const labelJournee = numJournee === 1 ? '1re journée' : `${numJournee}e journée`;
+
+        // Date simulée juste après la fin de cette journée
+        // J1 : 12/06 → 18/06 | J2 : 19/06 → 23/06 | J3 : 24/06 → 28/06
+        const datesApresJournee = {
+            1: '2026-06-19T00:00:00',   // J1 terminée — J2 commence le 19/06
+            2: '2026-06-24T00:00:00',   // J2 terminée — J3 commence le 24/06
+            3: '2026-06-29T00:00:00',   // J3 terminée — Phase 3 active
+        };
+
+        let nbGeneres = 0, nbDejaPris = 0;
+
+        CALENDRIER_CDM.forEach(m => {
+            if (!(m.groupe || '').startsWith('Groupe')) return;
+            if (!(m.date || '').includes(labelJournee.replace('re', 're').replace('e j', 'e j'))) return;
+
+            // ← Clé du fix : ne pas régénérer un score déjà posé
+            if (OFFICIEL_2026.scores[String(m.id)]?.termine) { nbDejaPris++; return; }
+
+            const cote = typeof COTES_MATCHS !== 'undefined'
+                ? COTES_MATCHS.find(c => String(c.id) === String(m.id)) : null;
+
+            let sA = 0, sB = 0;
+            if (cote?.details) {
+                const parse = v => parseFloat((v || '2').toString().replace(',', '.'));
+                let p1, pN, p2;
+                if (cote.mpp) {
+                    // MPP : probabilités directes depuis mpp.home/draw/away
+                    p1 = (cote.mpp.home || 1) / 100;
+                    pN = (cote.mpp.draw || 1) / 100;
+                    p2 = (cote.mpp.away || 1) / 100;
+                } else {
+                    // Bookmakeur : 1/cote
+                    const c1 = parse(cote.details.domicile?.value);
+                    const cN = parse(cote.details.nul?.value);
+                    const c2 = parse(cote.details.exterieur?.value);
+                    p1 = 1/c1; pN = 1/cN; p2 = 1/c2;
+                }
+                const tot = p1 + pN + p2;
+                const r = Math.random() * tot;
+                const issue = r < p1 ? '1' : r < p1+pN ? 'N' : '2';
+                [sA, sB] = genererScoreSelonIssue(issue);
+            } else {
+                sA = Math.floor(Math.random() * 4);
+                sB = Math.floor(Math.random() * 4);
+            }
+
+            OFFICIEL_2026.scores[String(m.id)] = { sA, sB, termine: true, live: false };
+            nbGeneres++;
+        });
+
+        SIMULATED_DATE = datesApresJournee[numJournee];
+        updateAll();
+        console.log(`J${numJournee} : ${nbGeneres} matchs générés, ${nbDejaPris} déjà scoreés (conservés).`);
+        return nbGeneres;
+    }
+
+    function simulerResultatsJusqua() {
+        const maintenant = SIMULATED_DATE ? new Date(SIMULATED_DATE) : new Date();
+
+        // 1. Effacer les scores officiels simulés des poules (pas les vrais)
+        Object.keys(OFFICIEL_2026.scores).forEach(k => {
+            const m = CALENDRIER_CDM.find(x => String(x.id) === String(k));
+            if (m && (m.groupe || '').startsWith('Groupe')) delete OFFICIEL_2026.scores[k];
+        });
+
+        // 2. Générer un résultat pour chaque match de poule dont l'heure est passée
+        CALENDRIER_CDM.forEach(m => {
+            if (!(m.groupe || '').startsWith('Groupe')) return;
+
+            const cote = typeof COTES_MATCHS !== 'undefined'
+                ? COTES_MATCHS.find(c => String(c.id) === String(m.id)) : null;
+            if (!cote || !cote.timestamp) return;
+
+            const [datePart, timePart] = cote.timestamp.split(' ');
+            const [day, month, year] = datePart.split('/');
+            const matchDate = new Date(`${year}-${month}-${day}T${timePart}`);
+            const matchFin = new Date(matchDate.getTime() + 95 * 60000);
+            if (matchFin > maintenant) return;
+
+            let sA = 0, sB = 0;
+            if (cote.details) {
+                const parse = v => parseFloat((v || '2').toString().replace(',', '.'));
+                let p1, pN, p2;
+                if (cote.mpp) {
+                    p1 = (cote.mpp.home || 1) / 100;
+                    pN = (cote.mpp.draw || 1) / 100;
+                    p2 = (cote.mpp.away || 1) / 100;
+                } else {
+                    p1 = 1/parse(cote.details.domicile?.value);
+                    pN = 1/parse(cote.details.nul?.value);
+                    p2 = 1/parse(cote.details.exterieur?.value);
+                }
+                const tot = p1+pN+p2;
+                const r = Math.random() * tot;
+                const issue = r < p1 ? '1' : r < p1+pN ? 'N' : '2';
+                [sA, sB] = genererScoreSelonIssue(issue);
+            } else {
+                sA = Math.floor(Math.random() * 4); sB = Math.floor(Math.random() * 4);
+            }
+            OFFICIEL_2026.scores[String(m.id)] = { sA, sB, termine: true, live: false };
+        });
+
+        updateAll();
+    }
+
     function simulationPartielle(cible) {
-        // 1. On utilise CONFIG_PHASES. Si ça n'existe pas, on affiche la cible brute
-        const labelAAfficher = CONFIG_PHASES[cible] ? CONFIG_PHASES[cible].label : cible;
-        
-        // Sécurité : Vérifie si l'élément profil existe, sinon 'hasard' par défaut
+        const labelsSimu = {
+            'POULES':        'toute la Phase de Poules',
+            'TABLEAU_FINAL': 'toute la Phase Finale (1/16e → Finale)',
+            'TOUT':          'toute la Compétition (Poules + Phase Finale)',
+            'J1': 'Journée 1', 'J2': 'Journée 2', 'J3': 'Journée 3',
+            '16': '1/16èmes', '8': '1/8èmes', '4': 'Quarts de finale',
+            '2': 'Demi-finales', 'FINALES': 'Petite Finale & Finale'
+        };
+        const nomCible = labelsSimu[cible] || (CONFIG_PHASES[cible] ? CONFIG_PHASES[cible].label : cible);
+
         const profilSelect = document.getElementById('lucky-profil');
         const profil = profilSelect ? profilSelect.value : 'hasard';
-        
-        // 2. Ici aussi, on remplace labels[cible] par CONFIG_PHASES
-        const nomCible = CONFIG_PHASES[cible] ? CONFIG_PHASES[cible].label : cible;
 
         if (!confirm(`Simuler ${nomCible} ?`)) return;
         try {
@@ -2318,39 +3810,28 @@
                                     const c2 = parseFloat(odds.details.exterieur.value.replace(',', '.'));
                                     
                                     let issue = 'N';
-                                    const min = Math.min(c1, cN, c2);
-                                    
+
                                     // --- CHOIX DE L'ISSUE SELON LE PROFIL ---
-                                    if (profil === 'senateur') {
-                                        // Le favori gagne 100% du temps
-                                        issue = (min === c1 ? '1' : (min === c2 ? '2' : 'N'));
-                                    } 
-                                    else if (profil === 'kamikaze') {
-                                        // L'outsider gagne 100% du temps (Cote la plus haute)
-                                        const max = Math.max(c1, cN, c2);
-                                        issue = (max === c1 ? '1' : (max === c2 ? '2' : 'N'));
-                                    } 
-                                    else if (profil === 'equilibre') {
-                                        // --- LOGIQUE PROBABILISTE ---
-                                        // On calcule la force relative (inverse de la cote)
-                                        const p1 = 1 / c1;
-                                        const pN = 1 / cN;
-                                        const p2 = 1 / c2;
+                                    // Fonction commune : tirage pondéré par des poids p1/pN/p2
+                                    const tirerIssue = (p1, pN, p2) => {
                                         const total = p1 + pN + p2;
-
-                                        const tirage = Math.random();
-
-                                        if (tirage < p1 / total) {
-                                            issue = '1';
-                                        } else if (tirage < (p1 + pN) / total) {
-                                            issue = 'N';
-                                        } else {
-                                            issue = '2';
-                                        }
-                                    } else {
-                                        // Profil "hasard" ou inconnu : tirage 33/33/33
                                         const r = Math.random();
-                                        issue = r < 0.33 ? '1' : (r < 0.66 ? 'N' : '2');
+                                        if (r < p1 / total)              return '1';
+                                        if (r < (p1 + pN) / total)       return 'N';
+                                        return '2';
+                                    };
+
+                                    if (profil === 'senateur') {
+                                        // Poids = 1/c² : sur-favorise les favoris, surprises rares
+                                        issue = tirerIssue(1/(c1*c1), 1/(cN*cN), 1/(c2*c2));
+                                    }
+                                    else if (profil === 'kamikaze') {
+                                        // Poids = c² : sur-favorise les outsiders, favoris rarement
+                                        issue = tirerIssue(c1*c1, cN*cN, c2*c2);
+                                    }
+                                    else if (profil === 'equilibre') {
+                                        // Poids = 1/c : probabilités réelles selon les cotes
+                                        issue = tirerIssue(1/c1, 1/cN, 1/c2);
                                     }
                                     
                                     // Utilisation de ta fonction utilitaire
@@ -2380,28 +3861,68 @@
                 'FINALES': [687075, 687076] 
             };
 
+            // Retourne la cote "vainqueur" d'une équipe depuis PHASE_FINALE
+            const getCoteFinale = (nom) => {
+                if (!nom || typeof PHASE_FINALE === 'undefined') return 999;
+                const e = PHASE_FINALE.find(f =>
+                    f.selection && f.selection.toLowerCase().trim() === nom.toLowerCase().trim()
+                );
+                return e ? parseFloat(String(e.cotes_qualifs.vainqueur).replace(',', '.')) : 999;
+            };
+
             const genererMatchFini = (p, i) => {
                 const state = getAppState();
                 const elA = document.getElementById(`team_name_${p}_${i}_A`);
                 const elB = document.getElementById(`team_name_${p}_${i}_B`);
-                
-                // Si le DOM n'est pas prêt, on tente de forcer une lecture de secours
-                const nomA = elA ? elA.innerText.trim() : "INCONNU";
-                const nomB = elB ? elB.innerText.trim() : "INCONNU";
+                const nomA = elA ? elA.innerText.trim() : "";
+                const nomB = elB ? elB.innerText.trim() : "";
 
-                if (state === "AVANT") {
+                // Détermination du vainqueur selon le profil (via cotes PHASE_FINALE)
+                const cA = getCoteFinale(nomA);
+                const cB = getCoteFinale(nomB);
+                let sideToWin;
+
+                if (profil === 'senateur') {
+                    sideToWin = cA <= cB ? 'A' : 'B';
+                } else if (profil === 'kamikaze') {
+                    sideToWin = cA >= cB ? 'A' : 'B';
+                } else if (profil === 'equilibre') {
+                    const pA = 1 / cA;
+                    const pB = 1 / cB;
+                    sideToWin = Math.random() < pA / (pA + pB) ? 'A' : 'B';
+                } else {
+                    sideToWin = Math.random() > 0.5 ? 'A' : 'B';
+                }
+
+                if (state === "PHASE_FINALE") {
+                    // Phase 3 : sauvegarde dans le tiroir (comme saveScorePhase)
+                    // Ne touche pas winner_* pour préserver les picks du bracket Phase 1
+                    const res = genererScoreSelonIssue(sideToWin === 'A' ? '1' : '2');
+                    const conf = (typeof CONFIG_PHASES !== 'undefined') ? CONFIG_PHASES[p] : null;
+                    const tiroir = conf ? conf.tiroir : null;
+                    let data = getPronos();
+                    if (tiroir) {
+                        if (!data[tiroir]) data[tiroir] = {};
+                        data[tiroir][`score_${p}_${i}_A`] = res[0];
+                        data[tiroir][`score_${p}_${i}_B`] = res[1];
+                        delete data[tiroir][`p3tab_${p}_${i}`];
+                        savePronosGlobal();
+                    } else {
+                        syncProno(`score_${p}_${i}_A`, res[0]);
+                        syncProno(`score_${p}_${i}_B`, res[1]);
+                    }
+                } else if (state === "AVANT") {
                     syncProno(`team_${p}_${i}_A`, nomA);
                     syncProno(`team_${p}_${i}_B`, nomB);
-                    const side = Math.random() > 0.5 ? 'A' : 'B';
-                    syncProno(`winner_${p}_${i}`, side);
+                    syncProno(`winner_${p}_${i}`, sideToWin);
                     syncProno(`score_${p}_${i}_A`, "");
                     syncProno(`score_${p}_${i}_B`, "");
                 } else {
-                    let sA = Math.floor(Math.random() * 3);
-                    let sB = Math.floor(Math.random() * 3);
-                    syncProno(`score_${p}_${i}_A`, sA);
-                    syncProno(`score_${p}_${i}_B`, sB);
-                    syncProno(`winner_${p}_${i}`, sA >= sB ? 'A' : 'B');
+                    // PENDANT : bracket picks + scores top-level
+                    const res = genererScoreSelonIssue(sideToWin === 'A' ? '1' : '2');
+                    syncProno(`score_${p}_${i}_A`, res[0]);
+                    syncProno(`score_${p}_${i}_B`, res[1]);
+                    syncProno(`winner_${p}_${i}`, res[0] >= res[1] ? 'A' : 'B');
                 }
             };
 
@@ -2443,78 +3964,89 @@
 
     function toggleResetMenu() {
         const menu = document.getElementById('reset-menu');
-        menu.style.display = (menu.style.display === 'none' || menu.style.display === '') ? 'block' : 'none';
+        const overlay = document.getElementById('modal-overlay');
+        document.getElementById('lucky-menu').style.display = 'none';
+
+        if (menu.style.display === 'none' || menu.style.display === '') {
+            menu.style.display = 'block';
+            overlay.style.display = 'block';
+        } else {
+            fermerLesMenus();
+        }
     }
 
     function effacerSpecifique(cible) {
-        if (!confirm("Confirmer la suppression pour : " + cible + " ?")) return;
+        const labels = {
+            'J1': 'la Journée 1', 'J2': 'la Journée 2', 'J3': 'la Journée 3',
+            'POULES': 'toutes les Poules',
+            'TABLEAU_FINAL': 'toute la Phase Finale (bracket + scores)',
+            '16': 'les 1/16èmes de finale', '8': 'les 1/8èmes de finale',
+            '4': 'les Quarts de finale', '2': 'les Demi-finales',
+            'FINALES_ALL': 'les Finales (Petite & Grande)',
+            'TOUT': 'TOUTE la compétition'
+        };
+        if (!confirm(`Effacer ${labels[cible] || cible} ?`)) return;
 
         let data = getPronos();
 
-        // On parcourt toutes les clés stockées (scoreA_..., scoreB_..., winner_...)
-        Object.keys(data).forEach(key => {
-            let supprimer = false;
+        const viderTiroir = (nom) => { if (data[nom]) delete data[nom]; };
+        const purgerTopLevel = (test) => {
+            Object.keys(data).forEach(key => { if (test(key)) delete data[key]; });
+        };
 
-            // --- CAS DES JOURNÉES DE GROUPES (J1, J2, J3) ---
-            if (cible === 'J1' || cible === 'J2' || cible === 'J3') {
-                const idMatch = key.split('_')[1]; // On récupère l'ID après le "_"
-                
-                const matchInfo = (typeof CALENDRIER_CDM !== 'undefined') 
-                    ? CALENDRIER_CDM.find(m => m.id == idMatch) 
-                    : null;
+        if (cible === 'J1' || cible === 'J2' || cible === 'J3') {
+            purgerTopLevel(key => {
+                const idMatch = key.split('_')[1];
+                const m = typeof CALENDRIER_CDM !== 'undefined' ? CALENDRIER_CDM.find(x => x.id == idMatch) : null;
+                if (!m) return false;
+                if (cible === 'J1') return m.date.includes("1re journée");
+                if (cible === 'J2') return m.date.includes("2e journée");
+                return m.date.includes("3e journée");
+            });
+        }
+        else if (cible === 'POULES') {
+            purgerTopLevel(key => key.startsWith('scoreA_') || key.startsWith('scoreB_'));
+        }
+        else if (cible === '16') {
+            viderTiroir('16EMES');
+            purgerTopLevel(key => key.includes('_16_') || key.startsWith('winner_16'));
+        }
+        else if (cible === '8') {
+            viderTiroir('8EMES');
+            purgerTopLevel(key => key.includes('_8_') || key.startsWith('winner_8'));
+        }
+        else if (cible === '4') {
+            viderTiroir('QUARTS');
+            purgerTopLevel(key => key.includes('_4_') || key.startsWith('winner_4'));
+        }
+        else if (cible === '2') {
+            viderTiroir('DEMIS');
+            purgerTopLevel(key => key.includes('_2_') || key.startsWith('winner_2'));
+        }
+        else if (cible === 'FINALES_ALL') {
+            viderTiroir('PETITE_FINALE');
+            viderTiroir('FINALE');
+            purgerTopLevel(key => /(_f_|_pf_|winner_f|winner_pf)/.test(key));
+        }
+        else if (cible === 'TABLEAU_FINAL') {
+            ['16EMES','8EMES','QUARTS','DEMIS','PETITE_FINALE','FINALE'].forEach(viderTiroir);
+            purgerTopLevel(key =>
+                /(_16_|winner_16|_8_|winner_8|_4_|winner_4|_2_|winner_2|_f_|_pf_|winner_f|winner_pf)/.test(key)
+            );
+        }
+        else if (cible === 'TOUT') {
+            CACHE_PRONOS = {};
+            savePronosGlobal();
+            document.querySelectorAll('.score-inputs input').forEach(inp => inp.value = "");
+            updateAll();
+            fermerLesMenus();
+            return;
+        }
 
-                if (matchInfo) {
-                    let journeeMatch = "";
-                    if (matchInfo.date.includes("1re journée")) journeeMatch = "J1";
-                    else if (matchInfo.date.includes("2e journée")) journeeMatch = "J2";
-                    else if (matchInfo.date.includes("3e journée")) journeeMatch = "J3";
-
-                    if (journeeMatch === cible) {
-                        supprimer = true;
-                    }
-                }
-            }
-            // --- CAS DE TOUS LES GROUPES ---
-            else if (cible === 'POULES') {
-                if (key.startsWith('scoreA_') || key.startsWith('scoreB_')) {
-                    supprimer = true;
-                }
-            } 
-            // --- CAS DES PHASES ÉLIMINATOIRES ---
-            else if (cible === '16' || cible === '8' || cible === '4' || cible === '2') {
-                // Supprime les scores et les vainqueurs manuels pour la phase cible
-                if (key.includes(`_${cible}_`) || key.includes(`winner_${cible}`)) {
-                    supprimer = true;
-                }
-            } 
-            // --- CAS DES FINALES (Petite et Grande) ---
-            else if (cible === 'FINALES_ALL') {
-                if (key.includes('_f_') || key.includes('_pf_') || key.includes('winner_f') || key.includes('winner_pf')) {
-                    supprimer = true;
-                }
-            }  
-            // --- CAS GÉNÉRAL (TOUT EFFACER) ---
-            else if (cible === 'TOUT') {
-                supprimer = true;
-            }
-
-            // Si la clé doit être supprimée, on appelle syncProno avec une valeur vide
-            if (supprimer) {
-                syncProno(key, ""); 
-            }
-        });
-
-        // Fermeture du menu et nettoyage visuel
-        const menu = document.getElementById('reset-menu');
-        if (menu) menu.style.display = 'none';
-        
-        // On vide les champs de saisie pour forcer updateAll à les rafraîchir proprement
-        document.querySelectorAll('.score-inputs input').forEach(inp => {
-            inp.value = "";
-        });
-
-        // On relance la machine pour recalculer les classements et tableaux
-        updateAll(); 
+        savePronosGlobal();
+        document.querySelectorAll('.score-inputs input').forEach(inp => inp.value = "");
+        updateAll();
+        fermerLesMenus();
     }
 
     function determinerVainqueurPro(phase, matchId, nomA, nomB) {
@@ -2552,27 +4084,31 @@
 
         // --- 2. SÉCURITÉ PHASE FINALE (Après le 25/06) ---
         if (state === "PHASE_FINALE") {
-            const valA = data[`score_${phaseId}_${matchId}_A`];
-            const valB = data[`score_${phaseId}_${matchId}_B`];
-            
-            // Si les scores sont différents, le vainqueur est automatique (le clic est bloqué)
+            // Les scores KO sont stockés dans le tiroir (ex: data["16EMES"])
+            const conf = (typeof CONFIG_PHASES !== 'undefined') ? CONFIG_PHASES[phaseId] : null;
+            const tiroir = conf ? conf.tiroir : null;
+            const tiroirData = (tiroir && data[tiroir]) ? data[tiroir] : data;
+            const valA = tiroirData[`score_${phaseId}_${matchId}_A`];
+            const valB = tiroirData[`score_${phaseId}_${matchId}_B`];
+            // Si scores différents, vainqueur automatique — clic bloqué
             if (valA !== undefined && valB !== undefined && parseInt(valA) !== parseInt(valB)) {
-                //console.log("🚫 Le score détermine déjà le vainqueur.");
                 return;
             }
         }
 
-        // --- 3. LOGIQUE DE BASCULE (Toujours autorisée si on est en mode "AVANT") ---
-        const key = `winner_${phaseId}_${matchId}`;
+        // --- 3. LOGIQUE DE BASCULE ---
+        // Phase 3 : clé p3tab_ séparée pour ne pas écraser le pronostic Phase 1 (winner_)
+        const key = (state === "PHASE_FINALE")
+            ? `p3tab_${phaseId}_${matchId}`
+            : `winner_${phaseId}_${matchId}`;
         let nouvelleValeur;
 
         if (data[key] === team) {
             nouvelleValeur = ""; // Annulation
         } else {
-            nouvelleValeur = team; // Attribution A ou B
+            nouvelleValeur = team;
         }
 
-        // Sauvegarde via ton système existant
         syncProno(key, nouvelleValeur);
         
         // Mise à jour visuelle immédiate
@@ -2589,6 +4125,151 @@
     function toggleWinnerPF(id, side) { toggleWinnerUniversal('pf', id, side); }
     function toggleWinnerF(id, side)  { toggleWinnerUniversal('f', id, side); }
 
+    // ── SAUVEGARDE / EXPORT ──────────────────────────────────────────────────
+
+    function sauvegarderPronos() {
+        // 1. Scanne tous les inputs visibles et force leur valeur dans le cache
+        document.querySelectorAll('input[type="number"]').forEach(inp => {
+            if (!inp.id || inp.value === '') return;
+            const val = parseInt(inp.value);
+            if (!isNaN(val)) {
+                const data = getPronos();
+                // On détermine si c'est un score de poule (scoreA_ID) ou KO (score_phase_ID_team)
+                data[inp.id] = val;
+                CACHE_PRONOS = data;
+            }
+        });
+        savePronosGlobal();
+
+        // 2. Toast de confirmation
+        const toast = document.createElement('div');
+        toast.textContent = '✅ Pronostics sauvegardés !';
+        toast.style.cssText = [
+            'position:fixed', 'bottom:30px', 'left:50%', 'transform:translateX(-50%)',
+            'background:#4ade80', 'color:#000', 'padding:12px 28px',
+            'border-radius:24px', 'font-weight:bold', 'z-index:99999',
+            'box-shadow:0 4px 20px rgba(0,0,0,0.5)', 'transition:opacity 0.5s'
+        ].join(';');
+        document.body.appendChild(toast);
+        setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 2500);
+    }
+
+    function exporterPDF() {
+        const user = CURRENT_USER || 'Invité';
+        const pronos = getPronos();
+        const date = new Date().toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' });
+
+        // ── Construction du contenu lisible ─────────────────────────────
+        const groupes = {};
+        CALENDRIER_CDM.forEach(m => {
+            if (!m.groupe || m.groupe.toLowerCase().includes('finale') || m.groupe.startsWith('1/')) return;
+            if (!groupes[m.groupe]) groupes[m.groupe] = [];
+            groupes[m.groupe].push(m);
+        });
+
+        const scoreOf = (id) => {
+            const sA = pronos[`scoreA_${id}`];
+            const sB = pronos[`scoreB_${id}`];
+            if (sA === undefined || sA === null || sA === '') return '? - ?';
+            return `${sA} - ${sB}`;
+        };
+
+        let lignesGroupes = '';
+        Object.keys(groupes).sort().forEach(g => {
+            lignesGroupes += `<h3 style="color:#b8860b;margin:16px 0 6px">${g}</h3><table style="width:100%;border-collapse:collapse;font-size:0.85rem;">`;
+            groupes[g].forEach(m => {
+                const score = scoreOf(m.id);
+                const jDate = m.date || '';
+                lignesGroupes += `
+                <tr style="border-bottom:1px solid #eee;">
+                    <td style="padding:4px 8px;color:#666;width:120px">${jDate}</td>
+                    <td style="padding:4px 8px;text-align:right;font-weight:bold;width:150px">${m.equipeA}</td>
+                    <td style="padding:4px 8px;text-align:center;font-family:monospace;font-weight:bold;color:#b8860b;width:70px">${score}</td>
+                    <td style="padding:4px 8px;font-weight:bold;width:150px">${m.equipeB}</td>
+                </tr>`;
+            });
+            lignesGroupes += '</table>';
+        });
+
+        const phasesKO = [
+            { label: '1/16es de Finale', id: '16', ids: Array.from({length:16}, (_,i) => 687045+i) },
+            { label: '1/8es de Finale',  id: '8',  ids: Array.from({length:8},  (_,i) => 687061+i) },
+            { label: 'Quarts de Finale', id: '4',  ids: Array.from({length:4},  (_,i) => 687069+i) },
+            { label: 'Demi-Finales',     id: '2',  ids: [687073, 687074] },
+            { label: 'Petite Finale',    id: 'pf', ids: [687075] },
+            { label: 'Finale',           id: 'f',  ids: [687076] },
+        ];
+
+        let lignesKO = '';
+        phasesKO.forEach(({ label, id: phaseId, ids }) => {
+            const cfg = CONFIG_PHASES[phaseId];
+            if (!cfg) return;
+            const tiroir = pronos[cfg.tiroir] || {};
+            // Vainqueur : en Phase 1 → winner_*, en Phase 3 → p3tab_* (+ score dans tiroir)
+            const getWin = (mid) => pronos[`winner_${phaseId}_${mid}`] || pronos[`p3tab_${phaseId}_${mid}`];
+            const hasData = ids.some(mid =>
+                tiroir[`score_${phaseId}_${mid}_A`] !== undefined ||
+                getWin(mid) ||
+                tiroir[`team_${phaseId}_${mid}_A`]
+            );
+            if (!hasData) return;
+
+            lignesKO += `<h3 style="color:#b8860b;margin:16px 0 6px">${label}</h3><table style="width:100%;border-collapse:collapse;font-size:0.85rem;">`;
+            ids.forEach(mid => {
+                const sA = tiroir[`score_${phaseId}_${mid}_A`];
+                const sB = tiroir[`score_${phaseId}_${mid}_B`];
+                const win = getWin(mid);
+                // Lire les noms depuis les spans déjà rendus dans le DOM
+                const nomA = document.getElementById(`team_name_${phaseId}_${mid}_A`)?.textContent?.trim()
+                          || tiroir[`team_${phaseId}_${mid}_A`] || '?';
+                const nomB = document.getElementById(`team_name_${phaseId}_${mid}_B`)?.textContent?.trim()
+                          || tiroir[`team_${phaseId}_${mid}_B`] || '?';
+                const scoreStr = (sA !== undefined && sA !== null && sA !== '')
+                    ? `${sA} - ${sB}`
+                    : (win ? `✓ ${win === 'A' ? nomA : nomB}` : '?');
+                lignesKO += `
+                <tr style="border-bottom:1px solid #eee;">
+                    <td style="padding:4px 8px;text-align:right;font-weight:bold;width:180px">${nomA}</td>
+                    <td style="padding:4px 8px;text-align:center;font-family:monospace;font-weight:bold;color:#b8860b;width:90px">${scoreStr}</td>
+                    <td style="padding:4px 8px;font-weight:bold;width:180px">${nomB}</td>
+                </tr>`;
+            });
+            lignesKO += '</table>';
+        });
+
+        // ── Ouverture dans une nouvelle fenêtre pour impression ────────
+        const win = window.open('', '_blank');
+        win.document.write(`<!DOCTYPE html>
+<html lang="fr"><head>
+<meta charset="UTF-8">
+<title>Pronos CDM 2026 — ${user}</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; margin: 30px; color: #222; }
+  h1 { color: #b8860b; border-bottom: 2px solid #b8860b; padding-bottom: 8px; }
+  h2 { color: #444; margin-top: 30px; }
+  h3 { color: #b8860b; }
+  table { width: 100%; border-collapse: collapse; }
+  tr:nth-child(even) { background: #f9f9f9; }
+  @media print {
+    button { display:none; }
+    body { margin: 10px; font-size: 0.8rem; }
+  }
+</style>
+</head><body>
+<h1>🏆 World Cup 2026 — Pronostics de <em>${user}</em></h1>
+<p style="color:#888;font-size:0.85rem">Exporté le ${date}</p>
+<button onclick="window.print()" style="background:#b8860b;color:#fff;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;font-size:1rem;margin-bottom:20px">
+  🖨️ Imprimer / Enregistrer en PDF
+</button>
+<h2>Phase de Groupes</h2>
+${lignesGroupes}
+<h2>Phase Éliminatoire</h2>
+${lignesKO || '<p style="color:#888">Aucun pronostic de phase finale saisi.</p>'}
+</body></html>`);
+        win.document.close();
+    }
+
+    // Garde l'ancien savePronos pour compatibilité interne (plus exposé en UI)
     function savePronos() {
         const rawData = getPronos();
         if (!rawData || Object.keys(rawData).length === 0) {
@@ -2676,9 +4357,57 @@
         input.click();
     }
 
+    // --- MIGRATION DES PRONOS (anciens IDs → nouveaux IDs) ---
+    function migrerPronos() {
+        const aliases = (typeof OFFICIEL_2026 !== 'undefined') ? (OFFICIEL_2026.aliases || {}) : {};
+        if (!Object.keys(aliases).length) return;
+
+        const users = JSON.parse(localStorage.getItem('liste_utilisateurs_2026')) || {};
+        const allUsers = Object.keys(users);
+        if (CURRENT_USER && !allUsers.includes(CURRENT_USER)) allUsers.push(CURRENT_USER);
+
+        let nbMigres = 0;
+        allUsers.forEach(u => {
+            const key = `${u}_mes_pronos_2026`;
+            const raw = localStorage.getItem(key);
+            if (!raw) return;
+            let data;
+            try { data = JSON.parse(raw); } catch { return; }
+
+            let modifie = false;
+            Object.entries(aliases).forEach(([oldId, newId]) => {
+                const suffixes = ['scoreA_', 'scoreB_', 'winner_poule_'];
+                suffixes.forEach(pref => {
+                    const oldKey = `${pref}${oldId}`;
+                    const newKey = `${pref}${newId}`;
+                    if (data[oldKey] !== undefined && data[newKey] === undefined) {
+                        data[newKey] = data[oldKey];
+                        delete data[oldKey];
+                        modifie = true;
+                        nbMigres++;
+                    }
+                });
+            });
+
+            if (modifie) localStorage.setItem(key, JSON.stringify(data));
+        });
+
+        if (nbMigres > 0) {
+            CACHE_PRONOS = null; // invalide le cache
+            console.log(`✅ Migration pronos : ${nbMigres} clé(s) migrée(s)`);
+        }
+    }
+
     // --- INITIALISATION AU CHARGEMENT DU DOM ---
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
         console.log("🚀 Initialisation de l'application...");
+
+        // Restaure l'état rétracté de la nav si mémorisé
+        if (localStorage.getItem('side_nav_collapsed') === '1') {
+            const nav = document.getElementById('side-nav');
+            const icon = document.getElementById('nav-toggle-icon');
+            if (nav && icon) { nav.classList.add('collapsed'); icon.textContent = '▶'; }
+        }
 
         // 1. Gérer l'affichage de la barre de connexion (Bouton login/logout)
         if (typeof initAuthUI === 'function') {
@@ -2699,135 +4428,231 @@
             console.log(`Données chargées pour : ${keyData}`);
         }
         
-        // 4. Mise à jour de l'interface (scores saisis, totaux de l'utilisateur)
-        if (typeof updateAll === 'function') {
-            updateAll();
-        }
+        // 4. Migration des pronos si des IDs ont changé (alias ancienId → nouvelId)
+        migrerPronos();
 
-        // 5. GESTION DU CLASSEMENT SELON L'ÉTAT
-        const etatActuel = getAppState();
+        // 5. Premier rendu immédiat depuis localStorage
+        if (typeof updateAll === 'function') updateAll();
+
         const sectionClassement = document.getElementById('section-classement');
+        if (sectionClassement) sectionClassement.style.display = 'block';
 
-        if (sectionClassement) {
-            sectionClassement.style.display = 'block'; // On affiche la section
-            if (typeof afficherClassement === 'function') {
-                afficherClassement(); // On génère le tableau           
-
-            } else {
-                console.log("⏳ État actuel : " + etatActuel + ". Le classement est masqué.");
-                sectionClassement.style.display = 'none';
-            }
+        // 6. Sync Supabase en arrière-plan → second rendu avec données en ligne
+        if (_sb) {
+            await Promise.all([loadUsersFromSupabase(), fetchAllFromSupabase()]);
+            CACHE_PRONOS = null;
+            if (typeof updateAll === 'function') updateAll();
+            console.log('☁️ Supabase chargé');
         }
     });
 
     
 
 </script>
-<nav class="side-nav">
-    <div class="nav-title">Navigation</div>
-    <a href="#zone-classements" class="nav-item">📊 Classements</a>
-    
-    <div class="nav-subtitle">Phases de Groupes</div>
-    <div class="nav-days">
-        <a href="#journee-1" class="day-link">J1</a>
-        <a href="#journee-2" class="day-link">J2</a>
-        <a href="#journee-3" class="day-link">J3</a>
+<nav class="side-nav" id="side-nav">
+    <button class="nav-toggle-btn" onclick="toggleSideNav()" title="Réduire/Agrandir la navigation" id="nav-toggle-icon">◀</button>
+    <div class="nav-inner">
+        <div class="nav-title">Navigation</div>
+        <a onclick="navScroll('section-classement')" class="nav-item">🏆 Classement Joueurs</a>
+        <a onclick="navScroll('zone-classements')" class="nav-item">📊 Classements Groupes</a>
+
+        <div class="nav-subtitle">Phases de Groupes</div>
+        <div class="nav-days">
+            <a onclick="navScroll('journee-1')" class="day-link">J1</a>
+            <a onclick="navScroll('journee-2')" class="day-link">J2</a>
+            <a onclick="navScroll('journee-3')" class="day-link">J3</a>
+        </div>
+
+        <div class="nav-subtitle">Élimination</div>
+        <a onclick="navScroll('zone-16emes')" class="nav-item">⚔️ 1/16es</a>
+        <a onclick="navScroll('zone-8emes')" class="nav-item">🛡️ 1/8es</a>
+        <a onclick="navScroll('zone-4emes')" class="nav-item">🏆 Quarts</a>
+        <a onclick="navScroll('zone-2emes')" class="nav-item">🏟️ Demies</a>
+        <a onclick="navScroll('zone-1emes')" class="nav-item">✨ Finale(s)</a>
+
+        <button onclick="toggleLuckyMenu()" id="lucky" style="display: block; width: 100%; padding: 15px; background: #222; color: var(--gold); border: 2px solid var(--gold); border-radius: 50px; font-weight: bold; cursor: pointer; margin: 15px 0; transition: 0.3s;">
+            🎲 J'AI DE LA CHANCE
+        </button>
+
+        <button onclick="toggleResetMenu()" class="btn-reset-main" style="background: #c0392b; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold;">
+            🗑️ Options d'effacement
+        </button>
+
+        <button id="admin-nav-btn" onclick="ouvrirAdmin()" style="display:none; width:100%; padding:10px; background:#1a0000; color:#e74c3c; border:2px solid #c0392b; border-radius:5px; font-weight:bold; cursor:pointer; margin-top:8px; transition:0.3s;">
+            🛡️ Admin
+        </button>
+
+        <hr style="border: 0; border-top: 1px solid #444; margin: 15px 0 5px 0;">
+        <a href="javascript:void(0)" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="nav-item nav-back-top" style="text-align: center;">🚀 Haut</a>
     </div>
-
-    <div class="nav-subtitle">Élimination</div>
-    <a href="#zone-16emes" class="nav-item">⚔️ 1/16es</a>
-    <a href="#zone-8emes" class="nav-item">🛡️ 1/8es</a>
-    <a href="#zone-4emes" class="nav-item">🏆 Quarts</a>
-    <a href="#zone-2emes" class="nav-item">🏟️ Demies</a>
-    <a href="#zone-1emes" class="nav-item">✨ Finale(s)</a>
-
-    <button onclick="toggleLuckyMenu()" id="lucky" style="display: block; width: 100%; padding: 15px; background: #222; color: var(--gold); border: 2px solid var(--gold); border-radius: 50px; font-weight: bold; cursor: pointer; margin: 15px 0; transition: 0.3s;">
-        🎲 J'AI DE LA CHANCE
-    </button>
-
-    <button onclick="toggleResetMenu()" class="btn-reset-main" style="background: #c0392b; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold;">
-        🗑️ Options d'effacement
-    </button>
-    
-    <hr style="border: 0; border-top: 1px solid #444; margin: 15px 0 5px 0;">
-    <a href="javascript:void(0)" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="nav-item nav-back-top" style="text-align: center;">🚀 Haut</a>
 </nav>
+<div id="admin-panel" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:95%; max-width:640px; max-height:90vh; background:#111; border:2px solid #c0392b; border-radius:12px; z-index:9999; overflow:hidden; flex-direction:column;">
+    <div class="admin-header">
+        <span style="font-weight:bold; color:#e74c3c; font-size:0.95em;">🛡️ PANNEAU ADMINISTRATEUR</span>
+        <button onclick="fermerAdmin()" style="background:none;border:none;color:#888;cursor:pointer;font-size:1.4em;line-height:1;">&times;</button>
+    </div>
+    <div class="admin-tabs">
+        <button class="admin-tab active" data-tab="joueurs"  onclick="adminTab('joueurs')">👥 Joueurs</button>
+        <button class="admin-tab" data-tab="controle"  onclick="adminTab('controle')">⚙️ Contrôle</button>
+        <button class="admin-tab" data-tab="resultats" onclick="adminTab('resultats')">📋 Résultats</button>
+        <button class="admin-tab" data-tab="export"    onclick="adminTab('export')">💾 Export</button>
+    </div>
+    <div id="admin-content" class="admin-content"></div>
+</div>
+
 <div id="modal-overlay" onclick="fermerLesMenus()" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9998; backdrop-filter: blur(3px);"></div>
 
 <div id="lucky-menu" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 320px; max-height: 85vh; background: #1a1a1a; border: 2px solid var(--gold); border-radius: 12px; padding: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.9); z-index: 9999; overflow-y: auto;">
-    
-    <div style="margin-bottom: 15px;">
-        <label style="color: #aaa; font-size: 0.8em; display: block; margin-bottom: 4px;">🎯 Profil de simulation :</label>
+
+    <div style="text-align: center; margin-bottom: 14px;">
+        <span style="font-size: 1.1em; font-weight: bold; color: var(--gold);">🎲 J'AI DE LA CHANCE</span>
+    </div>
+
+    <div style="margin-bottom: 14px;">
+        <label style="color: #aaa; font-size: 0.78em; display: block; margin-bottom: 4px;">🎯 Profil de simulation :</label>
         <select id="lucky-profil" style="width: 100%; padding: 8px; background: #333; color: white; border: 1px solid #555; border-radius: 4px; font-size: 0.9em;">
-            <option value="hasard">🎲 Hasard Total</option>
-            <option value="senateur">🏛️ Sénateur (Les favoris gagnent)</option>
-            <option value="kamikaze">🪂 Kamikaze (Que des surprises !)</option>
-            <option value="equilibre">⚖️ Équilibré (Cotes respectées)</option>
+            <option value="hasard">🎲 Hasard Total (scores 0-3 purs)</option>
+            <option value="senateur">🏛️ Sénateur (favoris très souvent, surprises rares)</option>
+            <option value="kamikaze">🪂 Kamikaze (outsiders très souvent, favoris rares)</option>
+            <option value="equilibre">⚖️ Équilibré (probabilités réelles des cotes)</option>
         </select>
     </div>
-    
-    <div style="height: 1px; background: #333; margin: 10px 0;"></div>
 
-    <button class="lucky-btn" onclick="simulationPartielle('J1'); fermerLesMenus();">🕒 Journée 1</button>
-    <button class="lucky-btn" onclick="simulationPartielle('J2'); fermerLesMenus();">🕒 Journée 2</button>
-    <button class="lucky-btn" onclick="simulationPartielle('J3'); fermerLesMenus();">🕒 Journée 3</button>
-    <button class="lucky-btn" onclick="simulationPartielle('POULES'); fermerLesMenus();">📊 Phase de Poules</button>
-    
-    <div style="height: 1px; background: #333; margin: 10px 0;"></div>
-    
-    <div class="sim-group" style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px; border-top: 1px solid #444; padding-top: 10px;">
-        <span style="font-size: 0.75rem; color: #888; text-transform: uppercase;">Simulation Rapide</span>
-        <button class="lucky-btn" onclick="simulationPartielle('16'); fermerLesMenus();">⚔️ 1/16èmes</button>
-        <button class="lucky-btn" onclick="simulationPartielle('8'); fermerLesMenus();">🛡️ 1/8èmes</button>
-        <button class="lucky-btn" onclick="simulationPartielle('4'); fermerLesMenus();">🏆 Quarts</button>
-        <button class="lucky-btn" onclick="simulationPartielle('2'); fermerLesMenus();">🏟️ Demies</button>
-        <button class="lucky-btn" onclick="simulationPartielle('FINALES'); fermerLesMenus();">✨ Finales (P & G)</button>
-        <button class="lucky-btn" style="background: linear-gradient(45deg, #b8860b, #ffd700); color: #000; font-weight: bold; margin-bottom: 12px;" 
+    <div style="height: 1px; background: #444; margin: 12px 0;"></div>
+
+    <!-- 3 OPTIONS PRINCIPALES -->
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+        <button id="lucky-btn-poules" class="lucky-btn" style="padding: 12px; font-size: 0.92em; font-weight: bold; border: 1px solid #555; border-radius: 6px;"
+            onclick="simulationPartielle('POULES'); fermerLesMenus();">
+            📊 Pronostiquer les Poules
+        </button>
+        <button class="lucky-btn" style="padding: 12px; font-size: 0.92em; font-weight: bold; border: 1px solid #555; border-radius: 6px;"
             onclick="simulationPartielle('TABLEAU_FINAL'); fermerLesMenus();">
-            🚀 Simuler TOUT le Tableau Final
+            ⚔️ Pronostiquer la Phase Finale
+        </button>
+        <button id="lucky-btn-tout" class="lucky-btn" style="padding: 12px; font-size: 0.95em; font-weight: bold; background: rgba(212,175,55,0.15); border: 1px solid var(--gold); border-radius: 6px; color: var(--gold);"
+            onclick="simulationPartielle('TOUT'); fermerLesMenus();">
+            🔥 Toute la Compétition
         </button>
     </div>
-    
-    <button class="lucky-btn" style="background: #441111; color: #ff9999; margin-top: 15px;" onclick="if(confirm('Tout effacer ?')){localStorage.removeItem(getKey('mes_pronos_2026')); CACHE_PRONOS=null; location.reload();}">
-        🗑️ Réinitialiser tout
-    </button>
 
-    <hr style="border: 0; border-top: 1px solid #444; margin: 15px 0;">
-    
-    <button class="lucky-btn" style="background: rgba(212, 175, 55, 0.2); color: white; font-weight: bold; padding: 12px;" onclick="simulationPartielle('TOUT'); fermerLesMenus();">🔥 TOUT SIMULER</button>
-    
-    <button onclick="fermerLesMenus()" style="width: 100%; background: #333; color: #bbb; border: none; padding: 10px; border-radius: 6px; font-size: 0.8em; cursor: pointer; margin-top: 15px;">
-        ↩ Annuler & Fermer
+    <div style="height: 1px; background: #333; margin: 14px 0;"></div>
+
+    <!-- OPTIONS AVANCÉES (détail par journée / phase) -->
+    <details style="margin-bottom: 6px;">
+        <summary style="color: #888; font-size: 0.75em; text-transform: uppercase; cursor: pointer; user-select: none; letter-spacing: 0.05em;">Options avancées</summary>
+        <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 8px;">
+            <span style="color: #666; font-size: 0.72em; text-transform: uppercase; margin-bottom: 2px;">Par journée</span>
+            <button id="lucky-btn-j1" class="lucky-btn" onclick="simulationPartielle('J1'); fermerLesMenus();">🕒 Journée 1 seulement</button>
+            <button id="lucky-btn-j2" class="lucky-btn" onclick="simulationPartielle('J2'); fermerLesMenus();">🕒 Journée 2 seulement</button>
+            <button id="lucky-btn-j3" class="lucky-btn" onclick="simulationPartielle('J3'); fermerLesMenus();">🕒 Journée 3 seulement</button>
+            <span style="color: #666; font-size: 0.72em; text-transform: uppercase; margin: 6px 0 2px 0;">Par phase éliminatoire</span>
+            <button class="lucky-btn" onclick="simulationPartielle('16'); fermerLesMenus();">⚔️ 1/16èmes seulement</button>
+            <button class="lucky-btn" onclick="simulationPartielle('8'); fermerLesMenus();">🛡️ 1/8èmes seulement</button>
+            <button class="lucky-btn" onclick="simulationPartielle('4'); fermerLesMenus();">🏆 Quarts seulement</button>
+            <button class="lucky-btn" onclick="simulationPartielle('2'); fermerLesMenus();">🏟️ Demi-finales seulement</button>
+            <button class="lucky-btn" onclick="simulationPartielle('FINALES'); fermerLesMenus();">✨ Petite Finale & Finale</button>
+        </div>
+    </details>
+
+    <button onclick="fermerLesMenus()" style="width: 100%; background: #2a2a2a; color: #888; border: 1px solid #444; padding: 9px; border-radius: 6px; font-size: 0.8em; cursor: pointer; margin-top: 6px;">
+        ↩ Fermer
     </button>
 </div>
 
-<div id="reset-menu" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 320px; max-height: 85vh; background: #222; border: 2px solid #e74c3c; border-radius: 12px; padding: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.9); z-index: 9999; overflow-y: auto;">
-    
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #444; padding-bottom: 10px;">
-        <span style="font-size: 0.9em; color: #e74c3c; font-weight: bold;">🗑️ CHOISIR LA ZONE</span>
+<div id="reset-menu" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 320px; max-height: 85vh; background: #1a1a1a; border: 2px solid #e74c3c; border-radius: 12px; padding: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.9); z-index: 9999; overflow-y: auto;">
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid #333; padding-bottom: 10px;">
+        <span style="font-size: 0.9em; color: #e74c3c; font-weight: bold;">🗑️ EFFACER DES PRONOSTICS</span>
         <button onclick="fermerLesMenus()" style="background: none; border: none; color: #888; cursor: pointer; font-size: 1.5em; line-height: 1;">&times;</button>
     </div>
 
-    <button class="reset-btn" onclick="effacerSpecifique('J1'); fermerLesMenus();">Journée 1</button>
-    <button class="reset-btn" onclick="effacerSpecifique('J2'); fermerLesMenus();">Journée 2</button>
-    <button class="reset-btn" onclick="effacerSpecifique('J3'); fermerLesMenus();">Journée 3</button>
-    <button class="reset-btn" onclick="effacerSpecifique('POULES'); fermerLesMenus();">Toutes les Poules</button>
-    
-    <hr style="border: 0; border-top: 1px solid #444; margin: 10px 0;">
-    
-    <button class="reset-btn" onclick="effacerSpecifique('16'); fermerLesMenus();">1/16èmes</button>
-    <button class="reset-btn" onclick="effacerSpecifique('8'); fermerLesMenus();">1/8èmes</button>
-    <button class="reset-btn" onclick="effacerSpecifique('4'); fermerLesMenus();">1/4 de finale</button>
-    <button class="reset-btn" onclick="effacerSpecifique('2'); fermerLesMenus();">1/2 finale</button>
-    <button class="reset-btn" onclick="effacerSpecifique('FINALES_ALL'); fermerLesMenus();">🏆 Finales (Petite & Grande)</button>
-    
-    <hr style="border: 0; border-top: 1px solid #444; margin: 10px 0;">
-    
-    <button class="reset-btn reset-btn-danger" style="background: #e74c3c; color: white; margin-bottom: 15px; padding: 12px; font-weight:bold; width:100%; border-radius:6px;" onclick="effacerSpecifique('TOUT'); fermerLesMenus();">TOUT EFFACER</button>
+    <!-- 3 boutons principaux -->
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+        <button class="reset-btn" style="padding: 12px; font-size: 0.92em; font-weight: bold; border: 1px solid #555; border-radius: 6px;"
+            onclick="effacerSpecifique('POULES');">
+            🗃️ Effacer toutes les Poules
+        </button>
+        <button class="reset-btn" style="padding: 12px; font-size: 0.92em; font-weight: bold; border: 1px solid #555; border-radius: 6px;"
+            onclick="effacerSpecifique('TABLEAU_FINAL');">
+            ⚔️ Effacer la Phase Finale
+        </button>
+        <button class="reset-btn" style="padding: 12px; font-size: 0.95em; font-weight: bold; background: rgba(231,76,60,0.15); border: 1px solid #e74c3c; border-radius: 6px; color: #e74c3c;"
+            onclick="effacerSpecifique('TOUT');">
+            💣 TOUT EFFACER
+        </button>
+    </div>
 
-    <button onclick="fermerLesMenus()" style="width: 100%; background: #333; color: #bbb; border: none; padding: 10px; border-radius: 6px; font-size: 0.8em; cursor: pointer;">
-        ↩ Retour
+    <div style="height: 1px; background: #333; margin: 14px 0;"></div>
+
+    <!-- Options avancées -->
+    <details style="margin-bottom: 6px;">
+        <summary style="color: #888; font-size: 0.75em; text-transform: uppercase; cursor: pointer; user-select: none; letter-spacing: 0.05em;">Options avancées</summary>
+        <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 8px;">
+            <span style="color: #666; font-size: 0.72em; text-transform: uppercase; margin-bottom: 2px;">Par journée de poules</span>
+            <button class="reset-btn" onclick="effacerSpecifique('J1');">🕒 Journée 1 seulement</button>
+            <button class="reset-btn" onclick="effacerSpecifique('J2');">🕒 Journée 2 seulement</button>
+            <button class="reset-btn" onclick="effacerSpecifique('J3');">🕒 Journée 3 seulement</button>
+            <span style="color: #666; font-size: 0.72em; text-transform: uppercase; margin: 6px 0 2px 0;">Par round éliminatoire</span>
+            <button class="reset-btn" onclick="effacerSpecifique('16');">⚔️ 1/16èmes seulement</button>
+            <button class="reset-btn" onclick="effacerSpecifique('8');">🛡️ 1/8èmes seulement</button>
+            <button class="reset-btn" onclick="effacerSpecifique('4');">🏆 Quarts de finale seulement</button>
+            <button class="reset-btn" onclick="effacerSpecifique('2');">🏟️ Demi-finales seulement</button>
+            <button class="reset-btn" onclick="effacerSpecifique('FINALES_ALL');">✨ Petite Finale &amp; Finale</button>
+        </div>
+    </details>
+
+    <button onclick="fermerLesMenus()" style="width: 100%; background: #2a2a2a; color: #888; border: 1px solid #444; padding: 9px; border-radius: 6px; font-size: 0.8em; cursor: pointer; margin-top: 6px;">
+        ↩ Fermer
     </button>
 </div>
+
+<div id="live-badge" style="display:none;"></div>
+
+<script>
+(function() {
+    const INTERVALLE_MS = 60_000; // 1 minute
+    let scriptTag = null;
+
+    function rechargerResultats() {
+        // Réinitialise les données officielles
+        Object.keys(OFFICIEL_2026.scores).forEach(k => delete OFFICIEL_2026.scores[k]);
+        Object.keys(OFFICIEL_2026.qualifies).forEach(k => delete OFFICIEL_2026.qualifies[k]);
+
+        // Réinjecte resultats.js avec cache-bust
+        if (scriptTag) scriptTag.remove();
+        scriptTag = document.createElement('script');
+        scriptTag.src = 'resultats.js?t=' + Date.now();
+        scriptTag.onload = () => {
+            migrerPronos();
+            updateAll();
+            majBadgeLive();
+        };
+        document.head.appendChild(scriptTag);
+    }
+
+    function majBadgeLive() {
+        const scores = OFFICIEL_2026.scores || {};
+        const aLive = Object.values(scores).some(s => s && s.live);
+        const badge = document.getElementById('live-badge');
+        const txt   = document.getElementById('live-badge-txt');
+        if (!badge || !txt) return;
+        if (aLive) {
+            const heure = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            txt.textContent = 'LIVE — maj ' + heure;
+            badge.style.display = 'flex';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+
+    // Expose pour le bouton manuel
+    window.rechargerResultats = rechargerResultats;
+
+    // Lance le polling automatique
+    majBadgeLive(); // vérif initiale
+    setInterval(rechargerResultats, INTERVALLE_MS);
+})();
+</script>
 </body>
 </html>
