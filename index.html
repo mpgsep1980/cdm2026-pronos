@@ -826,7 +826,7 @@
         }
     }
 
-    let SIMULATED_DATE = "2026-06-12T00:00:00"; // TEST — à remettre à null avant le vrai CDM
+    let SIMULATED_DATE = null; // null = vraie date système (Phase 2 s'active automatiquement le 11/06 à 21h01)
 
     function getAppState() {
         const maintenant = SIMULATED_DATE ? new Date(SIMULATED_DATE) : new Date();
@@ -4476,6 +4476,10 @@ ${lignesKO || '<p style="color:#888">Aucun pronostic de phase finale saisi.</p>'
         <a onclick="navScroll('zone-4emes')" class="nav-item">🏆 Quarts</a>
         <a onclick="navScroll('zone-2emes')" class="nav-item">🏟️ Demies</a>
         <a onclick="navScroll('zone-1emes')" class="nav-item">✨ Finale(s)</a>
+
+        <button onclick="sauvegarderPronos()" style="display:block; width:100%; padding:11px; background:#1a3a1a; color:#4ade80; border:2px solid #4ade80; border-radius:8px; font-weight:bold; cursor:pointer; margin:12px 0 6px 0; transition:0.2s;">
+            💾 Sauvegarder
+        </button>
 
         <button onclick="toggleLuckyMenu()" id="lucky" style="display: block; width: 100%; padding: 15px; background: #222; color: var(--gold); border: 2px solid var(--gold); border-radius: 50px; font-weight: bold; cursor: pointer; margin: 15px 0; transition: 0.3s;">
             🎲 J'AI DE LA CHANCE
