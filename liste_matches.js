@@ -123,10 +123,10 @@ const OFFICIEL_2026 = {
     scores:   {},
     qualifies: {},
     aliases:   {
-        "686902": "689422",  // TEST : Mexique-AfSud → Lyon F-Nantes F (18h)
-        "686903": "677634",  // TEST : Corée-RepTch → match 19h
-        "686908": "677633",  // TEST : Canada-Bosnie → match 21h30
-        "677630": "677633"   // TEST : migration intermédiaire 677630 → 677633
+        "689422": "686902",  // Retour IDs CDM réels après test
+        "677634": "686903",
+        "677633": "686908",
+        "677630": "686908"
     }
 };
 
