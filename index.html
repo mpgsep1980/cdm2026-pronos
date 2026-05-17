@@ -4161,12 +4161,39 @@
         setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 2500);
     }
 
-    function exporterPDF() {
+    function loadScript(src) {
+        return new Promise((resolve, reject) => {
+            if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
+            const s = document.createElement('script');
+            s.src = src; s.onload = resolve; s.onerror = reject;
+            document.head.appendChild(s);
+        });
+    }
+
+    async function exporterPDF() {
+        // Chargement lazy de jsPDF + autotable
+        await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+        await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js');
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
         const user = CURRENT_USER || 'Invité';
         const pronos = getPronos();
         const date = new Date().toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' });
+        const OR = [184, 134, 11];
 
-        // ── Construction du contenu lisible ─────────────────────────────
+        // ── En-tête ────────────────────────────────────────────────────
+        doc.setFontSize(16); doc.setTextColor(...OR);
+        doc.text(`\u{1F3C6} World Cup 2026 — Pronos de ${user}`, 14, 14);
+        doc.setFontSize(9); doc.setTextColor(150);
+        doc.text(`Exporté le ${date}`, 14, 21);
+
+        let y = 28;
+
+        // ── Phase de groupes ───────────────────────────────────────────
+        doc.setFontSize(13); doc.setTextColor(50);
+        doc.text('Phase de Groupes', 14, y); y += 4;
+
         const groupes = {};
         CALENDRIER_CDM.forEach(m => {
             if (!m.groupe || m.groupe.toLowerCase().includes('finale') || m.groupe.startsWith('1/')) return;
@@ -4174,30 +4201,30 @@
             groupes[m.groupe].push(m);
         });
 
-        const scoreOf = (id) => {
-            const sA = pronos[`scoreA_${id}`];
-            const sB = pronos[`scoreB_${id}`];
-            if (sA === undefined || sA === null || sA === '') return '? - ?';
-            return `${sA} - ${sB}`;
-        };
-
-        let lignesGroupes = '';
         Object.keys(groupes).sort().forEach(g => {
-            lignesGroupes += `<h3 style="color:#b8860b;margin:16px 0 6px">${g}</h3><table style="width:100%;border-collapse:collapse;font-size:0.85rem;">`;
-            groupes[g].forEach(m => {
-                const score = scoreOf(m.id);
-                const jDate = m.date || '';
-                lignesGroupes += `
-                <tr style="border-bottom:1px solid #eee;">
-                    <td style="padding:4px 8px;color:#666;width:120px">${jDate}</td>
-                    <td style="padding:4px 8px;text-align:right;font-weight:bold;width:150px">${m.equipeA}</td>
-                    <td style="padding:4px 8px;text-align:center;font-family:monospace;font-weight:bold;color:#b8860b;width:70px">${score}</td>
-                    <td style="padding:4px 8px;font-weight:bold;width:150px">${m.equipeB}</td>
-                </tr>`;
+            const rows = groupes[g].map(m => {
+                const sA = pronos[`scoreA_${m.id}`];
+                const sB = pronos[`scoreB_${m.id}`];
+                const score = (sA !== undefined && sA !== null && sA !== '') ? `${sA} - ${sB}` : '? - ?';
+                return [m.date || '', m.equipeA, score, m.equipeB];
             });
-            lignesGroupes += '</table>';
+            doc.autoTable({
+                head: [[{ content: g, colSpan: 4, styles: { fillColor: OR, textColor: 255, fontStyle: 'bold' } }]],
+                body: rows,
+                startY: y,
+                styles: { fontSize: 8, cellPadding: 2 },
+                columnStyles: {
+                    0: { cellWidth: 38, textColor: [120, 120, 120] },
+                    1: { cellWidth: 55, halign: 'right', fontStyle: 'bold' },
+                    2: { cellWidth: 22, halign: 'center', fontStyle: 'bold', textColor: OR },
+                    3: { cellWidth: 55, fontStyle: 'bold' },
+                },
+                margin: { left: 14, right: 14 },
+            });
+            y = doc.lastAutoTable.finalY + 4;
         });
 
+        // ── Phase éliminatoire ─────────────────────────────────────────
         const phasesKO = [
             { label: '1/16es de Finale', id: '16', ids: Array.from({length:16}, (_,i) => 687045+i) },
             { label: '1/8es de Finale',  id: '8',  ids: Array.from({length:8},  (_,i) => 687061+i) },
@@ -4207,73 +4234,48 @@
             { label: 'Finale',           id: 'f',  ids: [687076] },
         ];
 
-        let lignesKO = '';
+        let hasKO = false;
         phasesKO.forEach(({ label, id: phaseId, ids }) => {
             const cfg = CONFIG_PHASES[phaseId];
             if (!cfg) return;
             const tiroir = pronos[cfg.tiroir] || {};
-            // Vainqueur : en Phase 1 → winner_*, en Phase 3 → p3tab_* (+ score dans tiroir)
-            const getWin = (mid) => pronos[`winner_${phaseId}_${mid}`] || pronos[`p3tab_${phaseId}_${mid}`];
-            const hasData = ids.some(mid =>
-                tiroir[`score_${phaseId}_${mid}_A`] !== undefined ||
-                getWin(mid) ||
-                tiroir[`team_${phaseId}_${mid}_A`]
-            );
+            const getWin = mid => pronos[`winner_${phaseId}_${mid}`] || pronos[`p3tab_${phaseId}_${mid}`];
+            const hasData = ids.some(mid => tiroir[`score_${phaseId}_${mid}_A`] !== undefined || getWin(mid) || tiroir[`team_${phaseId}_${mid}_A`]);
             if (!hasData) return;
 
-            lignesKO += `<h3 style="color:#b8860b;margin:16px 0 6px">${label}</h3><table style="width:100%;border-collapse:collapse;font-size:0.85rem;">`;
-            ids.forEach(mid => {
+            if (!hasKO) {
+                if (y > 240) { doc.addPage(); y = 14; }
+                doc.setFontSize(13); doc.setTextColor(50);
+                doc.text('Phase Éliminatoire', 14, y); y += 4;
+                hasKO = true;
+            }
+
+            const rows = ids.map(mid => {
                 const sA = tiroir[`score_${phaseId}_${mid}_A`];
                 const sB = tiroir[`score_${phaseId}_${mid}_B`];
                 const win = getWin(mid);
-                // Lire les noms depuis les spans déjà rendus dans le DOM
-                const nomA = document.getElementById(`team_name_${phaseId}_${mid}_A`)?.textContent?.trim()
-                          || tiroir[`team_${phaseId}_${mid}_A`] || '?';
-                const nomB = document.getElementById(`team_name_${phaseId}_${mid}_B`)?.textContent?.trim()
-                          || tiroir[`team_${phaseId}_${mid}_B`] || '?';
-                const scoreStr = (sA !== undefined && sA !== null && sA !== '')
-                    ? `${sA} - ${sB}`
-                    : (win ? `✓ ${win === 'A' ? nomA : nomB}` : '?');
-                lignesKO += `
-                <tr style="border-bottom:1px solid #eee;">
-                    <td style="padding:4px 8px;text-align:right;font-weight:bold;width:180px">${nomA}</td>
-                    <td style="padding:4px 8px;text-align:center;font-family:monospace;font-weight:bold;color:#b8860b;width:90px">${scoreStr}</td>
-                    <td style="padding:4px 8px;font-weight:bold;width:180px">${nomB}</td>
-                </tr>`;
+                const nomA = document.getElementById(`team_name_${phaseId}_${mid}_A`)?.textContent?.trim() || tiroir[`team_${phaseId}_${mid}_A`] || '?';
+                const nomB = document.getElementById(`team_name_${phaseId}_${mid}_B`)?.textContent?.trim() || tiroir[`team_${phaseId}_${mid}_B`] || '?';
+                const score = (sA !== undefined && sA !== null && sA !== '') ? `${sA} - ${sB}` : (win ? `→ ${win === 'A' ? nomA : nomB}` : '?');
+                return [nomA, score, nomB];
             });
-            lignesKO += '</table>';
+
+            doc.autoTable({
+                head: [[{ content: label, colSpan: 3, styles: { fillColor: OR, textColor: 255, fontStyle: 'bold' } }]],
+                body: rows,
+                startY: y,
+                styles: { fontSize: 8, cellPadding: 2 },
+                columnStyles: {
+                    0: { cellWidth: 70, halign: 'right', fontStyle: 'bold' },
+                    1: { cellWidth: 30, halign: 'center', fontStyle: 'bold', textColor: OR },
+                    2: { cellWidth: 70, fontStyle: 'bold' },
+                },
+                margin: { left: 14, right: 14 },
+            });
+            y = doc.lastAutoTable.finalY + 4;
         });
 
-        // ── Ouverture dans une nouvelle fenêtre pour impression ────────
-        const win = window.open('', '_blank');
-        win.document.write(`<!DOCTYPE html>
-<html lang="fr"><head>
-<meta charset="UTF-8">
-<title>Pronos CDM 2026 — ${user}</title>
-<style>
-  body { font-family: 'Segoe UI', Arial, sans-serif; margin: 30px; color: #222; }
-  h1 { color: #b8860b; border-bottom: 2px solid #b8860b; padding-bottom: 8px; }
-  h2 { color: #444; margin-top: 30px; }
-  h3 { color: #b8860b; }
-  table { width: 100%; border-collapse: collapse; }
-  tr:nth-child(even) { background: #f9f9f9; }
-  @media print {
-    button { display:none; }
-    body { margin: 10px; font-size: 0.8rem; }
-  }
-</style>
-</head><body>
-<h1>🏆 World Cup 2026 — Pronostics de <em>${user}</em></h1>
-<p style="color:#888;font-size:0.85rem">Exporté le ${date}</p>
-<button onclick="window.print()" style="background:#b8860b;color:#fff;border:none;padding:10px 20px;border-radius:6px;cursor:pointer;font-size:1rem;margin-bottom:20px">
-  🖨️ Imprimer / Enregistrer en PDF
-</button>
-<h2>Phase de Groupes</h2>
-${lignesGroupes}
-<h2>Phase Éliminatoire</h2>
-${lignesKO || '<p style="color:#888">Aucun pronostic de phase finale saisi.</p>'}
-</body></html>`);
-        win.document.close();
+        doc.save(`pronos-cdm2026-${user}.pdf`);
     }
 
     // Garde l'ancien savePronos pour compatibilité interne (plus exposé en UI)
