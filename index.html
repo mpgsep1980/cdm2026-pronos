@@ -762,7 +762,9 @@
             data.forEach(row => {
                 if (!row.username || !row.data) return;
                 localStorage.setItem(`${row.username}_mes_pronos_2026`, JSON.stringify(row.data));
-                if (!users[row.username]) users[row.username] = {};
+                // N'ajouter au classement que si l'utilisateur a au moins un prono de poule
+                const aDesPronosPoule = Object.keys(row.data).some(k => k.startsWith('scoreA_'));
+                if (aDesPronosPoule && !users[row.username]) users[row.username] = {};
             });
             localStorage.setItem('liste_utilisateurs_2026', JSON.stringify(users));
         } catch(e) { console.warn('Supabase fetchAll failed:', e); }
