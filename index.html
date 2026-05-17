@@ -4184,7 +4184,7 @@
 
         // ── En-tête ────────────────────────────────────────────────────
         doc.setFontSize(16); doc.setTextColor(...OR);
-        doc.text(`\u{1F3C6} World Cup 2026 — Pronos de ${user}`, 14, 14);
+        doc.text(`World Cup 2026 -- Pronos de ${user}`, 14, 14);
         doc.setFontSize(9); doc.setTextColor(150);
         doc.text(`Exporté le ${date}`, 14, 21);
 
@@ -4256,7 +4256,7 @@
                 const win = getWin(mid);
                 const nomA = document.getElementById(`team_name_${phaseId}_${mid}_A`)?.textContent?.trim() || tiroir[`team_${phaseId}_${mid}_A`] || '?';
                 const nomB = document.getElementById(`team_name_${phaseId}_${mid}_B`)?.textContent?.trim() || tiroir[`team_${phaseId}_${mid}_B`] || '?';
-                const score = (sA !== undefined && sA !== null && sA !== '') ? `${sA} - ${sB}` : (win ? `→ ${win === 'A' ? nomA : nomB}` : '?');
+                const score = (sA !== undefined && sA !== null && sA !== '') ? `${sA} - ${sB}` : (win ? `> ${win === 'A' ? nomA : nomB}` : '?');
                 return [nomA, score, nomB];
             });
 
