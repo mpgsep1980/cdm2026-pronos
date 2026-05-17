@@ -762,9 +762,7 @@
             data.forEach(row => {
                 if (!row.username || !row.data) return;
                 localStorage.setItem(`${row.username}_mes_pronos_2026`, JSON.stringify(row.data));
-                // N'ajouter au classement que si l'utilisateur a au moins un prono de poule
-                const aDesPronosPoule = Object.keys(row.data).some(k => k.startsWith('scoreA_'));
-                if (aDesPronosPoule && !users[row.username]) users[row.username] = {};
+                if (!users[row.username]) users[row.username] = {};
             });
             localStorage.setItem('liste_utilisateurs_2026', JSON.stringify(users));
         } catch(e) { console.warn('Supabase fetchAll failed:', e); }
@@ -2229,7 +2227,7 @@
 
         const legend = `<div style="display:flex;gap:16px;justify-content:center;margin-bottom:12px;font-size:0.72rem;color:#666;">
             <span>🟢 Points Poules (définitifs)</span>
-            <span>🔵 Points Bracket (évolutifs)</span>
+            <span>🔵 Pts Provisoires (évolutifs)</span>
         </div>`;
 
         const container = document.getElementById('classement-container');
@@ -2937,7 +2935,7 @@
 
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
                 ${stat('🟢 Points Poules', d.poules + ' pts', '#4ade80', 'définitifs')}
-                ${stat('🔵 Points Bracket', d.bracket + ' pts', '#60a5fa', 'évolutifs')}
+                ${stat('🔵 Pts Provisoires', d.bracket + ' pts', '#60a5fa', 'évolutifs')}
             </div>
 
             ${meilleurGain > 0 ? `<div style="background:#111;border-radius:8px;padding:10px 14px;font-size:0.8rem;">
@@ -3173,10 +3171,10 @@
             section('⬇️','Les Fers à Repasser','Plus grosse chute au classement en une journée',
                 top(s => s.maxDescente),
                 s => s.maxDescente > 0 ? '-' + s.maxDescente + ' place(s)' : '—'),
-            section('🔮','Les Nostradamus','Plus de points bracket KO (1/16e et au-delà)',
+            section('🔮','Les Nostradamus','Plus de Pts Provisoires KO (1/16e et au-delà)',
                 top(s => s.bracket),
                 s => s.bracket + ' pts bracket'),
-            section('🤡','Les Gilberts','Moins de points bracket KO (1/16e et au-delà)',
+            section('🤡','Les Gilberts','Moins de Pts Provisoires KO (1/16e et au-delà)',
                 top(s => s.bracket, 3, true),
                 s => s.bracket + ' pts bracket'),
             section('💰','Les Premiers de Cordée','Plus gros gain sur UN seul prono',
