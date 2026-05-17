@@ -974,23 +974,20 @@
     }
 
     function autoNext(currentInput) {
-        if (!currentInput || currentInput.value.length < 1) return;
-        
-        // Si tu veux autoriser les scores à 2 chiffres sans sauter trop vite,
-        // on peut attendre un tout petit peu plus longtemps.
+        if (!currentInput || currentInput.value === '') return;
         setTimeout(() => {
-            // On ne change de case que si l'utilisateur n'est pas en train d'effacer
-            if (currentInput.value === "") return;
-
-            const allInputs = Array.from(document.querySelectorAll('input[type="number"]'));
-            const currentIndex = allInputs.findIndex(inp => inp.id === currentInput.id);
-
-            if (currentIndex !== -1 && currentIndex < allInputs.length - 1) {
-                const next = allInputs[currentIndex + 1];
+            if (currentInput.value === '') return;
+            // Uniquement les inputs actifs (non désactivés = matchs non terminés)
+            const allInputs = Array.from(
+                document.querySelectorAll('input[type="number"]:not([disabled])')
+            );
+            const idx = allInputs.findIndex(inp => inp.id === currentInput.id);
+            if (idx !== -1 && idx < allInputs.length - 1) {
+                const next = allInputs[idx + 1];
                 next.focus();
-                if (next.value !== "") next.select();
+                if (next.value !== '') next.select();
             }
-        }, 600); // Augmenté à 600ms pour te laisser le temps de taper "10"
+        }, 600);
     }
 
     function genererAffiches16emes(resultatsGroupes, qualifies3es) {
@@ -2462,7 +2459,7 @@
                                 border-radius: 4px; font-weight: bold; opacity: ${opacite};">
                             <span style="color: var(--gold); font-weight: bold;">:</span>
                             <input type="number" id="scoreB_${m.id}" value="${affichageB}" ${(isLocked || (realA !== null && estTermine)) ? 'disabled' : ''}
-                                oninput="saveScore('${m.id}', 'B', this.value)"
+                                oninput="saveScore('${m.id}', 'B', this.value); autoNext(this)"
                                 style="width: 42px; height: 34px; text-align: center; background: #000;
                                 border: 1px solid ${inputBorderColor}; color: ${couleurTexte};
                                 border-radius: 4px; font-weight: bold; opacity: ${opacite};">
