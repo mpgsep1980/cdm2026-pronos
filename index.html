@@ -179,17 +179,15 @@
             gap: 8px;
         }
 
-        .team-home { justify-content: flex-end; text-align: right; }
-        .team-away { justify-content: flex-start; text-align: left; }
+        .team-home { justify-content: flex-end; text-align: right; min-width: 0; }
+        .team-away { justify-content: flex-start; text-align: left; min-width: 0; }
 
-        /* Pour que les noms longs ne cassent pas tout */
+        /* Noms d'équipes : tronqués si trop longs */
         .team-name {
-            width: 120px;         /* Largeur fixe pour le nom */
-            white-space: nowrap;  /* Pas de retour à la ligne */
-            overflow: hidden;     /* On coupe ce qui dépasse */
-            text-overflow: ellipsis; /* On met des "..." si c'est trop long */
-            display: inline-block;
-            vertical-align: middle;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 0;
         }
 
         /* Pour que le bloc score reste TOUJOURS au milieu */
@@ -1376,7 +1374,7 @@
                         onclick="${canClickWinner ? `toggleWinnerUniversal('${phaseId}', ${m.id}, 'A')` : ''}">
                         
                         <div style="text-align: right; min-width: 0;">
-                            <span id="team_name_${phaseId}_${m.id}_A" style="font-weight: 600; color: ${colorNameA}; font-size: ${fontSizeA}; word-break: break-word;">${nomA}</span>
+                            <span id="team_name_${phaseId}_${m.id}_A" style="font-weight: 600; color: ${colorNameA}; font-size: ${fontSizeA}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${nomA}</span>
                             ${pronoNomA} 
                         </div>
 
@@ -1419,7 +1417,7 @@
                         <img src="${getFlag(nomB)}" class="${phase3WinB ? 'flag-winner-aura' : ''}" style="width:24px; border-radius: 2px; flex-shrink:0; border: ${!phase3WinB && isWinnerB ? '2px solid #4ade80' : phase3WinB ? '' : '2px solid transparent'}" onerror="this.style.visibility='hidden'">
                         
                         <div style="text-align: left; min-width: 0;">
-                            <span id="team_name_${phaseId}_${m.id}_B" style="font-weight: 600; color: ${colorNameB}; font-size: ${fontSizeB}; word-break: break-word;">${nomB}</span>
+                            <span id="team_name_${phaseId}_${m.id}_B" style="font-weight: 600; color: ${colorNameB}; font-size: ${fontSizeB}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;">${nomB}</span>
                             ${pronoNomB}
                         </div>
 
@@ -2432,12 +2430,12 @@
             // --- GÉNÉRATION DU HTML ---
             htmlCalendrier += `
                 <div class="match-card" style="display: flex; align-items: center; padding: 12px 15px; background: rgba(255,255,255,0.03); border-radius: 8px; margin-bottom: 10px; border-left: 4px solid ${inputBorderColor}">
-                    <div class="team-home" style="flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 12px;">
-                        <span style="font-weight: 500;">${m.equipeA}</span>
-                        <img src="${flagA}" style="width:26px; height:auto;">
+                    <div class="team-home" style="flex: 1; display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
+                        <span class="team-name" style="font-weight: 500;">${m.equipeA}</span>
+                        <img src="${flagA}" style="width:26px; height:auto; flex-shrink:0;">
                     </div>
 
-                    <div style="display: flex; flex-direction: column; align-items: center; min-width: 150px;">
+                    <div style="display: flex; flex-direction: column; align-items: center; min-width: 110px; flex-shrink: 0;">
                         ${!estTermine && !estLive && m.heure ? `<div style="font-size:0.62rem; color:#666; margin-bottom:3px;">${m.heure}</div>` : ''}
                         ${estLive ? `
                         <div style="font-size:0.65rem; font-weight:bold; color:#e74c3c; letter-spacing:0.06em; margin-bottom:3px; display:flex; align-items:center; gap:4px;">
@@ -2469,9 +2467,9 @@
                         <div class="gains-container">${gainsHtml}</div>
                     </div>
 
-                    <div class="team-away" style="flex: 1; display: flex; align-items: center; justify-content: flex-start; gap: 12px;">
-                        <img src="${flagB}" style="width:26px; height:auto;">
-                        <span>${m.equipeB}</span>
+                    <div class="team-away" style="flex: 1; display: flex; align-items: center; justify-content: flex-start; gap: 8px;">
+                        <img src="${flagB}" style="width:26px; height:auto; flex-shrink:0;">
+                        <span class="team-name">${m.equipeB}</span>
                     </div>
                 </div>`;
         });
