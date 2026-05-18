@@ -563,6 +563,93 @@
     </div>
 </div>
 
+<!-- ── SECTION TUTOS ─────────────────────────────────────────────────── -->
+<div id="tutos-bar" style="background:#111;border-bottom:1px solid #222;padding:6px 12px;">
+    <button onclick="toggleTutos()" id="btn-tutos"
+        style="background:none;border:1px solid #444;color:#aaa;border-radius:6px;padding:4px 12px;font-size:0.8rem;cursor:pointer;">
+        📹 Tutoriels ▾
+    </button>
+</div>
+
+<div id="tutos-panel" style="display:none;background:#0d0d0d;border-bottom:1px solid #222;padding:16px 12px;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;max-width:1008px;margin:0 auto;">
+
+        <details style="background:#1a1a1a;border-radius:8px;overflow:hidden;">
+            <summary style="padding:10px 14px;cursor:pointer;color:#ddd;font-size:0.85rem;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+                👤 Créer un compte <span style="color:#888;font-size:0.75rem;">2 min</span>
+            </summary>
+            <video src="creation_compte.mp4" controls style="width:100%;display:block;" preload="none"></video>
+        </details>
+
+        <details style="background:#1a1a1a;border-radius:8px;overflow:hidden;">
+            <summary style="padding:10px 14px;cursor:pointer;color:#ddd;font-size:0.85rem;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+                ⚽ Saisir mes pronos <span style="color:#888;font-size:0.75rem;">2 min</span>
+            </summary>
+            <video src="entree_score.mp4" controls style="width:100%;display:block;" preload="none"></video>
+        </details>
+
+        <details style="background:#1a1a1a;border-radius:8px;overflow:hidden;">
+            <summary style="padding:10px 14px;cursor:pointer;color:#ddd;font-size:0.85rem;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+                🔄 Modifier / supprimer <span style="color:#888;font-size:0.75rem;">2 min</span>
+            </summary>
+            <video src="supprimer_score.mp4" controls style="width:100%;display:block;" preload="none"></video>
+        </details>
+
+        <details style="background:#1a1a1a;border-radius:8px;overflow:hidden;">
+            <summary style="padding:10px 14px;cursor:pointer;color:#ddd;font-size:0.85rem;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+                💾 Sauvegarder mes pronos <span style="color:#888;font-size:0.75rem;">3 min</span>
+            </summary>
+            <video src="pronos_sauvegarde.mp4" controls style="width:100%;display:block;" preload="none"></video>
+        </details>
+
+        <details style="background:#1a1a1a;border-radius:8px;overflow:hidden;">
+            <summary style="padding:10px 14px;cursor:pointer;color:#ddd;font-size:0.85rem;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+                🎲 Pronos aléatoires <span style="color:#888;font-size:0.75rem;">3 min</span>
+            </summary>
+            <video src="pronos_aleatoires.mp4" controls style="width:100%;display:block;" preload="none"></video>
+        </details>
+
+        <details style="background:#1a1a1a;border-radius:8px;overflow:hidden;">
+            <summary style="padding:10px 14px;cursor:pointer;color:#ddd;font-size:0.85rem;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+                📊 Classement des groupes <span style="color:#888;font-size:0.75rem;">3 min</span>
+            </summary>
+            <video src="afficher_classement_groupes.mp4" controls style="width:100%;display:block;" preload="none"></video>
+        </details>
+
+        <details style="background:#1a1a1a;border-radius:8px;overflow:hidden;">
+            <summary style="padding:10px 14px;cursor:pointer;color:#ddd;font-size:0.85rem;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+                🏆 Classement des joueurs <span style="color:#888;font-size:0.75rem;">2 min</span>
+            </summary>
+            <video src="stats_classement_joueurs.mp4" controls style="width:100%;display:block;" preload="none"></video>
+        </details>
+
+        <details style="background:#1a1a1a;border-radius:8px;overflow:hidden;">
+            <summary style="padding:10px 14px;cursor:pointer;color:#ddd;font-size:0.85rem;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+                ⚔️ Pronos Phase Finale <span style="color:#888;font-size:0.75rem;">3 min</span>
+            </summary>
+            <video src="Pronos_phase_finale.mp4" controls style="width:100%;display:block;" preload="none"></video>
+        </details>
+
+        <details style="background:#1a1a1a;border-radius:8px;overflow:hidden;">
+            <summary style="padding:10px 14px;cursor:pointer;color:#ddd;font-size:0.85rem;list-style:none;display:flex;justify-content:space-between;align-items:center;">
+                🎲 Phase Finale — mode hasard <span style="color:#888;font-size:0.75rem;">2 min</span>
+            </summary>
+            <video src="pronos_PF_hasard.mp4" controls style="width:100%;display:block;" preload="none"></video>
+        </details>
+
+    </div>
+</div>
+
+<script>
+function toggleTutos() {
+    const panel = document.getElementById('tutos-panel');
+    const btn = document.getElementById('btn-tutos');
+    const open = panel.style.display === 'none';
+    panel.style.display = open ? 'block' : 'none';
+    btn.textContent = open ? '📹 Tutoriels ▴' : '📹 Tutoriels ▾';
+}
+</script>
+
 <header>
     <h1>🏆 WORLD CUP 2026 PRONOS</h1>
     <p>Saisissez vos scores pour simuler les phases de groupe</p>
