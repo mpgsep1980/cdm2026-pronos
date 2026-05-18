@@ -3938,15 +3938,26 @@
     function simulerResultatsJusqua() {
         const maintenant = SIMULATED_DATE ? new Date(SIMULATED_DATE) : new Date();
 
-        // 1. Effacer les scores officiels simulés des poules (pas les vrais)
+        // Supprimer les scores simulés des matchs qui sont APRÈS la date cible
+        // (pour gérer un retour en arrière), mais conserver ceux déjà dans le passé.
         Object.keys(OFFICIEL_2026.scores).forEach(k => {
             const m = CALENDRIER_CDM.find(x => String(x.id) === String(k));
-            if (m && (m.groupe || '').startsWith('Groupe')) delete OFFICIEL_2026.scores[k];
+            if (!m || !(m.groupe || '').startsWith('Groupe')) return;
+            const cote = typeof COTES_MATCHS !== 'undefined'
+                ? COTES_MATCHS.find(c => String(c.id) === String(m.id)) : null;
+            const ts = cote?.timestamp || m.timestamp;
+            if (!ts) return;
+            const [dp, tp] = ts.split(' ');
+            const [day, month, year] = dp.split('/');
+            const matchFin = new Date(`${year}-${month}-${day}T${tp}`);
+            matchFin.setMinutes(matchFin.getMinutes() + 95);
+            if (matchFin > maintenant) delete OFFICIEL_2026.scores[k];
         });
 
-        // 2. Générer un résultat pour chaque match de poule dont l'heure est passée
+        // Générer un résultat pour chaque match de poule dont l'heure est passée et pas encore scoré
         CALENDRIER_CDM.forEach(m => {
             if (!(m.groupe || '').startsWith('Groupe')) return;
+            if (OFFICIEL_2026.scores[String(m.id)]?.termine) return; // conserver score existant
 
             const cote = typeof COTES_MATCHS !== 'undefined'
                 ? COTES_MATCHS.find(c => String(c.id) === String(m.id)) : null;
