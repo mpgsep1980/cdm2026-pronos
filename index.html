@@ -895,9 +895,8 @@
         const val = (value === "") ? "" : parseInt(value);
         syncProno(key, val);
 
-        // 2. Vérifier si c'est un match de poule (ID < 687045 par exemple)
-        // Les 16èmes commencent à 687045.
-        if (parseInt(matchId) < 687045) {
+        // 2. Reset du bracket seulement en Phase 1 (prédictions) — pas en Phase 3 (scores officiels)
+        if (parseInt(matchId) < 687045 && getAppState() === 'AVANT') {
             autoResetPhaseFinale();
         }
 
@@ -1472,9 +1471,12 @@
             const lastPart = parts[parts.length - 1];
             const idMatch = parseInt(lastPart);
 
-            if (key.startsWith('scoreA_') || 
-                key.startsWith('scoreB_') || 
-                key.startsWith('winner_poule_') || 
+            if (key.startsWith('scoreA_') ||
+                key.startsWith('scoreB_') ||
+                key.startsWith('score_')  ||
+                key.startsWith('winner_') ||
+                key.startsWith('team_')   ||
+                key.startsWith('p3tab_')  ||
                 (!isNaN(idMatch) && idMatch > 1000)) {
                 propre[key] = data[key];
             } else {
@@ -1748,34 +1750,45 @@
 
     // Groupes impliqués par match 1/16e — dérivés dynamiquement depuis les labels de COTES_MATCHS_KO
     // Ex: label "1er Gr.A" ou "2e Gr.B" → extrait "A" ou "B" ; "3e*" → null
-    const GROUPES_PAR_MATCH_16 = (() => {
-        const map = {};
-        const ids16 = [687045,687046,687047,687048,687049,687050,687051,687052,
-                       687053,687054,687055,687056,687057,687058,687059,687060];
-        if (typeof COTES_MATCHS_KO === 'undefined') return {};
-        ids16.forEach(id => {
-            const entry = COTES_MATCHS_KO.find(c => String(c.id) === String(id));
-            if (!entry) { map[id] = null; return; }
-            const extractGr = label => {
-                const m = (label || '').match(/Gr\.([A-L])/i);
-                return m ? m[1].toUpperCase() : null;
-            };
-            const gA = extractGr(entry.details?.domicile?.label);
-            const gB = extractGr(entry.details?.exterieur?.label);
-            if (!gA && !gB) { map[id] = null; return; } // "3e*" ou inconnu
-            const grps = [...new Set([gA, gB].filter(Boolean))];
-            map[id] = grps.length ? grps : null;
-        });
-        return map;
-    })();
+    // Groupes requis par match de 1/16e — construit depuis genererAffiches16emes (source de vérité).
+    // Pour les matchs P([...]) : tous les groupes de la pool doivent avoir J3 terminée.
+    const GROUPES_PAR_MATCH_16 = {
+        687045: ['A','B'],
+        687046: ['C','F'],
+        687047: ['E','A','B','C','D','F'],
+        687048: ['F','C'],
+        687049: ['E','I'],
+        687050: ['I','C','D','F','G','H'],
+        687051: ['A','C','E','F','H','I'],
+        687052: ['L','E','H','I','J','K'],
+        687053: ['G','A','E','H','I','J'],
+        687054: ['D','B','E','F','I','J'],
+        687055: ['H','J'],
+        687056: ['K','L'],
+        687057: ['B','E','F','G','I','J'],
+        687058: ['D','G'],
+        687059: ['J','H'],
+        687060: ['K','D','E','I','J','L'],
+    };
 
     function groupeJ3Termine(codeGroupe) {
+        const maintenant = getCurrentDate();
         const matchesJ3 = CALENDRIER_CDM.filter(m =>
             m.groupe === `Groupe ${codeGroupe}` && (m.date || "").includes("3e journée")
         );
         return matchesJ3.length > 0 && matchesJ3.every(m => {
             const off = OFFICIEL_2026.scores[m.id];
-            return off && off.termine;
+            if (!off || !off.termine) return false;
+            // Vérifier que la date du match est bien passée par rapport à la date simulée
+            const cote = typeof COTES_MATCHS !== 'undefined'
+                ? COTES_MATCHS.find(c => String(c.id) === String(m.id)) : null;
+            const ts = cote?.timestamp || m.timestamp;
+            if (!ts) return true;
+            const [datePart, timePart] = ts.split(' ');
+            const [day, month, year] = datePart.split('/');
+            const matchFin = new Date(`${year}-${month}-${day}T${timePart}`);
+            matchFin.setMinutes(matchFin.getMinutes() + 95);
+            return matchFin <= maintenant;
         });
     }
 
@@ -3712,6 +3725,10 @@
                 onclick="const n=simulerJournee(3); adminRenderOnglet('controle'); alert('J3 : '+n+' matchs générés (J1+J2 intacts). Phase 3 active.')">
                 ▶ Simuler J3
             </button>
+            <button class="admin-btn" style="background:#2a0a2a;color:#e879f9;border:1px solid #e879f9;font-weight:bold;"
+                onclick="simulerJournee(1); simulerJournee(2); const n=simulerJournee(3); adminRenderOnglet('controle'); alert('J1+J2+J3 simulées — '+n+' matchs J3 générés. Phase 3 active.')">
+                ⚡ Simuler les 3 journées
+            </button>
             <button class="admin-btn admin-btn-danger"
                 onclick="if(confirm('Effacer TOUS les scores simulés des poules ?')){Object.keys(OFFICIEL_2026.scores).forEach(k=>{const m=CALENDRIER_CDM.find(x=>String(x.id)===String(k));if(m&&(m.groupe||'').startsWith('Groupe'))delete OFFICIEL_2026.scores[k];}); SIMULATED_DATE='2026-06-11T21:01:00'; updateAll(); adminRenderOnglet('controle'); alert('Scores effacés.');}">
                 🗑 Réinitialiser poules
@@ -3868,7 +3885,7 @@
         const datesApresJournee = {
             1: '2026-06-19T00:00:00',   // J1 terminée — J2 commence le 19/06
             2: '2026-06-24T00:00:00',   // J2 terminée — J3 commence le 24/06
-            3: '2026-06-29T00:00:00',   // J3 terminée — Phase 3 active
+            3: '2026-06-25T06:01:00',   // J3 générée — Phase 3 active (16e s'ouvrent progressivement selon dates)
         };
 
         let nbGeneres = 0, nbDejaPris = 0;
