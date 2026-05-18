@@ -3,5 +3,6 @@ mpp_token.txt
 etat_scores.json
 debug_page.html
 mpp_raw.json
+green_api_config.json
 __pycache__/
 *.pyc

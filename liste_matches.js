@@ -122,20 +122,7 @@ const COTES_MATCHS_KO = CALENDRIER_CDM.filter(
 const OFFICIEL_2026 = {
     scores:   {},
     qualifies: {},
-    aliases:   {
-        // Migration pronos : IDs source externe + IDs test → vrais IDs lequipe.fr
-        "673324": "686902",  // ID externe Mexique-AfSud → vrai ID lequipe.fr
-        "673870": "686903",  // ID externe Corée-RepTch → vrai ID lequipe.fr
-        "673329": "686908",  // ID externe Canada-Bosnie → vrai ID lequipe.fr
-        "673871": "686920",  // ID externe États-Unis-Paraguay → vrai ID lequipe.fr
-        "677075": "686921",  // ID externe Australie-Turquie → vrai ID lequipe.fr
-        "673333": "686909",  // ID externe Qatar-Suisse → vrai ID lequipe.fr
-        "676099": "686914",  // ID externe Brésil-Maroc → vrai ID lequipe.fr
-        "689422": "686902",  // ID test Mexique-AfSud → vrai ID lequipe.fr
-        "677634": "686903",  // ID test Corée-RepTch → vrai ID lequipe.fr
-        "677633": "686908",  // ID test Canada-Bosnie → vrai ID lequipe.fr
-        "677630": "686908",  // ID test intermédiaire → vrai ID lequipe.fr
-    }
+    aliases:   {}
 };
 
 CALENDRIER_CDM.forEach(match => {

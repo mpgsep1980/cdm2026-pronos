@@ -22,6 +22,12 @@ from pathlib import Path
 
 from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
 
+try:
+    from whatsapp_notif import detecter_et_notifier
+    WA_DISPONIBLE = True
+except ImportError:
+    WA_DISPONIBLE = False
+
 # ── CONFIGURATION ────────────────────────────────────────────────────────────
 
 DOSSIER       = Path(__file__).parent
@@ -431,6 +437,10 @@ def run_once(debug=False):
     sauvegarder_etat(etat_final)
     ecrire_resultats_js(etat_final)
 
+    # Notifications WhatsApp
+    if WA_DISPONIBLE and not getattr(run_once, "_no_wa", False):
+        detecter_et_notifier(etat_precedent, etat_final, calendrier)
+
 
 def main():
     parser = argparse.ArgumentParser(description="Fetch CDM 2026 results from lequipe.fr")
@@ -454,7 +464,12 @@ def main():
         "--test-in", metavar="MINUTES", type=int, default=None,
         help="Test : démarre le watch dans N minutes (sans modifier les données)"
     )
+    parser.add_argument(
+        "--no-wa", action="store_true",
+        help="Désactive les notifications WhatsApp (tests locaux)"
+    )
     args = parser.parse_args()
+    run_once._no_wa = args.no_wa
 
     # --test-in : démarrage dans N minutes (test sans modifier les données)
     if args.test_in is not None:
