@@ -3719,12 +3719,25 @@
         </table>`;
     }
 
-    function adminSupprimerJoueur(username) {
+    async function adminSupprimerJoueur(username) {
         if (!confirm(`Supprimer définitivement "${username}" et toutes ses données ?\nCette action est irréversible.`)) return;
+
+        // 1. Supprimer du localStorage
         const users = JSON.parse(localStorage.getItem('liste_utilisateurs_2026')) || {};
         delete users[username];
         localStorage.setItem('liste_utilisateurs_2026', JSON.stringify(users));
         Object.keys(localStorage).filter(k => k.startsWith(username + '_')).forEach(k => localStorage.removeItem(k));
+
+        // 2. Synchroniser la liste utilisateurs vers Supabase (sinon elle revient au rechargement)
+        await syncUsersToSupabase();
+
+        // 3. Supprimer les pronos du joueur dans Supabase
+        if (_sb) {
+            try {
+                await _sb.from('pronos').delete().eq('username', username);
+            } catch(e) { console.warn('Supabase delete pronos failed:', e); }
+        }
+
         updateAll();
         adminRenderOnglet('joueurs');
     }
