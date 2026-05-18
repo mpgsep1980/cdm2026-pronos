@@ -760,7 +760,11 @@
             const users = JSON.parse(localStorage.getItem('liste_utilisateurs_2026') || '{}');
             data.forEach(row => {
                 if (!row.username || !row.data) return;
-                localStorage.setItem(`${row.username}_mes_pronos_2026`, JSON.stringify(row.data));
+                // Fusion : conserver les pronos locaux absents de Supabase (jamais écraser un prono local)
+                const cleLocal = `${row.username}_mes_pronos_2026`;
+                const local = JSON.parse(localStorage.getItem(cleLocal) || '{}');
+                const fusionne = Object.assign({}, local, row.data); // Supabase gagne les conflits
+                localStorage.setItem(cleLocal, JSON.stringify(fusionne));
                 if (!users[row.username]) users[row.username] = {};
             });
             localStorage.setItem('liste_utilisateurs_2026', JSON.stringify(users));
@@ -1886,6 +1890,7 @@
             localStorage.setItem('current_user', u);
 
             // Migration complète invite → compte pour toutes les clés de session
+            const cleUserPronos = `${u}_mes_pronos_2026`;
             ['mes_pronos_2026', 'mes_projections_fantomes', 'mes_fantomes_verrouilles'].forEach(baseKey => {
                 const cleUser   = `${u}_${baseKey}`;
                 const cleInvite = `invite_${baseKey}`;
@@ -1895,7 +1900,21 @@
                 }
             });
 
+            // Sauvegarder les pronos locaux AVANT le sync Supabase
+            const pronosLocaux = JSON.parse(localStorage.getItem(cleUserPronos) || '{}');
+
             await syncFromSupabase(u); // récupérer les pronos depuis Supabase
+
+            // Fusionner : Supabase est référence, mais les pronos locaux absents de Supabase sont conservés
+            // Garantit que les pronos saisis localement (y compris hors connexion) ne sont jamais perdus
+            const pronosSupa = JSON.parse(localStorage.getItem(cleUserPronos) || '{}');
+            const pronosFusion = Object.assign({}, pronosLocaux, pronosSupa); // Supabase gagne les conflits
+            localStorage.setItem(cleUserPronos, JSON.stringify(pronosFusion));
+            // Si la fusion a ajouté des clés absentes de Supabase, on les repousse
+            if (Object.keys(pronosFusion).length > Object.keys(pronosSupa).length) {
+                syncToSupabase(u, pronosFusion);
+            }
+
             CACHE_PRONOS = null;
             location.reload();
         } else {
