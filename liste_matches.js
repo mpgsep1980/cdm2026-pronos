@@ -123,14 +123,18 @@ const OFFICIEL_2026 = {
     scores:   {},
     qualifies: {},
     aliases:   {
-        // Migration pronos : anciens IDs et IDs test → vrais IDs CDM 2026
-        "686902": "673324",  // ancien ID Mexique-AfSud → vrai ID CDM
-        "689422": "673324",  // ID test Mexique-AfSud → vrai ID CDM
-        "686903": "673870",  // ancien ID Corée-RepTch → vrai ID CDM
-        "677634": "673870",  // ID test Corée-RepTch → vrai ID CDM
-        "686908": "673329",  // ancien ID Canada-Bosnie → vrai ID CDM
-        "677633": "673329",  // ID test Canada-Bosnie → vrai ID CDM
-        "677630": "673329",  // ID test intermédiaire → vrai ID CDM
+        // Migration pronos : IDs source externe + IDs test → vrais IDs lequipe.fr
+        "673324": "686902",  // ID externe Mexique-AfSud → vrai ID lequipe.fr
+        "673870": "686903",  // ID externe Corée-RepTch → vrai ID lequipe.fr
+        "673329": "686908",  // ID externe Canada-Bosnie → vrai ID lequipe.fr
+        "673871": "686920",  // ID externe États-Unis-Paraguay → vrai ID lequipe.fr
+        "677075": "686921",  // ID externe Australie-Turquie → vrai ID lequipe.fr
+        "673333": "686909",  // ID externe Qatar-Suisse → vrai ID lequipe.fr
+        "676099": "686914",  // ID externe Brésil-Maroc → vrai ID lequipe.fr
+        "689422": "686902",  // ID test Mexique-AfSud → vrai ID lequipe.fr
+        "677634": "686903",  // ID test Corée-RepTch → vrai ID lequipe.fr
+        "677633": "686908",  // ID test Canada-Bosnie → vrai ID lequipe.fr
+        "677630": "686908",  // ID test intermédiaire → vrai ID lequipe.fr
     }
 };
 
