@@ -2395,6 +2395,7 @@
 
         // 1. Logique des Poules et calcul totalPointsPoules
         CALENDRIER_CDM.forEach(m => {
+          try {
             if (!m.groupe || m.groupe.toLowerCase().includes("finale")) return;
 
             // DÉTECTION ET GÉNÉRATION DES EN-TÊTES DE JOURNÉE ---
@@ -2582,6 +2583,9 @@
                         <span class="team-name">${m.equipeB}</span>
                     </div>
                 </div>`;
+          } catch(e) {
+            console.error(`❌ Erreur rendu match [${m?.id}] ${m?.equipeA} vs ${m?.equipeB} :`, e);
+          }
         });
 
             // Création du badge de score total
