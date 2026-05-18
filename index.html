@@ -3813,12 +3813,36 @@
             Les scores existants ne sont jamais modifiés — seuls les matchs non encore scoreés sont générés.
         </div>
 
-        <div class="admin-section-title">Simulation progressive Phase 3</div>
+        <div class="admin-section-title">Déblocage 1/16e — vagues progressives (J3 poules)</div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;">
-            ${[['25/06 23h30','2026-06-25T23:30:00','J3 A+B'],['26/06 10h','2026-06-26T10:00:00','J3 C+D'],
-               ['26/06 23h','2026-06-26T23:00:00','J3 E+F'],['27/06 10h','2026-06-27T10:00:00','J3 G+H'],
-               ['27/06 23h','2026-06-27T23:00:00','J3 I+J'],['28/06 fin','2026-06-28T23:59:00','Tout ouvert']]
+            ${[['25/06 06h','2026-06-25T06:01:00','J3 A+B → 1 match'],
+               ['26/06 07h','2026-06-26T07:01:00','J3 C+D+E+F → +3 matchs'],
+               ['27/06 08h','2026-06-27T08:01:00','J3 G+H+I → +4 matchs'],
+               ['28/06 07h','2026-06-28T07:01:00','J3 J+K+L → tous ouverts']]
               .map(([l,d,s]) => `<button class="admin-btn admin-btn-info" onclick="SIMULATED_DATE='${d}'; simulerResultatsJusqua(); adminRenderOnglet('controle')" title="${s}">${l}<br><small>${s}</small></button>`).join('')}
+        </div>
+
+        <div class="admin-section-title">Déblocage phases KO (résultats officiels simulés)</div>
+        <div style="font-size:0.7rem;color:#666;margin-bottom:6px;font-style:italic;">
+            Génère les scores officiels des matchs de la phase précédente → débloque la phase suivante. Scores existants préservés.
+        </div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;">
+            <button class="admin-btn admin-btn-info"
+                onclick="simulerOfficielKO([687045,687046,687047,687048,687049,687050,687051,687052,687053,687054,687055,687056,687057,687058,687059,687060],'2026-07-04T08:00:00'); adminRenderOnglet('controle'); alert('1/16e simulés — 1/8e débloqués.')">
+                04/07 08h<br><small>Après 1/16e</small>
+            </button>
+            <button class="admin-btn admin-btn-info"
+                onclick="simulerOfficielKO([687045,687046,687047,687048,687049,687050,687051,687052,687053,687054,687055,687056,687057,687058,687059,687060,687061,687062,687063,687064,687065,687066,687067,687068],'2026-07-08T01:00:00'); adminRenderOnglet('controle'); alert('1/8e simulés — 1/4e débloqués.')">
+                08/07 01h<br><small>Après 1/8e</small>
+            </button>
+            <button class="admin-btn admin-btn-info"
+                onclick="simulerOfficielKO([687045,687046,687047,687048,687049,687050,687051,687052,687053,687054,687055,687056,687057,687058,687059,687060,687061,687062,687063,687064,687065,687066,687067,687068,687069,687070,687071,687072],'2026-07-13T01:00:00'); adminRenderOnglet('controle'); alert('1/4e simulés — 1/2e débloqués.')">
+                13/07 01h<br><small>Après 1/4e</small>
+            </button>
+            <button class="admin-btn admin-btn-info"
+                onclick="simulerOfficielKO([687045,687046,687047,687048,687049,687050,687051,687052,687053,687054,687055,687056,687057,687058,687059,687060,687061,687062,687063,687064,687065,687066,687067,687068,687069,687070,687071,687072,687073,687074],'2026-07-16T01:00:00'); adminRenderOnglet('controle'); alert('1/2e simulés — Finale débloquée.')">
+                16/07 01h<br><small>Après 1/2e</small>
+            </button>
         </div>
 
         <div class="admin-section-title">Saisie libre</div>
@@ -4067,6 +4091,21 @@
             OFFICIEL_2026.scores[String(m.id)] = { sA, sB, termine: true, live: false };
         });
 
+        updateAll();
+    }
+
+    // Simule les résultats OFFICIELS des matchs KO (OFFICIEL_2026.scores)
+    // pour déclencher la cascade de déblocage. Préserve les scores existants.
+    // KO = pas de nul possible en simulation (évite la complexité TAB).
+    function simulerOfficielKO(ids, newDate) {
+        ids.forEach(id => {
+            const sid = String(id);
+            if (OFFICIEL_2026.scores[sid]?.termine) return;
+            const sA = 1 + Math.floor(Math.random() * 2); // 1 ou 2
+            const sB = Math.floor(Math.random() * 2);      // 0 ou 1 (toujours < sA)
+            OFFICIEL_2026.scores[sid] = { sA, sB, termine: true, live: false };
+        });
+        SIMULATED_DATE = newDate;
         updateAll();
     }
 
