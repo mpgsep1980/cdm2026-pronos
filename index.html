@@ -1073,19 +1073,17 @@
             if (state === "AVANT" && maintenant < dateMatch) canEditScore = true;
         } else {
             const dateOuverturePhase2 = new Date("2026-06-25T06:00:00");
-            const ko16Ouvert = (phaseId !== '16') || match16eOuvert(m.id);
-            // Phase 3 : saisie possible si J3 des groupes concernés terminée et pas de résultat officiel
-            if (maintenant >= dateOuverturePhase2 && !officielTermine && ko16Ouvert) canEditScore = true;
+            const koOuvert = matchKOOuvert(m.id); // cascade : groupes J3 pour 1/16e, feeders KO pour le reste
+            if (maintenant >= dateOuverturePhase2 && !officielTermine && koOuvert) canEditScore = true;
         }
 
         let poulesFinies = isToutesPoulesTerminees();
         let canClickWinner = false;
         if (!isPoule) {
-            if (state === "AVANT" && poulesFinies) canClickWinner = true;
-            // Phase 3 : clic possible si 1/16e ouvert et pas de résultat officiel
+            if (state === "AVANT" && poulesFinies) canClickWinner = true; // Phase 1 : bracket complet libre
+            // Phase 3 : clic possible uniquement si le match est débloqué par la cascade
             if (state === "PHASE_FINALE" && !officielTermine) {
-                const ko16Ouvert = (phaseId !== '16') || match16eOuvert(m.id);
-                if (ko16Ouvert) canClickWinner = true;
+                if (matchKOOuvert(m.id)) canClickWinner = true;
             }
         }
 
@@ -1406,10 +1404,22 @@
                             ? `<div style="font-size:0.62rem;color:#888;margin-top:4px;text-align:center;line-height:1.2;">TAB · ${tabWin === 'A' ? nomA : nomB} ✓ <span style="color:#555">(re-clic pour annuler)</span></div>`
                             : `<div style="font-size:0.62rem;color:#fbbf24;margin-top:4px;text-align:center;line-height:1.2;">TAB — cliquez sur l'équipe<br>vainqueur aux tirs au but</div>`
                         ) : ''}
-                        ${state === 'PHASE_FINALE' && phaseId === '16' && !officielTermine && !match16eOuvert(m.id) ? (() => {
-                            const grps = GROUPES_PAR_MATCH_16[m.id];
-                            const label = grps ? `J3 Gr.${grps[0]} & Gr.${grps[1]}` : 'tous les J3';
-                            return `<div style="font-size:0.62rem;color:#666;margin-top:4px;text-align:center;line-height:1.3;">🔒 Disponible après<br>${label}</div>`;
+                        ${state === 'PHASE_FINALE' && !isPoule && !officielTermine && !matchKOOuvert(m.id) ? (() => {
+                            if (phaseId === '16') {
+                                const grps = GROUPES_PAR_MATCH_16[m.id];
+                                const label = grps ? `J3 Gr.${grps[0]} & Gr.${grps[1]}` : 'tous les J3';
+                                return `<div style="font-size:0.62rem;color:#666;margin-top:4px;text-align:center;line-height:1.3;">🔒 Disponible après<br>${label}</div>`;
+                            }
+                            // Pour 1/8e+ : trouver le feeder en attente dont la date est la plus tardive
+                            const feeders = FEEDERS_KO[parseInt(m.id)] || [];
+                            const phaseLabel = {'8':'1/16e','4':'1/8e','2':'1/4','pf':'1/2','f':'1/2'}[phaseId] || phaseId;
+                            const dernier = feeders
+                                .filter(fid => !matchKONourricierFini(fid))
+                                .map(fid => CALENDRIER_CDM.find(x => String(x.id) === String(fid)))
+                                .filter(Boolean)
+                                .sort((a,b) => (b.timestamp||'').localeCompare(a.timestamp||''))[0];
+                            const dateLabel = dernier ? dernier.timestamp.substring(0,10).split('/').slice(0,2).join('/') + ' ' + dernier.heure : '...';
+                            return `<div style="font-size:0.62rem;color:#666;margin-top:4px;text-align:center;line-height:1.3;">🔒 Disponible après ${phaseLabel}<br>du ${dateLabel}</div>`;
                         })() : ''}
                         ${rappelPronoHtml} ${gainsHtml}
                         
@@ -1808,6 +1818,48 @@
                 .every(g => groupeJ3Termine(g));
         }
         return groupes.every(g => groupeJ3Termine(g));
+    }
+
+    // ── CASCADE UNLOCK KO ───────────────────────────────────────────────────
+    // Pour chaque match KO, liste des IDs des matchs nourriciers dont le résultat est requis.
+    // 1/16e → feeders = groupes (géré par match16eOuvert)
+    // 1/8e+ → feeders = IDs des matchs KO précédents
+    const FEEDERS_KO = {
+        // 1/8e (feeders = 2 matchs 1/16e)
+        687061: [687045, 687048], 687062: [687047, 687050],
+        687063: [687046, 687049], 687064: [687051, 687052],
+        687065: [687056, 687055], 687066: [687054, 687053],
+        687067: [687059, 687058], 687068: [687057, 687060],
+        // 1/4e (feeders = 2 matchs 1/8e)
+        687069: [687062, 687061], 687070: [687065, 687066],
+        687071: [687063, 687064], 687072: [687067, 687068],
+        // 1/2e (feeders = 2 matchs 1/4e)
+        687073: [687069, 687070], 687074: [687071, 687072],
+        // Petite finale + Finale (feeders = 2 matchs 1/2e)
+        687075: [687073, 687074], 687076: [687073, 687074],
+    };
+
+    // Vérifie qu'un match KO nourricier est terminé ET que le temps de jeu max est écoulé
+    // (90 min + 30 min prolongations + TAB ≈ 3h30 = 210 min)
+    function matchKONourricierFini(feederId) {
+        const score = OFFICIEL_2026.scores[String(feederId)];
+        if (!score || !score.termine) return false;
+        const m = CALENDRIER_CDM.find(x => String(x.id) === String(feederId));
+        if (!m || !m.timestamp) return true;
+        const [dp, tp] = m.timestamp.split(' ');
+        const [day, month, year] = dp.split('/');
+        const finMatch = new Date(`${year}-${month}-${day}T${tp}`);
+        finMatch.setMinutes(finMatch.getMinutes() + 210);
+        return getCurrentDate() >= finMatch;
+    }
+
+    // Détermine si un match KO est accessible pour pronostiquer (cascade)
+    function matchKOOuvert(matchId) {
+        const id = parseInt(matchId);
+        if (id >= 687045 && id <= 687060) return match16eOuvert(id); // 1/16e → check groupes J3
+        const feeders = FEEDERS_KO[id];
+        if (!feeders) return true; // match inconnu → ouvert par défaut
+        return feeders.every(fid => matchKONourricierFini(fid));
     }
 
     // Mappings 1/16e → 1/8e
