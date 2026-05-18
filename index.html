@@ -563,14 +563,6 @@
     </div>
 </div>
 
-<!-- ── SECTION TUTOS ─────────────────────────────────────────────────── -->
-<div id="tutos-bar" style="background:#111;border-bottom:1px solid #222;padding:6px 12px;">
-    <button onclick="toggleTutos()" id="btn-tutos"
-        style="background:none;border:1px solid #444;color:#aaa;border-radius:6px;padding:4px 12px;font-size:0.8rem;cursor:pointer;">
-        📹 Tutoriels ▾
-    </button>
-</div>
-
 <div id="tutos-panel" style="display:none;background:#0d0d0d;border-bottom:1px solid #222;padding:16px 12px;">
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;max-width:1008px;margin:0 auto;">
 
@@ -653,6 +645,10 @@ function toggleTutos() {
 <header>
     <h1>🏆 WORLD CUP 2026 PRONOS</h1>
     <p>Saisissez vos scores pour simuler les phases de groupe</p>
+    <button onclick="toggleTutos()" id="btn-tutos"
+        style="margin-top:8px;background:none;border:1px solid #555;color:#aaa;border-radius:6px;padding:5px 14px;font-size:0.8rem;cursor:pointer;">
+        📹 Tutoriels ▾
+    </button>
 </header>
 
 <div class="container" id="app"></div>
