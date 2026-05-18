@@ -757,17 +757,19 @@
             const { data, error } = await _sb.from('pronos')
                 .select('username, data').neq('username', '__users__');
             if (error || !data) return;
+            // Seuls les joueurs présents dans la liste locale reçoivent une sync de pronos.
+            // Ne pas recréer la liste utilisateurs ici : c'est le rôle de loadUsersFromSupabase.
+            // Cela évite que des joueurs supprimés (dont les pronos existent encore dans Supabase)
+            // soient réintroduits dans la liste locale.
             const users = JSON.parse(localStorage.getItem('liste_utilisateurs_2026') || '{}');
             data.forEach(row => {
                 if (!row.username || !row.data) return;
-                // Fusion : conserver les pronos locaux absents de Supabase (jamais écraser un prono local)
+                if (!users[row.username]) return; // joueur supprimé → on ignore
                 const cleLocal = `${row.username}_mes_pronos_2026`;
                 const local = JSON.parse(localStorage.getItem(cleLocal) || '{}');
-                const fusionne = Object.assign({}, local, row.data); // Supabase gagne les conflits
+                const fusionne = Object.assign({}, local, row.data);
                 localStorage.setItem(cleLocal, JSON.stringify(fusionne));
-                if (!users[row.username]) users[row.username] = {};
             });
-            localStorage.setItem('liste_utilisateurs_2026', JSON.stringify(users));
         } catch(e) { console.warn('Supabase fetchAll failed:', e); }
     }
 
