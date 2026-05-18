@@ -122,7 +122,16 @@ const COTES_MATCHS_KO = CALENDRIER_CDM.filter(
 const OFFICIEL_2026 = {
     scores:   {},
     qualifies: {},
-    aliases:   {}
+    aliases:   {
+        // Migration pronos : anciens IDs et IDs test → vrais IDs CDM 2026
+        "686902": "673324",  // ancien ID Mexique-AfSud → vrai ID CDM
+        "689422": "673324",  // ID test Mexique-AfSud → vrai ID CDM
+        "686903": "673870",  // ancien ID Corée-RepTch → vrai ID CDM
+        "677634": "673870",  // ID test Corée-RepTch → vrai ID CDM
+        "686908": "673329",  // ancien ID Canada-Bosnie → vrai ID CDM
+        "677633": "673329",  // ID test Canada-Bosnie → vrai ID CDM
+        "677630": "673329",  // ID test intermédiaire → vrai ID CDM
+    }
 };
 
 CALENDRIER_CDM.forEach(match => {
