@@ -3730,18 +3730,86 @@
         const raw = localStorage.getItem(`${username}_mes_pronos_2026`);
         let pronos = {};
         try { pronos = raw ? JSON.parse(raw) : {}; } catch {}
-        const lignes = Object.entries(pronos)
-            .filter(([k]) => !k.startsWith('{'))
+
+        // Regrouper scoreA + scoreB par match
+        const pouleMap = {};
+        const autresEntries = [];
+        Object.entries(pronos).forEach(([k, v]) => {
+            if (k.startsWith('scoreA_')) { const id = k.slice(7); if (!pouleMap[id]) pouleMap[id] = {}; pouleMap[id].A = v; }
+            else if (k.startsWith('scoreB_')) { const id = k.slice(7); if (!pouleMap[id]) pouleMap[id] = {}; pouleMap[id].B = v; }
+            else if (!k.startsWith('{')) autresEntries.push([k, v]);
+        });
+
+        const rowsPoules = Object.entries(pouleMap)
+            .map(([id, sc]) => {
+                const m = CALENDRIER_CDM.find(x => String(x.id) === String(id));
+                return { id, label: m ? `${m.equipeA} vs ${m.equipeB}` : `⚠ ID ${id}`, groupe: m ? `${m.groupe} · ${m.date}` : '?', vA: sc.A ?? '', vB: sc.B ?? '', ts: m?.timestamp || id };
+            })
+            .sort((a, b) => a.ts.localeCompare(b.ts))
+            .map(({id, label, groupe, vA, vB}) => `
+                <tr>
+                    <td style="color:#ddd;font-size:0.82em;font-weight:500;">${label}</td>
+                    <td style="color:#666;font-size:0.72em;white-space:nowrap;">${groupe}</td>
+                    <td><input type="number" value="${vA}" min="0" max="20"
+                        style="width:36px;background:#1a1a1a;color:white;border:1px solid #444;border-radius:3px;text-align:center;"
+                        onchange="adminSetProno('${username}','scoreA_${id}',this.value)"></td>
+                    <td style="color:#555;text-align:center;">:</td>
+                    <td><input type="number" value="${vB}" min="0" max="20"
+                        style="width:36px;background:#1a1a1a;color:white;border:1px solid #444;border-radius:3px;text-align:center;"
+                        onchange="adminSetProno('${username}','scoreB_${id}',this.value)"></td>
+                    <td><button class="admin-btn admin-btn-del" style="padding:2px 6px;font-size:0.7em;"
+                        onclick="adminSupprimerProno('${username}','${id}')">✕</button></td>
+                </tr>`).join('');
+
+        const rowsAutres = autresEntries
             .sort(([a],[b]) => a.localeCompare(b))
-            .map(([k,v]) => {
-                const val = typeof v === 'object' ? JSON.stringify(v).substring(0,40)+'…' : String(v);
-                return `<tr><td style="color:#888;font-family:monospace;font-size:0.75em;">${k}</td><td style="color:#ddd;font-size:0.75em;">${val}</td></tr>`;
+            .map(([k, v]) => {
+                const val = typeof v === 'object' ? JSON.stringify(v).substring(0, 50)+'…' : String(v);
+                return `<tr>
+                    <td style="color:#888;font-family:monospace;font-size:0.72em;">${k}</td>
+                    <td style="color:#ddd;font-size:0.72em;">${val}</td>
+                </tr>`;
             }).join('');
+
         document.getElementById('admin-content').innerHTML = `
             <button class="admin-btn admin-btn-info" onclick="adminRenderOnglet('joueurs')" style="margin-bottom:12px;">← Retour</button>
-            <div class="admin-section-title">Pronos de ${username}</div>
-            <table class="admin-table"><thead><tr><th>Clé</th><th>Valeur</th></tr></thead>
-            <tbody>${lignes || '<tr><td colspan="2" style="color:#666">Aucun prono</td></tr>'}</tbody></table>`;
+            <div class="admin-section-title">Pronos poules de <strong>${username}</strong> — ${Object.keys(pouleMap).length} matchs</div>
+            <table class="admin-table">
+                <thead><tr><th>Match</th><th>Groupe · Journée</th><th>A</th><th></th><th>B</th><th></th></tr></thead>
+                <tbody>${rowsPoules || '<tr><td colspan="6" style="color:#666;text-align:center;">Aucun prono de poule</td></tr>'}</tbody>
+            </table>
+            ${autresEntries.length ? `
+            <div class="admin-section-title" style="margin-top:16px;">Bracket & autres (${autresEntries.length} clés)</div>
+            <table class="admin-table">
+                <thead><tr><th>Clé</th><th>Valeur</th></tr></thead>
+                <tbody>${rowsAutres}</tbody>
+            </table>` : ''}`;
+    }
+
+    function adminSetProno(username, key, value) {
+        const storageKey = `${username}_mes_pronos_2026`;
+        const raw = localStorage.getItem(storageKey);
+        let data = {};
+        try { data = raw ? JSON.parse(raw) : {}; } catch {}
+        const n = parseInt(value);
+        data[key] = isNaN(n) ? '' : n;
+        localStorage.setItem(storageKey, JSON.stringify(data));
+        if (username === CURRENT_USER) { CACHE_PRONOS = null; }
+        syncToSupabase(username, data);
+    }
+
+    function adminSupprimerProno(username, matchId) {
+        if (!confirm(`Supprimer le prono de ${username} pour le match ${matchId} ?`)) return;
+        const storageKey = `${username}_mes_pronos_2026`;
+        const raw = localStorage.getItem(storageKey);
+        let data = {};
+        try { data = raw ? JSON.parse(raw) : {}; } catch {}
+        delete data[`scoreA_${matchId}`];
+        delete data[`scoreB_${matchId}`];
+        localStorage.setItem(storageKey, JSON.stringify(data));
+        if (username === CURRENT_USER) { CACHE_PRONOS = null; }
+        syncToSupabase(username, data);
+        adminVoirPronos(username); // refresh
     }
 
     function adminResetJoueur(username) {
