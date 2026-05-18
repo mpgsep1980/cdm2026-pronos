@@ -1575,8 +1575,7 @@
     }
 
     function isToutesPoulesTerminees() {
-        const rawData = localStorage.getItem('mes_pronos_2026');
-        const data = getPronos();
+        const data = getPronos(); // utilise getKey() → clé correcte avec préfixe utilisateur
         
         const matchesPoules = CALENDRIER_CDM.filter(m => {
             const g = m.groupe || "";
@@ -2637,6 +2636,10 @@
                 </div>`;
           } catch(e) {
             console.error(`❌ Erreur rendu match [${m?.id}] ${m?.equipeA} vs ${m?.equipeB} :`, e);
+            // Fallback visible : le match reste affiché mais signalé en erreur
+            htmlCalendrier += `<div style="background:#1a0000;border:1px solid #e74c3c;border-radius:8px;padding:10px;margin-bottom:8px;color:#e74c3c;font-size:0.8rem;">
+                ⚠ Erreur rendu [${m?.id}] ${m?.equipeA||'?'} vs ${m?.equipeB||'?'} — voir console
+            </div>`;
           }
         });
 
