@@ -575,6 +575,7 @@
     <div id="zone-classements"></div>
 
     <h2 style="color: var(--gold); text-align: center; margin-top: 60px;">⚔️ 1/16es DE FINALE</h2>
+    <div id="instruction-ko" style="display:none; text-align:center; font-size:0.82rem; color:#aaa; margin:8px auto 16px; max-width:500px; padding:10px 16px; background:rgba(255,255,255,0.04); border-radius:8px; border:1px solid #333;"></div>
     <div id="zone-16emes"></div>
 
     <h2 style="color: var(--gold); text-align: center; margin-top: 60px;">🛡️ 1/8es DE FINALE</h2>
@@ -1914,7 +1915,7 @@
         // Aucun point en Phase 1 : les résultats réels n'existent pas encore
         const etat = getAppState();
         if (etat === "AVANT") {
-            return { poules: 0, bracket: 0, total: 0, meilleurProno: { match: "-", pts: 0 } };
+            return { poules: 0, bracket: 0, total: 0, meilleurProno: { match: "-", pts: 0 }, poules_list: [], bracket_list: [] };
         }
 
         const prefix = username + "_";
@@ -1932,7 +1933,9 @@
             poules:  0,   // points en dur : matchs de poules
             bracket: 0,   // points meubles : qualifs 1/16e + matchs KO
             total:   0,
-            meilleurProno: { match: "-", pts: 0 }
+            meilleurProno: { match: "-", pts: 0 },
+            poules_list:   [],  // [{label, pts, exact}]
+            bracket_list:  []   // [{label, pts, exact}]
         };
 
         const issueStr = (a, b) => a > b ? '1' : a < b ? '2' : 'N';
@@ -1951,6 +1954,7 @@
         const ajouterPts = (base, exact, section, label) => {
             const pts = exact ? base * 2 : base;
             details[section] += pts;
+            details[section + '_list'].push({ label, pts, exact: !!exact });
             if (pts > details.meilleurProno.pts) {
                 details.meilleurProno = { match: label, pts };
             }
@@ -1994,48 +1998,104 @@
         const qualifiesConnus = Object.keys(qualifsReels).length > 0;
 
         // Classements provisoires depuis les scores réels (quand qualifies pas encore défini)
-        const groupesProv = {};
+        // groupesProv  : classement basé sur les PRONOS du joueur
+        // groupesReels : classement basé sur les résultats OFFICIELS (pour la double vérification)
+        const groupesProv  = {};
+        const groupesReels = {};
         if (!qualifiesConnus) {
-            // Étape 1 : initialiser TOUTES les équipes de chaque groupe (même sans match joué)
             CALENDRIER_CDM.forEach(m => {
                 if (!m.groupe || m.groupe.toLowerCase().includes("finale") || m.groupe.startsWith("1/")) return;
                 if (!m.equipeA || !m.equipeB) return;
-                if (!groupesProv[m.groupe]) groupesProv[m.groupe] = {};
+                if (!groupesProv[m.groupe])  groupesProv[m.groupe]  = {};
+                if (!groupesReels[m.groupe]) groupesReels[m.groupe] = {};
                 [m.equipeA, m.equipeB].forEach(e => {
                     if (!groupesProv[m.groupe][e])
-                        groupesProv[m.groupe][e] = { pts: 0, bp: 0, bc: 0, mj: 0 };
+                        groupesProv[m.groupe][e]  = { pts: 0, bp: 0, bc: 0 };
+                    if (!groupesReels[m.groupe][e])
+                        groupesReels[m.groupe][e] = { pts: 0, bp: 0, bc: 0, mj: 0 };
                 });
             });
-            // Étape 2 : appliquer les résultats réels terminés
             CALENDRIER_CDM.forEach(m => {
                 if (!m.groupe || m.groupe.toLowerCase().includes("finale") || m.groupe.startsWith("1/")) return;
-                const off = OFFICIEL_2026.scores[m.id];
-                if (!off || !off.termine) return;
-                const tA = groupesProv[m.groupe]?.[m.equipeA];
-                const tB = groupesProv[m.groupe]?.[m.equipeB];
-                if (!tA || !tB) return;
-                tA.mj++; tB.mj++; tA.bp += off.sA; tA.bc += off.sB; tB.bp += off.sB; tB.bc += off.sA;
-                if (off.sA > off.sB) tA.pts += 3;
-                else if (off.sB > off.sA) tB.pts += 3;
-                else { tA.pts++; tB.pts++; }
+                const tAp = groupesProv[m.groupe]?.[m.equipeA];
+                const tBp = groupesProv[m.groupe]?.[m.equipeB];
+                const tAr = groupesReels[m.groupe]?.[m.equipeA];
+                const tBr = groupesReels[m.groupe]?.[m.equipeB];
+
+                // Classement depuis les PRONOS
+                if (tAp && tBp) {
+                    const pA = parseInt(pronos[`scoreA_${m.id}`]);
+                    const pB = parseInt(pronos[`scoreB_${m.id}`]);
+                    if (!isNaN(pA) && !isNaN(pB)) {
+                        tAp.bp += pA; tAp.bc += pB; tBp.bp += pB; tBp.bc += pA;
+                        if (pA > pB) tAp.pts += 3;
+                        else if (pB > pA) tBp.pts += 3;
+                        else { tAp.pts++; tBp.pts++; }
+                    }
+                }
+                // Classement depuis les résultats OFFICIELS
+                if (tAr && tBr) {
+                    const off = OFFICIEL_2026.scores[m.id];
+                    if (off && (off.termine || off.live)) {
+                        tAr.mj++; tBr.mj++;
+                        tAr.bp += off.sA; tAr.bc += off.sB;
+                        tBr.bp += off.sB; tBr.bc += off.sA;
+                        if (off.sA > off.sB) tAr.pts += 3;
+                        else if (off.sB > off.sA) tBr.pts += 3;
+                        else { tAr.pts++; tBr.pts++; }
+                    }
+                }
             });
         }
 
-        // Retourne le rang provisoire d'une équipe dans son groupe (1-indexed)
-        // Retourne null si l'équipe n'a pas encore joué (classement sans sens)
+        // Retourne le rang prono + rang réel d'une équipe dans son groupe
+        // Conditions pour avoir des pts provisoires :
+        //   - l'équipe est top 2 dans les PRONOS du joueur
+        //   - l'équipe est top 2 dans les résultats RÉELS (au moins 1 match joué)
         const rangProvisoire = (nomEquipe) => {
-            for (const [groupe, teams] of Object.entries(groupesProv)) {
-                const liste = Object.entries(teams)
-                    .map(([n, s]) => ({ nom: n, ...s, diff: s.bp - s.bc }))
-                    .sort((a, b) => b.pts - a.pts || b.diff - a.diff || b.bp - a.bp);
-                const idx = liste.findIndex(t => t.nom.toLowerCase().trim() === nomEquipe.toLowerCase().trim());
-                if (idx < 0) continue;
-                // Au moins un match joué dans ce groupe pour que le classement ait du sens
-                if (liste[idx].mj === 0) return null;
-                return { rang: idx + 1, groupe, mj: liste[idx].mj };
+            const nom = nomEquipe.toLowerCase().trim();
+            const trier = (teams) => Object.entries(teams)
+                .map(([n, s]) => ({ nom: n, pts: s.pts, diff: s.bp - s.bc, bp: s.bp }))
+                .sort((a, b) => b.pts - a.pts || b.diff - a.diff || b.bp - a.bp);
+
+            for (const groupe of Object.keys(groupesProv)) {
+                // Rang dans les PRONOS
+                const listeP = trier(groupesProv[groupe]);
+                const idxP = listeP.findIndex(t => t.nom.toLowerCase().trim() === nom);
+                if (idxP < 0) continue;
+
+                // Rang dans les résultats RÉELS
+                const teamsR = groupesReels[groupe] || {};
+                const entryR = Object.entries(teamsR).find(([n]) => n.toLowerCase().trim() === nom);
+                if (!entryR || entryR[1].mj === 0) return null; // 0 vrai match joué → pas de pts
+
+                const listeR = trier(teamsR);
+                const idxR = listeR.findIndex(t => t.nom.toLowerCase().trim() === nom);
+
+                return { rang: idxP + 1, rangReel: idxR + 1, groupe };
             }
             return null;
         };
+
+        // Gate pour les 3es : toutes les équipes ont joué ≥1 vrai match
+        const toutesOntJoue = !qualifiesConnus && Object.values(groupesReels).every(teams =>
+            Object.values(teams).every(t => t.mj >= 1)
+        );
+
+        // Top 8 meilleurs 3es selon pronos et selon réel (calculé une seule fois)
+        const trier3 = (tableauGroupes) => Object.entries(tableauGroupes).map(([g, teams]) => {
+            const liste = Object.entries(teams)
+                .map(([n, s]) => ({ nom: n, pts: s.pts, diff: s.bp - s.bc, bp: s.bp }))
+                .sort((a, b) => b.pts - a.pts || b.diff - a.diff || b.bp - a.bp);
+            return liste[2] ? { ...liste[2], groupe: g } : null;
+        }).filter(Boolean).sort((a, b) => b.pts - a.pts || b.diff - a.diff || b.bp - a.bp);
+
+        const top8PronoNoms = toutesOntJoue
+            ? new Set(trier3(groupesProv).slice(0, 8).map(t => t.nom.toLowerCase().trim()))
+            : new Set();
+        const top8ReelNoms = toutesOntJoue
+            ? new Set(trier3(groupesReels).slice(0, 8).map(t => t.nom.toLowerCase().trim()))
+            : new Set();
 
         const deja = new Set();
 
@@ -2066,16 +2126,26 @@
                         labelQualif = `${equipe} qualifié(e) en 1/16e ✓`;
                     }
                 } else {
-                    // Bracket pas encore défini : classement provisoire
+                    // Bracket pas encore défini : double vérification prono + réel
                     const r = rangProvisoire(equipe);
-                    if (r && r.rang <= 2) {
+                    if (r && r.rang <= 2 && r.rang === r.rangReel) {
+                        // Top 2 : rang exact identique dans pronos et réel
                         pts = base;
-                        labelQualif = `${equipe} provisoirement ${r.rang}${r.rang === 1 ? 'er' : 'e'} ${r.groupe} 🔄`;
+                        const ord = r.rang === 1 ? 'er' : 'e';
+                        labelQualif = `${equipe} · prévu ${r.rang}${ord} & prov. ${r.rang}${ord} en réel (${r.groupe})`;
+                    } else if (r && r.rang === 3 && r.rangReel === 3 && toutesOntJoue) {
+                        // 3e : toutes les équipes ont joué ≥1 match, équipe dans top 8 des 3es dans les deux classements
+                        const nom = equipe.toLowerCase().trim();
+                        if (top8PronoNoms.has(nom) && top8ReelNoms.has(nom)) {
+                            pts = base;
+                            labelQualif = `${equipe} · 3e qualifié (meilleur 3e selon pronos & réel, ${r.groupe})`;
+                        }
                     }
                 }
 
                 if (pts > 0) {
                     details.bracket += pts;
+                    details.bracket_list.push({ label: labelQualif, pts, exact: false });
                     if (pts > details.meilleurProno.pts) {
                         details.meilleurProno = { match: labelQualif, pts };
                     }
@@ -2112,10 +2182,12 @@
                     if (issueStr(pA, pB) !== 'N') continue;
                     const baseN = getBase(entry, 'N');
                     if (!baseN) continue;
-                    let pts = (pA === officiel.sA && pB === officiel.sB) ? baseN * 2 : baseN;
+                    const exactTab = pA === officiel.sA && pB === officiel.sB;
+                    let pts = exactTab ? baseN * 2 : baseN;
                     const manualWin = pronos[`winner_${phaseId}_${matchId}`];
                     if (manualWin === officiel.vainqueur) pts += Math.round(baseN * 0.5);
                     details.bracket += pts;
+                    details.bracket_list.push({ label, pts, exact: exactTab });
                     if (pts > details.meilleurProno.pts) details.meilleurProno = { match: label, pts };
                 } else {
                     const pi = issueStr(pA, pB);
@@ -2272,6 +2344,11 @@
         //console.log("--> DÉBUT updateAll (Source : " + (arguments.callee.caller ? arguments.callee.caller.name : "inconnue") + ")");
 
         let _earnedResult = null;
+        // Fermer les overlays stats (données périmées si changement de phase)
+        ['stats-joueur-overlay', 'annexes-overlay', 'pronos-live-overlay'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el && el.style.display !== 'none') el.style.display = 'none';
+        });
         try {
             const activeId = document.activeElement ? document.activeElement.id : null;
             const app = document.getElementById('app');
@@ -2337,8 +2414,8 @@
 
             const realA = officielMatch ? officielMatch.sA : (reelMatch ? reelMatch.scoreA : null);
             const realB = officielMatch ? officielMatch.sB : (reelMatch ? reelMatch.scoreB : null);
-            const estLive    = !!(officielMatch && officielMatch.live && !officielMatch.termine);
-            const estTermine = officielMatch ? (officielMatch.termine || officielMatch.live) : (realA !== null);
+            const estLive    = !!(isLocked && officielMatch && officielMatch.live && !officielMatch.termine);
+            const estTermine = isLocked ? (officielMatch ? (officielMatch.termine || officielMatch.live) : (realA !== null)) : false;
 
             const valA = (sA !== undefined && sA !== null && sA !== "") ? sA : "";
             const valB = (sB !== undefined && sB !== null && sB !== "") ? sB : "";
@@ -2437,6 +2514,7 @@
 
                     <div style="display: flex; flex-direction: column; align-items: center; min-width: 110px; flex-shrink: 0;">
                         ${!estTermine && !estLive && m.heure ? `<div style="font-size:0.62rem; color:#666; margin-bottom:3px;">${m.heure}</div>` : ''}
+                        ${estTermine && !estLive ? `<div style="font-size:0.6rem; color:#888; letter-spacing:0.06em; margin-bottom:3px;">✓ FT</div>` : ''}
                         ${estLive ? `
                         <div style="font-size:0.65rem; font-weight:bold; color:#e74c3c; letter-spacing:0.06em; margin-bottom:3px; display:flex; align-items:center; gap:4px;">
                             <span style="width:6px;height:6px;border-radius:50%;background:#e74c3c;display:inline-block;animation:aura-pulse 1s ease-in-out infinite;"></span>
@@ -2696,6 +2774,38 @@
             if (!CURRENT_USER) {
                 const b = document.getElementById('points-cumules');
                 if (b) b.remove();
+                const msgConnexion = `
+                    <div style="text-align:center; padding:40px 20px; color:#888;">
+                        <div style="font-size:2.5rem; margin-bottom:12px;">🔒</div>
+                        <p style="margin-bottom:16px; font-size:0.9rem;">Connectez-vous ou créez un compte<br>pour accéder à vos pronostics.</p>
+                        <button onclick="document.getElementById('login-user').focus(); window.scrollTo({top:0,behavior:'smooth'})"
+                            style="padding:9px 20px; background:#1a1a2e; color:#93c5fd; border:1px solid #93c5fd; border-radius:8px; font-size:0.85rem; cursor:pointer;">
+                            🔑 Se connecter / Créer un compte
+                        </button>
+                    </div>`;
+                if (app) app.innerHTML = `
+                    <div style="text-align:center; padding:50px 20px; color:#888;">
+                        <div style="font-size:3rem; margin-bottom:16px;">⚽</div>
+                        <h2 style="color:var(--gold); margin-bottom:10px; font-size:1.3rem;">World Cup 2026 Pronos</h2>
+                        <p style="margin-bottom:28px; font-size:0.95rem;">Connectez-vous ou créez un compte<br>pour accéder à vos pronostics.</p>
+                        <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+                            <button onclick="document.getElementById('login-user').focus(); window.scrollTo({top:0,behavior:'smooth'})"
+                                style="padding:11px 24px; background:#1a3a1a; color:#4ade80; border:2px solid #4ade80; border-radius:8px; font-weight:bold; cursor:pointer; font-size:0.95rem;">
+                                🔑 Se connecter
+                            </button>
+                            <button onclick="document.getElementById('login-user').focus(); window.scrollTo({top:0,behavior:'smooth'})"
+                                style="padding:11px 24px; background:#1a1a3a; color:#93c5fd; border:2px solid #93c5fd; border-radius:8px; font-weight:bold; cursor:pointer; font-size:0.95rem;">
+                                ✨ Créer un compte
+                            </button>
+                        </div>
+                    </div>`;
+                // Vider aussi les sections KO pour éviter qu'elles restent visibles d'une session précédente
+                ['zone-16emes','zone-8emes','zone-4emes','zone-2emes','zone-finale'].forEach(id => {
+                    const z = document.getElementById(id);
+                    if (z) z.innerHTML = msgConnexion;
+                });
+                const instrKO = document.getElementById('instruction-ko');
+                if (instrKO) instrKO.style.display = 'none';
                 return;
             }
 
@@ -2755,6 +2865,24 @@
                 const zone16 = document.getElementById('zone-16emes');
                 
                 if (zone16) zone16.innerHTML = les16emes.map(m => renderMatchCard(m, '16', '1/16e', 'var(--gold)')).join('');
+
+                const instrKO = document.getElementById('instruction-ko');
+                if (instrKO) {
+                    const stateKO = getAppState();
+                    if (stateKO === 'AVANT') {
+                        const poulesOK = isToutesPoulesTerminees();
+                        instrKO.textContent = poulesOK
+                            ? '👆 Cliquez sur le nom de l\'équipe vainqueur pour compléter vos pronostics.'
+                            : '📝 Complétez d\'abord tous vos pronostics de groupes pour activer la phase finale';
+                        instrKO.style.display = 'block';
+                    } else if (stateKO === 'PHASE_FINALE') {
+                        instrKO.innerHTML = '⌨️ Saisissez les scores · En cas d\'égalité à 90min, cliquez sur <strong style="color:var(--gold)">TAB</strong> pour désigner le vainqueur aux tirs au but';
+                        instrKO.style.display = 'block';
+                    } else {
+                        instrKO.style.display = 'none';
+                    }
+                }
+
                 const cote = getCotePhaseFinale("France", "qualif_1_16");
                 //console.log("Test cote France corrigé :", cote); // Devrait afficher 1.2
                 //console.log("Points après 16èmes :", totalPointsFinales);
@@ -2803,9 +2931,99 @@
                 afficherClassement(_earnedResult);
             }
 
+            // Bouton Pronos Live : visible seulement si au moins un match est en cours ou terminé récemment
+            const btnLive = document.getElementById('btn-pronos-live');
+            if (btnLive) {
+                const aLiveOuRecent = CALENDRIER_CDM.some(m => {
+                    const s = OFFICIEL_2026.scores[m.id];
+                    return s && (s.live || s.termine);
+                });
+                btnLive.style.display = aLiveOuRecent ? 'block' : 'none';
+            }
+
             console.log("--> FIN updateAll");
             return _earnedResult;
         }
+
+    // ── PRONOS LIVE ───────────────────────────────────────────────────────────
+    function ouvrirPronosLive() {
+        const overlay  = document.getElementById('pronos-live-overlay');
+        const content  = document.getElementById('pronos-live-content');
+        if (!overlay || !content) return;
+
+        const users = JSON.parse(localStorage.getItem('liste_utilisateurs_2026') || '{}');
+        const issueStr = (a, b) => a > b ? '1' : a < b ? '2' : 'N';
+        const issueLabel = i => i === '1' ? 'Dom.' : i === '2' ? 'Ext.' : 'Nul';
+
+        // Matchs live ou terminés récemment
+        const matchsVivants = CALENDRIER_CDM.filter(m => {
+            const s = OFFICIEL_2026.scores[m.id];
+            return s && (s.live || s.termine);
+        });
+
+        if (!matchsVivants.length) {
+            content.innerHTML = '<p style="text-align:center;color:#888;">Aucun match en cours.</p>';
+            overlay.style.display = 'block';
+            return;
+        }
+
+        let html = '';
+        matchsVivants.forEach(m => {
+            const off = OFFICIEL_2026.scores[m.id];
+            const statut = off.live ? `🔴 LIVE${off.statut ? ' · ' + off.statut : ''}` : '✅ Terminé';
+            const scoreOff = `${off.sA} - ${off.sB}`;
+            const issueReelle = issueStr(off.sA, off.sB);
+
+            html += `
+                <div style="margin-bottom:20px;">
+                    <div style="text-align:center; margin-bottom:8px;">
+                        <div style="font-size:0.75rem; color:${off.live ? '#e74c3c' : '#4ade80'}; font-weight:bold;">${statut}</div>
+                        <div style="font-size:1.1rem; font-weight:bold; color:#fff; margin:2px 0;">
+                            ${m.equipeA} <span style="color:var(--gold);">${scoreOff}</span> ${m.equipeB}
+                        </div>
+                    </div>
+                    <table style="width:100%; border-collapse:collapse; font-size:0.82rem;">
+                        <thead>
+                            <tr style="color:#666; font-size:0.72rem; border-bottom:1px solid #222;">
+                                <th style="text-align:left; padding:4px 6px;">Joueur</th>
+                                <th style="text-align:center; padding:4px 6px;">Prono</th>
+                                <th style="text-align:center; padding:4px 6px;">Issue</th>
+                                <th style="text-align:center; padding:4px 6px;">Résultat</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
+
+            Object.keys(users).sort().forEach(u => {
+                const pronos = JSON.parse(localStorage.getItem(`${u}_mes_pronos_2026`) || '{}');
+                const pA = pronos[`scoreA_${m.id}`];
+                const pB = pronos[`scoreB_${m.id}`];
+                if (pA === undefined || pA === null || pA === '') {
+                    html += `<tr style="border-bottom:1px solid #1a1a1a;">
+                        <td style="padding:5px 6px; color:${u === CURRENT_USER ? '#4ade80' : '#ddd'}; font-weight:${u === CURRENT_USER ? 'bold' : 'normal'};">${u}</td>
+                        <td colspan="3" style="text-align:center; color:#444; padding:5px 6px;">— pas de prono —</td>
+                    </tr>`;
+                    return;
+                }
+                const issuePrédite = issueStr(parseInt(pA), parseInt(pB));
+                const bonIssue = issuePrédite === issueReelle;
+                const exact = bonIssue && parseInt(pA) === off.sA && parseInt(pB) === off.sB;
+                const icone = exact ? '⭐' : bonIssue ? '✅' : '❌';
+                const couleur = exact ? '#fbbf24' : bonIssue ? '#4ade80' : '#f87171';
+
+                html += `<tr style="border-bottom:1px solid #1a1a1a;">
+                    <td style="padding:5px 6px; color:${u === CURRENT_USER ? '#4ade80' : '#ddd'}; font-weight:${u === CURRENT_USER ? 'bold' : 'normal'};">${u}</td>
+                    <td style="text-align:center; padding:5px 6px; font-family:monospace; color:#ddd;">${pA}-${pB}</td>
+                    <td style="text-align:center; padding:5px 6px; color:#888;">${issueLabel(issuePrédite)}</td>
+                    <td style="text-align:center; padding:5px 6px; font-size:1rem;">${icone}</td>
+                </tr>`;
+            });
+
+            html += `</tbody></table></div>`;
+        });
+
+        content.innerHTML = html;
+        overlay.style.display = 'block';
+    }
 
     // ── STATS INDIVIDUELLES ───────────────────────────────────────────────────
     function ouvrirStatsJoueur(username, rang) {
@@ -2815,6 +3033,7 @@
 
         const pronos = JSON.parse(localStorage.getItem(username + '_mes_pronos_2026')) || {};
         const d = calculerDetailsPoints(username);
+        const enAvant = getAppState() === 'AVANT';
         const issueStr = (a, b) => a > b ? '1' : a < b ? '2' : 'N';
 
         let correct = 0, incorrect = 0, total = 0;
@@ -2822,7 +3041,7 @@
         let kamikazes = 0, senateurs = 0, exactScore = 0;
         let meilleurGain = 0, meilleurMatch = '—';
 
-        const matchsTermines = CALENDRIER_CDM.filter(m => {
+        const matchsTermines = enAvant ? [] : CALENDRIER_CDM.filter(m => {
             if (!m.groupe || m.groupe.toLowerCase().includes("finale") || m.groupe.startsWith("1/")) return false;
             const off = OFFICIEL_2026.scores[m.id];
             return off && (off.termine || off.live);
@@ -2924,14 +3143,33 @@
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
                 ${stat('🔥 Série max gagnante', maxBon + ' consécutif(s)', '#fbbf24')}
                 ${stat('💀 Série max perdante', maxMauv + ' consécutif(s)', '#f87171')}
-                ${stat('🗡️ Kamikazes', kamikazes + ' prono(s)', '#a78bfa', 'paris ≥ 100 pts réussis')}
-                ${stat('🏛️ Sénateurs', senateurs + ' prono(s)', '#67e8f9', 'paris ≤ 50 pts réussis')}
+                ${stat('🗡️ Kamikazes', kamikazes + ' prono(s)', '#a78bfa', 'prono(s) risqués et réussis')}
+                ${stat('🏛️ Sénateurs', senateurs + ' prono(s)', '#67e8f9', 'prono(s) safe et réussis')}
             </div>
 
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
                 ${stat('🟢 Points Poules', d.poules + ' pts', '#4ade80', 'définitifs')}
                 ${stat('🔵 Pts Provisoires', d.bracket + ' pts', '#60a5fa', 'évolutifs')}
             </div>
+
+            ${!enAvant && (d.poules_list.length > 0 || d.bracket_list.length > 0) ? `
+            <div style="background:#111;border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:0.78rem;max-height:220px;overflow-y:auto;">
+                ${d.poules_list.length > 0 ? `
+                <div style="color:#4ade80;font-weight:bold;margin-bottom:4px;">🟢 Détail Poules</div>
+                ${d.poules_list.map(p => `<div style="display:flex;justify-content:space-between;color:#ccc;padding:3px 0;border-bottom:1px solid #222;">
+                    <span>${p.label}${p.exact ? ' <span style="color:#fbbf24;">⭐</span>' : ''}</span>
+                    <span style="color:#4ade80;white-space:nowrap;margin-left:8px;">+${p.pts} pts</span>
+                </div>`).join('')}
+                ` : ''}
+                ${d.bracket_list.length > 0 ? `
+                <div style="color:#60a5fa;font-weight:bold;margin:${d.poules_list.length > 0 ? '8px' : '0'} 0 4px;">🔵 Détail Provisoire / KO</div>
+                ${d.bracket_list.map(p => `<div style="display:flex;justify-content:space-between;color:#ccc;padding:3px 0;border-bottom:1px solid #222;">
+                    <span>${p.label}${p.exact ? ' <span style="color:#fbbf24;">⭐</span>' : ''}</span>
+                    <span style="color:#60a5fa;white-space:nowrap;margin-left:8px;">+${p.pts} pts</span>
+                </div>`).join('')}
+                ` : ''}
+            </div>
+            ` : ''}
 
             ${meilleurGain > 0 ? `<div style="background:#111;border-radius:8px;padding:10px 14px;font-size:0.8rem;">
                 <span style="color:#888;">⭐ Meilleur prono : </span>
@@ -3168,10 +3406,10 @@
                 s => s.maxDescente > 0 ? '-' + s.maxDescente + ' place(s)' : '—'),
             section('🔮','Les Nostradamus','Plus de Pts Provisoires KO (1/16e et au-delà)',
                 top(s => s.bracket),
-                s => s.bracket + ' pts bracket'),
+                s => s.bracket + ' pts provisoires'),
             section('🤡','Les Gilberts','Moins de Pts Provisoires KO (1/16e et au-delà)',
                 top(s => s.bracket, 3, true),
-                s => s.bracket + ' pts bracket'),
+                s => s.bracket + ' pts provisoires'),
             section('💰','Les Premiers de Cordée','Plus gros gain sur UN seul prono',
                 top(s => s.meilleurGain),
                 s => s.meilleurGain + ' pts (1 match)'),
@@ -3981,7 +4219,7 @@
         const labels = {
             'J1': 'la Journée 1', 'J2': 'la Journée 2', 'J3': 'la Journée 3',
             'POULES': 'toutes les Poules',
-            'TABLEAU_FINAL': 'toute la Phase Finale (bracket + scores)',
+            'TABLEAU_FINAL': 'toute la Phase Finale (Pts provisoires + scores)',
             '16': 'les 1/16èmes de finale', '8': 'les 1/8èmes de finale',
             '4': 'les Quarts de finale', '2': 'les Demi-finales',
             'FINALES_ALL': 'les Finales (Petite & Grande)',
@@ -4474,7 +4712,11 @@
         <a onclick="navScroll('zone-2emes')" class="nav-item">🏟️ Demies</a>
         <a onclick="navScroll('zone-1emes')" class="nav-item">✨ Finale(s)</a>
 
-        <button onclick="sauvegarderPronos()" style="display:block; width:100%; padding:11px; background:#1a3a1a; color:#4ade80; border:2px solid #4ade80; border-radius:8px; font-weight:bold; cursor:pointer; margin:12px 0 6px 0; transition:0.2s;">
+        <button id="btn-pronos-live" onclick="ouvrirPronosLive()" style="display:none; width:100%; padding:11px; background:#1a0000; color:#e74c3c; border:2px solid #e74c3c; border-radius:8px; font-weight:bold; cursor:pointer; margin:12px 0 6px 0; transition:0.2s; animation:aura-pulse 1.5s ease-in-out infinite;">
+            🔴 Pronos Live
+        </button>
+
+        <button onclick="sauvegarderPronos()" style="display:block; width:100%; padding:11px; background:#1a3a1a; color:#4ade80; border:2px solid #4ade80; border-radius:8px; font-weight:bold; cursor:pointer; margin:6px 0; transition:0.2s;">
             💾 Sauvegarder
         </button>
 
@@ -4616,6 +4858,20 @@
 </div>
 
 <div id="live-badge" style="display:none;"></div>
+
+<!-- ── Popover Pronos Live ─────────────────────────────────────────────── -->
+<div id="pronos-live-overlay"
+    style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:10002; overflow-y:auto; padding:20px 10px;"
+    onclick="if(event.target===this) this.style.display='none'">
+    <div style="max-width:560px; margin:0 auto; background:#0d0d0d; border:1px solid #e74c3c; border-radius:14px; padding:20px; color:#ddd; position:relative;">
+        <button onclick="document.getElementById('pronos-live-overlay').style.display='none'"
+            style="position:absolute; top:12px; right:14px; background:none; border:none; color:#666; font-size:1.3rem; cursor:pointer;">✕</button>
+        <h3 style="color:#e74c3c; margin-top:0; font-size:1rem; text-align:center;">
+            🔴 Pronos en Direct
+        </h3>
+        <div id="pronos-live-content"></div>
+    </div>
+</div>
 
 <script>
 (function() {
