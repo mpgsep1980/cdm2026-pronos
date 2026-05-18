@@ -3718,7 +3718,78 @@
         return `<table class="admin-table">
             <thead><tr><th>Joueur</th><th>Pronos</th><th>Points</th><th>Actions</th></tr></thead>
             <tbody>${rows}</tbody>
-        </table>`;
+        </table>
+        <div style="margin-top:16px;">
+            <button class="admin-btn admin-btn-info" onclick="adminRecupererProfils()">
+                ♻️ Récupérer profils supprimés
+            </button>
+        </div>`;
+    }
+
+    async function adminRecupererProfils() {
+        if (!_sb) { alert('Supabase non disponible.'); return; }
+        const zone = document.getElementById('admin-content');
+        zone.innerHTML += '<p style="color:#888;margin-top:8px;">🔍 Recherche dans Supabase…</p>';
+
+        try {
+            const { data, error } = await _sb.from('pronos')
+                .select('username, data').neq('username', '__users__');
+            if (error || !data) { alert('Erreur Supabase.'); return; }
+
+            const users = JSON.parse(localStorage.getItem('liste_utilisateurs_2026') || '{}');
+            const supprimes = data.filter(row => row.username && !users[row.username]);
+
+            if (!supprimes.length) {
+                adminRenderOnglet('joueurs');
+                alert('Aucun profil supprimé trouvé dans Supabase.');
+                return;
+            }
+
+            const lignes = supprimes.map(row => {
+                const nb = Object.keys(row.data || {}).filter(k => k.startsWith('scoreA_')).length;
+                return `<tr>
+                    <td style="color:#ddd;">${row.username}</td>
+                    <td style="color:#888;">${nb} pronos</td>
+                    <td>
+                        <button class="admin-btn" style="background:#1a3a1a;color:#4ade80;"
+                            onclick="adminRestaurerJoueur('${row.username}')">
+                            ♻️ Restaurer
+                        </button>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('admin-content').innerHTML = `
+                <button class="admin-btn admin-btn-info" onclick="adminRenderOnglet('joueurs')" style="margin-bottom:12px;">← Retour</button>
+                <div class="admin-section-title">Profils supprimés récupérables (${supprimes.length})</div>
+                <table class="admin-table">
+                    <thead><tr><th>Joueur</th><th>Pronos sauvegardés</th><th>Action</th></tr></thead>
+                    <tbody>${lignes}</tbody>
+                </table>`;
+        } catch(e) {
+            alert('Erreur : ' + e.message);
+        }
+    }
+
+    async function adminRestaurerJoueur(username) {
+        if (!_sb) return;
+        // 1. Récupérer les pronos depuis Supabase
+        const { data } = await _sb.from('pronos')
+            .select('data').eq('username', username).maybeSingle();
+
+        // 2. Remettre le joueur dans la liste (sans mot de passe — à redéfinir)
+        const users = JSON.parse(localStorage.getItem('liste_utilisateurs_2026') || '{}');
+        if (!users[username]) users[username] = { password: '(à redéfinir)' };
+        localStorage.setItem('liste_utilisateurs_2026', JSON.stringify(users));
+        await syncUsersToSupabase();
+
+        // 3. Restaurer les pronos dans localStorage
+        if (data?.data) {
+            localStorage.setItem(`${username}_mes_pronos_2026`, JSON.stringify(data.data));
+        }
+
+        alert(`"${username}" restauré. Son mot de passe actuel est "(à redéfinir)" — pensez à le corriger via l'onglet Joueurs.`);
+        adminRenderOnglet('joueurs');
     }
 
     async function adminSupprimerJoueur(username) {
