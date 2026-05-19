@@ -1374,8 +1374,9 @@
                     </div>`;
 
             } else if (!isPoule) {
-                // Phase 3 : cotes match-par-match intégrées dans liste_matches.js (COTES_MATCHS_KO)
-                const koEntry = typeof COTES_MATCHS_KO !== 'undefined'
+                // Phase 3 uniquement : cotes match-par-match (COTES_MATCHS_KO)
+                // Phase 1/2 : on passe directement au fallback PHASE_FINALE (2 valeurs)
+                const koEntry = (state === 'PHASE_FINALE' && typeof COTES_MATCHS_KO !== 'undefined')
                     ? COTES_MATCHS_KO.find(c => String(c.id) === String(m.id)) : null;
                 if (koEntry && koEntry.details) {
                     const parseOdds = (val) => val ? parseFloat(String(val).replace(',', '.')) : 0;
