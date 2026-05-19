@@ -855,8 +855,17 @@
             const { data } = await _sb.from('pronos')
                 .select('data').eq('username', '__users__').maybeSingle();
             if (!data?.data) return;
-            const local = JSON.parse(localStorage.getItem('liste_utilisateurs_2026') || '{}');
-            localStorage.setItem('liste_utilisateurs_2026', JSON.stringify({ ...data.data, ...local }));
+            // Supabase = autorité sur QUI existe (les comptes supprimés ne reviennent pas).
+            // Mais si Supabase a perdu le mot de passe d'un user ({}) et que le local l'a,
+            // on le préserve — évite de bloquer quelqu'un à cause d'une corruption Supabase.
+            const local   = JSON.parse(localStorage.getItem('liste_utilisateurs_2026') || '{}');
+            const merged  = { ...data.data };
+            for (const [u, ld] of Object.entries(local)) {
+                if (merged[u] !== undefined && !merged[u].password && ld.password) {
+                    merged[u] = { ...merged[u], password: ld.password };
+                }
+            }
+            localStorage.setItem('liste_utilisateurs_2026', JSON.stringify(merged));
         } catch(e) { console.warn('Supabase users load failed:', e); }
     }
 
@@ -2015,6 +2024,17 @@
         await loadUsersFromSupabase(); // récupérer la liste à jour depuis Supabase
         let users = JSON.parse(localStorage.getItem('liste_utilisateurs_2026')) || {};
 
+        // Compte existant sans mot de passe → premier setup ou mot de passe perdu
+        if (users[u] && !users[u].password) {
+            const nouveau = prompt(`Le compte "${u}" n'a pas de mot de passe défini.\nChoisissez un mot de passe pour continuer :`);
+            if (!nouveau) return;
+            users[u].password = nouveau;
+            localStorage.setItem('liste_utilisateurs_2026', JSON.stringify(users));
+            await syncUsersToSupabase();
+            alert(`✅ Mot de passe défini pour "${u}". Connectez-vous maintenant.`);
+            return;
+        }
+
         if (users[u] && users[u].password === p) {
             localStorage.setItem('current_user', u);
 
@@ -3100,98 +3120,129 @@
                 afficherClassement(_earnedResult);
             }
 
-            // Bouton Pronos Live : visible seulement si au moins un match est en cours ou terminé récemment
-            const btnLive = document.getElementById('btn-pronos-live');
-            if (btnLive) {
-                const aLiveOuRecent = CALENDRIER_CDM.some(m => {
-                    const s = OFFICIEL_2026.scores[m.id];
-                    return s && (s.live || s.termine);
-                });
-                btnLive.style.display = aLiveOuRecent ? 'block' : 'none';
-            }
+            // Boutons Pronos Live / Matchs à venir / Historique
+            const _aLive    = CALENDRIER_CDM.some(m => OFFICIEL_2026.scores[m.id]?.live && !OFFICIEL_2026.scores[m.id]?.termine);
+            const _aTermine = CALENDRIER_CDM.some(m => OFFICIEL_2026.scores[m.id]?.termine);
+            const _aAvenir  = CALENDRIER_CDM.some(m => { const s = OFFICIEL_2026.scores[m.id]; return !s || (!s.live && !s.termine); });
+            const _setBtn = (id, show) => { const b = document.getElementById(id); if (b) b.style.display = show ? 'block' : 'none'; };
+            _setBtn('btn-pronos-live',   _aLive);
+            _setBtn('btn-matchs-avenir', !_aLive && _aAvenir && _aTermine);
+            _setBtn('btn-historique',    _aTermine);
 
             console.log("--> FIN updateAll");
             return _earnedResult;
         }
 
-    // ── PRONOS LIVE ───────────────────────────────────────────────────────────
-    function ouvrirPronosLive() {
-        const overlay  = document.getElementById('pronos-live-overlay');
-        const content  = document.getElementById('pronos-live-content');
+    // ── PRONOS PARTAGÉS (helper commune) ────────────────────────────────────────
+    function _ouvrirPronos(titre, couleur, matchs, avecScore) {
+        const overlay = document.getElementById('pronos-live-overlay');
+        const content = document.getElementById('pronos-live-content');
+        const titreEl = document.getElementById('pronos-live-titre');
+        const inner   = document.getElementById('pronos-live-inner');
         if (!overlay || !content) return;
 
-        const users = JSON.parse(localStorage.getItem('liste_utilisateurs_2026') || '{}');
-        const issueStr = (a, b) => a > b ? '1' : a < b ? '2' : 'N';
+        if (titreEl) { titreEl.textContent = titre; titreEl.style.color = couleur; }
+        if (inner)   inner.style.borderColor = couleur;
+
+        const users      = JSON.parse(localStorage.getItem('liste_utilisateurs_2026') || '{}');
+        const issueStr   = (a, b) => a > b ? '1' : a < b ? '2' : 'N';
         const issueLabel = i => i === '1' ? 'Dom.' : i === '2' ? 'Ext.' : 'Nul';
 
-        // Matchs live ou terminés récemment
-        const matchsVivants = CALENDRIER_CDM.filter(m => {
-            const s = OFFICIEL_2026.scores[m.id];
-            return s && (s.live || s.termine);
-        });
-
-        if (!matchsVivants.length) {
-            content.innerHTML = '<p style="text-align:center;color:#888;">Aucun match en cours.</p>';
+        if (!matchs.length) {
+            content.innerHTML = '<p style="text-align:center;color:#888;padding:20px 0;">Aucun match.</p>';
             overlay.style.display = 'block';
             return;
         }
 
         let html = '';
-        matchsVivants.forEach(m => {
+        matchs.forEach(m => {
             const off = OFFICIEL_2026.scores[m.id];
-            const statut = off.live ? `🔴 LIVE${off.statut ? ' · ' + off.statut : ''}` : '✅ Terminé';
-            const scoreOff = `${off.sA} - ${off.sB}`;
-            const issueReelle = issueStr(off.sA, off.sB);
+            let entete = '';
+            if (avecScore && off) {
+                const liveLabel  = off.live ? `🔴 LIVE${off.statut ? ' · ' + off.statut : ''}` : '✅ FT';
+                const liveColor  = off.live ? '#e74c3c' : '#4ade80';
+                entete = `<div style="font-size:0.72rem;color:${liveColor};font-weight:bold;margin-bottom:2px;">${liveLabel}</div>
+                          <div style="font-size:1rem;font-weight:bold;color:#fff;margin-bottom:6px;">
+                              ${m.equipeA} <span style="color:var(--gold)">${off.sA}–${off.sB}</span> ${m.equipeB}
+                          </div>`;
+            } else {
+                const dateAff = m.date ? m.date.split(' - ').pop() : '';
+                entete = `<div style="font-size:0.7rem;color:#666;margin-bottom:2px;">${dateAff}${m.heure ? ' · ' + m.heure : ''}</div>
+                          <div style="font-size:1rem;font-weight:bold;color:#fff;margin-bottom:6px;">${m.equipeA} — ${m.equipeB}</div>`;
+            }
 
-            html += `
-                <div style="margin-bottom:20px;">
-                    <div style="text-align:center; margin-bottom:8px;">
-                        <div style="font-size:0.75rem; color:${off.live ? '#e74c3c' : '#4ade80'}; font-weight:bold;">${statut}</div>
-                        <div style="font-size:1.1rem; font-weight:bold; color:#fff; margin:2px 0;">
-                            ${m.equipeA} <span style="color:var(--gold);">${scoreOff}</span> ${m.equipeB}
-                        </div>
-                    </div>
-                    <table style="width:100%; border-collapse:collapse; font-size:0.82rem;">
-                        <thead>
-                            <tr style="color:#666; font-size:0.72rem; border-bottom:1px solid #222;">
-                                <th style="text-align:left; padding:4px 6px;">Joueur</th>
-                                <th style="text-align:center; padding:4px 6px;">Prono</th>
-                                <th style="text-align:center; padding:4px 6px;">Issue</th>
-                                <th style="text-align:center; padding:4px 6px;">Résultat</th>
-                            </tr>
-                        </thead>
-                        <tbody>`;
+            const issueReelle = (avecScore && off) ? issueStr(off.sA, off.sB) : null;
 
+            let lignes = '';
             Object.keys(users).sort().forEach(u => {
                 const pronos = JSON.parse(localStorage.getItem(`${u}_mes_pronos_2026`) || '{}');
                 const pA = pronos[`scoreA_${m.id}`];
                 const pB = pronos[`scoreB_${m.id}`];
+                const moi = u === CURRENT_USER;
+                const nomStyle = `padding:5px 6px;color:${moi ? '#4ade80' : '#ddd'};font-weight:${moi ? 'bold' : 'normal'};`;
+
                 if (pA === undefined || pA === null || pA === '') {
-                    html += `<tr style="border-bottom:1px solid #1a1a1a;">
-                        <td style="padding:5px 6px; color:${u === CURRENT_USER ? '#4ade80' : '#ddd'}; font-weight:${u === CURRENT_USER ? 'bold' : 'normal'};">${u}</td>
-                        <td colspan="3" style="text-align:center; color:#444; padding:5px 6px;">— pas de prono —</td>
-                    </tr>`;
+                    lignes += `<tr style="border-bottom:1px solid #1a1a1a;">
+                        <td style="${nomStyle}">${u}</td>
+                        <td colspan="${avecScore ? '3' : '2'}" style="text-align:center;color:#333;padding:5px 6px;font-size:0.75rem;">— —</td></tr>`;
                     return;
                 }
                 const issuePrédite = issueStr(parseInt(pA), parseInt(pB));
-                const bonIssue = issuePrédite === issueReelle;
-                const exact = bonIssue && parseInt(pA) === off.sA && parseInt(pB) === off.sB;
-                const icone = exact ? '⭐' : bonIssue ? '✅' : '❌';
-                const couleur = exact ? '#fbbf24' : bonIssue ? '#4ade80' : '#f87171';
-
-                html += `<tr style="border-bottom:1px solid #1a1a1a;">
-                    <td style="padding:5px 6px; color:${u === CURRENT_USER ? '#4ade80' : '#ddd'}; font-weight:${u === CURRENT_USER ? 'bold' : 'normal'};">${u}</td>
-                    <td style="text-align:center; padding:5px 6px; font-family:monospace; color:#ddd;">${pA}-${pB}</td>
-                    <td style="text-align:center; padding:5px 6px; color:#888;">${issueLabel(issuePrédite)}</td>
-                    <td style="text-align:center; padding:5px 6px; font-size:1rem;">${icone}</td>
-                </tr>`;
+                let icone = '';
+                if (avecScore && issueReelle) {
+                    const bon   = issuePrédite === issueReelle;
+                    const exact = bon && parseInt(pA) === off.sA && parseInt(pB) === off.sB;
+                    icone = `<td style="text-align:center;padding:5px 6px;font-size:0.95rem;">${exact ? '⭐' : bon ? '✅' : '❌'}</td>`;
+                }
+                lignes += `<tr style="border-bottom:1px solid #1a1a1a;">
+                    <td style="${nomStyle}">${u}</td>
+                    <td style="text-align:center;padding:5px 6px;font-family:monospace;color:#ddd;">${pA}–${pB}</td>
+                    <td style="text-align:center;padding:5px 6px;color:#888;font-size:0.78rem;">${issueLabel(issuePrédite)}</td>
+                    ${icone}</tr>`;
             });
 
-            html += `</tbody></table></div>`;
+            const cols = avecScore
+                ? '<th style="text-align:left;padding:4px 6px;">Joueur</th><th style="text-align:center;padding:4px 6px;">Prono</th><th style="text-align:center;padding:4px 6px;">Issue</th><th style="text-align:center;padding:4px 6px;">✓</th>'
+                : '<th style="text-align:left;padding:4px 6px;">Joueur</th><th style="text-align:center;padding:4px 6px;">Prono</th><th style="text-align:center;padding:4px 6px;">Issue</th>';
+
+            html += `<div style="margin-bottom:22px;">
+                <div style="text-align:center;">${entete}</div>
+                <table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
+                    <thead><tr style="color:#555;font-size:0.72rem;border-bottom:1px solid #222;">${cols}</tr></thead>
+                    <tbody>${lignes}</tbody>
+                </table></div>`;
         });
 
         content.innerHTML = html;
         overlay.style.display = 'block';
+    }
+
+    function ouvrirPronosLive() {
+        const matchs = CALENDRIER_CDM.filter(m => {
+            const s = OFFICIEL_2026.scores[m.id];
+            return s && s.live && !s.termine;
+        });
+        _ouvrirPronos('🔴 Pronos en Direct', '#e74c3c', matchs, true);
+    }
+
+    function ouvrirMatchsAvenir() {
+        // Prochaine journée ayant des matchs non joués
+        const nonJoues = CALENDRIER_CDM.filter(m => {
+            const s = OFFICIEL_2026.scores[m.id];
+            return !s || (!s.live && !s.termine);
+        });
+        // Groupe par date, prend uniquement la première date à venir
+        const dates = [...new Set(nonJoues.map(m => (m.date || '').split(' - ').pop()))].filter(Boolean);
+        const prochaine = dates[0];
+        const matchs = prochaine
+            ? nonJoues.filter(m => (m.date || '').includes(prochaine))
+            : nonJoues.slice(0, 6);
+        _ouvrirPronos('📅 Matchs à venir', '#93c5fd', matchs, false);
+    }
+
+    function ouvrirHistoriquePronos() {
+        const matchs = CALENDRIER_CDM.filter(m => OFFICIEL_2026.scores[m.id]?.termine);
+        _ouvrirPronos('📜 Historique des pronos', '#aaa', matchs, true);
     }
 
     // ── STATS INDIVIDUELLES ───────────────────────────────────────────────────
@@ -3793,6 +3844,7 @@
                 <td style="color:#4ade80;font-weight:bold;">${pts} pts</td>
                 <td style="display:flex;gap:5px;flex-wrap:wrap;">
                     <button class="admin-btn admin-btn-info" onclick="adminVoirPronos('${u}')">👁 Pronos</button>
+                    <button class="admin-btn" style="background:#1a1a2a;color:#93c5fd;border-color:#93c5fd;" onclick="adminChangerMotDePasse('${u}')" title="${!users[u]?.password ? '⚠ Aucun mot de passe' : 'Changer le mot de passe'}">🔑${!users[u]?.password ? ' ⚠' : ''}</button>
                     <button class="admin-btn" style="background:#1a3a1a;color:#4ade80;" onclick="adminResetJoueur('${u}')">🔄 Reset phase</button>
                     ${u !== CURRENT_USER ? `<button class="admin-btn admin-btn-del" onclick="adminSupprimerJoueur('${u}')">🗑 Supprimer</button>` : ''}
                 </td>
@@ -3808,6 +3860,18 @@
                 ♻️ Récupérer profils supprimés
             </button>
         </div>`;
+    }
+
+    async function adminChangerMotDePasse(username) {
+        const nouveau = prompt(`Nouveau mot de passe pour "${username}" :\n(laisser vide pour annuler)`);
+        if (!nouveau) return;
+        const users = JSON.parse(localStorage.getItem('liste_utilisateurs_2026') || '{}');
+        if (!users[username]) users[username] = {};
+        users[username].password = nouveau;
+        localStorage.setItem('liste_utilisateurs_2026', JSON.stringify(users));
+        await syncUsersToSupabase();
+        adminRenderOnglet('joueurs');
+        alert(`✅ Mot de passe de "${username}" mis à jour.`);
     }
 
     async function adminRecupererProfils() {
@@ -3904,13 +3968,16 @@
         let pronos = {};
         try { pronos = raw ? JSON.parse(raw) : {}; } catch {}
 
-        // Regrouper scoreA + scoreB par match
+        const verrouRaw = localStorage.getItem(`${username}_mes_fantomes_verrouilles`)
+                       || localStorage.getItem(`${username}_mes_projections_fantomes`);
+        let verrou = {};
+        try { verrou = verrouRaw ? JSON.parse(verrouRaw) : {}; } catch {}
+
+        // ── POULES ────────────────────────────────────────────────────────────
         const pouleMap = {};
-        const autresEntries = [];
         Object.entries(pronos).forEach(([k, v]) => {
             if (k.startsWith('scoreA_')) { const id = k.slice(7); if (!pouleMap[id]) pouleMap[id] = {}; pouleMap[id].A = v; }
             else if (k.startsWith('scoreB_')) { const id = k.slice(7); if (!pouleMap[id]) pouleMap[id] = {}; pouleMap[id].B = v; }
-            else if (!k.startsWith('{')) autresEntries.push([k, v]);
         });
 
         const rowsPoules = Object.entries(pouleMap)
@@ -3921,42 +3988,88 @@
             .sort((a, b) => a.ts.localeCompare(b.ts))
             .map(({id, label, groupe, vA, vB}) => `
                 <tr>
-                    <td style="color:#ddd;font-size:0.82em;font-weight:500;">${label}</td>
+                    <td style="color:#ddd;font-size:0.82em;">${label}</td>
                     <td style="color:#666;font-size:0.72em;white-space:nowrap;">${groupe}</td>
                     <td><input type="number" value="${vA}" min="0" max="20"
+                        class="admin-prono-poule" data-key="scoreA_${id}"
                         style="width:36px;background:#1a1a1a;color:white;border:1px solid #444;border-radius:3px;text-align:center;"
                         onchange="adminSetProno('${username}','scoreA_${id}',this.value)"></td>
                     <td style="color:#555;text-align:center;">:</td>
                     <td><input type="number" value="${vB}" min="0" max="20"
+                        class="admin-prono-poule" data-key="scoreB_${id}"
                         style="width:36px;background:#1a1a1a;color:white;border:1px solid #444;border-radius:3px;text-align:center;"
                         onchange="adminSetProno('${username}','scoreB_${id}',this.value)"></td>
                     <td><button class="admin-btn admin-btn-del" style="padding:2px 6px;font-size:0.7em;"
                         onclick="adminSupprimerProno('${username}','${id}')">✕</button></td>
                 </tr>`).join('');
 
-        const rowsAutres = autresEntries
-            .sort(([a],[b]) => a.localeCompare(b))
-            .map(([k, v]) => {
-                const val = typeof v === 'object' ? JSON.stringify(v).substring(0, 50)+'…' : String(v);
-                return `<tr>
-                    <td style="color:#888;font-family:monospace;font-size:0.72em;">${k}</td>
-                    <td style="color:#ddd;font-size:0.72em;">${val}</td>
+        // ── PHASE FINALE ──────────────────────────────────────────────────────
+        const KO_PHASES = [
+            { id:'16', debut:687045, fin:687060, label:'1/16es de Finale' },
+            { id:'8',  debut:687061, fin:687068, label:'1/8es de Finale'  },
+            { id:'4',  debut:687069, fin:687072, label:'Quarts de Finale' },
+            { id:'2',  debut:687073, fin:687074, label:'Demi-Finales'     },
+            { id:'pf', debut:687075, fin:687075, label:'Petite Finale'    },
+            { id:'f',  debut:687076, fin:687076, label:'Finale'           },
+        ];
+
+        let htmlBracket = '';
+        KO_PHASES.forEach(({ id: phaseId, debut, fin, label }) => {
+            const tiroir = CONFIG_PHASES[phaseId]?.tiroir || '';
+            const tiroirData = (tiroir && pronos[tiroir]) ? pronos[tiroir] : {};
+            let rows = '';
+
+            for (let matchId = debut; matchId <= fin; matchId++) {
+                const nomA = verrou[`team_${phaseId}_${matchId}_A`] || '';
+                const nomB = verrou[`team_${phaseId}_${matchId}_B`] || '';
+                if (!nomA && !nomB) continue;
+
+                const scoreA = tiroirData[`score_${phaseId}_${matchId}_A`] ?? pronos[`score_${phaseId}_${matchId}_A`] ?? '';
+                const scoreB = tiroirData[`score_${phaseId}_${matchId}_B`] ?? pronos[`score_${phaseId}_${matchId}_B`] ?? '';
+                const winner = pronos[`winner_${phaseId}_${matchId}`] || '';
+
+                const btnA = `padding:3px 8px;border-radius:4px;cursor:pointer;font-size:0.72em;font-weight:bold;border:1px solid #555;background:${winner==='A'?'#1a3a1a':'#111'};color:${winner==='A'?'#4ade80':'#555'};`;
+                const btnB = `padding:3px 8px;border-radius:4px;cursor:pointer;font-size:0.72em;font-weight:bold;border:1px solid #555;background:${winner==='B'?'#1a3a1a':'#111'};color:${winner==='B'?'#4ade80':'#555'};`;
+
+                rows += `<tr style="border-bottom:1px solid #1a1a1a;">
+                    <td style="font-size:0.78em;color:#ddd;padding:5px 6px;">${nomA || '?'}</td>
+                    <td><input type="number" value="${scoreA}" min="0" max="20"
+                        class="admin-prono-ko" data-phase="${phaseId}" data-match="${matchId}" data-side="A" data-tiroir="${tiroir}"
+                        style="width:32px;background:#1a1a1a;color:white;border:1px solid #333;border-radius:3px;text-align:center;font-size:0.82em;"
+                        onchange="adminSetPronoKO('${username}','${phaseId}',${matchId},'A','${tiroir}',this.value)"></td>
+                    <td style="color:#555;text-align:center;padding:2px;">:</td>
+                    <td><input type="number" value="${scoreB}" min="0" max="20"
+                        class="admin-prono-ko" data-phase="${phaseId}" data-match="${matchId}" data-side="B" data-tiroir="${tiroir}"
+                        style="width:32px;background:#1a1a1a;color:white;border:1px solid #333;border-radius:3px;text-align:center;font-size:0.82em;"
+                        onchange="adminSetPronoKO('${username}','${phaseId}',${matchId},'B','${tiroir}',this.value)"></td>
+                    <td style="font-size:0.78em;color:#ddd;padding:5px 6px;">${nomB || '?'}</td>
+                    <td style="padding:4px 6px;white-space:nowrap;">
+                        <button style="${btnA}" onclick="adminToggleWinner('${username}','${phaseId}',${matchId},'A')">${nomA || 'A'} ✓</button>
+                        <button style="${btnB}" onclick="adminToggleWinner('${username}','${phaseId}',${matchId},'B')">${nomB || 'B'} ✓</button>
+                    </td>
                 </tr>`;
-            }).join('');
+            }
+
+            if (rows) htmlBracket += `
+                <div class="admin-section-title" style="margin-top:14px;">${label}</div>
+                <table class="admin-table">
+                    <thead><tr><th>Éq. A</th><th>S.A</th><th></th><th>S.B</th><th>Éq. B</th><th>Vainqueur sélectionné</th></tr></thead>
+                    <tbody>${rows}</tbody>
+                </table>`;
+        });
 
         document.getElementById('admin-content').innerHTML = `
-            <button class="admin-btn admin-btn-info" onclick="adminRenderOnglet('joueurs')" style="margin-bottom:12px;">← Retour</button>
-            <div class="admin-section-title">Pronos poules de <strong>${username}</strong> — ${Object.keys(pouleMap).length} matchs</div>
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+                <button class="admin-btn admin-btn-info" onclick="adminRenderOnglet('joueurs')">← Retour</button>
+                <button id="btn-admin-save-pronos" class="admin-btn" style="background:#1a3a1a;color:#4ade80;border-color:#4ade80;"
+                    onclick="adminSauvegarderPronos('${username}')">💾 Sauvegarder</button>
+            </div>
+            <div class="admin-section-title">Pronos poules — ${username} (${Object.keys(pouleMap).length} matchs)</div>
             <table class="admin-table">
                 <thead><tr><th>Match</th><th>Groupe · Journée</th><th>A</th><th></th><th>B</th><th></th></tr></thead>
                 <tbody>${rowsPoules || '<tr><td colspan="6" style="color:#666;text-align:center;">Aucun prono de poule</td></tr>'}</tbody>
             </table>
-            ${autresEntries.length ? `
-            <div class="admin-section-title" style="margin-top:16px;">Bracket & autres (${autresEntries.length} clés)</div>
-            <table class="admin-table">
-                <thead><tr><th>Clé</th><th>Valeur</th></tr></thead>
-                <tbody>${rowsAutres}</tbody>
-            </table>` : ''}`;
+            ${htmlBracket ? `<div class="admin-section-title" style="margin-top:20px;color:var(--gold);">⚔️ Phase Finale — ${username}</div>${htmlBracket}` : ''}`;
     }
 
     function adminSetProno(username, key, value) {
@@ -3969,6 +4082,64 @@
         localStorage.setItem(storageKey, JSON.stringify(data));
         if (username === CURRENT_USER) { CACHE_PRONOS = null; }
         syncToSupabase(username, data);
+    }
+
+    function adminSetPronoKO(username, phaseId, matchId, side, tiroir, value) {
+        const storageKey = `${username}_mes_pronos_2026`;
+        let pronos = {};
+        try { pronos = JSON.parse(localStorage.getItem(storageKey) || '{}'); } catch {}
+        const key = `score_${phaseId}_${matchId}_${side}`;
+        const n = parseInt(value);
+        if (tiroir) {
+            if (!pronos[tiroir]) pronos[tiroir] = {};
+            pronos[tiroir][key] = isNaN(n) ? '' : n;
+        } else {
+            pronos[key] = isNaN(n) ? '' : n;
+        }
+        localStorage.setItem(storageKey, JSON.stringify(pronos));
+        if (username === CURRENT_USER) CACHE_PRONOS = null;
+        syncToSupabase(username, pronos);
+    }
+
+    function adminToggleWinner(username, phaseId, matchId, side) {
+        const storageKey = `${username}_mes_pronos_2026`;
+        let pronos = {};
+        try { pronos = JSON.parse(localStorage.getItem(storageKey) || '{}'); } catch {}
+        const key = `winner_${phaseId}_${matchId}`;
+        pronos[key] = (pronos[key] === side) ? '' : side;
+        localStorage.setItem(storageKey, JSON.stringify(pronos));
+        if (username === CURRENT_USER) CACHE_PRONOS = null;
+        syncToSupabase(username, pronos);
+        adminVoirPronos(username);
+    }
+
+    function adminSauvegarderPronos(username) {
+        const storageKey = `${username}_mes_pronos_2026`;
+        let pronos = {};
+        try { pronos = JSON.parse(localStorage.getItem(storageKey) || '{}'); } catch {}
+
+        document.querySelectorAll('.admin-prono-poule').forEach(inp => {
+            const n = parseInt(inp.value);
+            if (inp.dataset.key) pronos[inp.dataset.key] = isNaN(n) ? '' : n;
+        });
+        document.querySelectorAll('.admin-prono-ko').forEach(inp => {
+            const { phase, match, side, tiroir } = inp.dataset;
+            const key = `score_${phase}_${match}_${side}`;
+            const n = parseInt(inp.value);
+            if (tiroir) {
+                if (!pronos[tiroir]) pronos[tiroir] = {};
+                pronos[tiroir][key] = isNaN(n) ? '' : n;
+            } else {
+                pronos[key] = isNaN(n) ? '' : n;
+            }
+        });
+
+        localStorage.setItem(storageKey, JSON.stringify(pronos));
+        if (username === CURRENT_USER) CACHE_PRONOS = null;
+        syncToSupabase(username, pronos);
+
+        const btn = document.getElementById('btn-admin-save-pronos');
+        if (btn) { btn.textContent = '✅ Sauvegardé !'; setTimeout(() => { btn.textContent = '💾 Sauvegarder'; }, 2000); }
     }
 
     function adminSupprimerProno(username, matchId) {
@@ -5095,8 +5266,14 @@
         <a onclick="navScroll('zone-2emes')" class="nav-item">🏟️ Demies</a>
         <a onclick="navScroll('zone-1emes')" class="nav-item">✨ Finale(s)</a>
 
-        <button id="btn-pronos-live" onclick="ouvrirPronosLive()" style="display:none; width:100%; padding:11px; background:#1a0000; color:#e74c3c; border:2px solid #e74c3c; border-radius:8px; font-weight:bold; cursor:pointer; margin:12px 0 6px 0; transition:0.2s; animation:aura-pulse 1.5s ease-in-out infinite;">
+        <button id="btn-pronos-live" onclick="ouvrirPronosLive()" style="display:none; width:100%; padding:11px; background:#1a0000; color:#e74c3c; border:2px solid #e74c3c; border-radius:8px; font-weight:bold; cursor:pointer; margin:12px 0 3px 0; transition:0.2s; animation:aura-pulse 1.5s ease-in-out infinite;">
             🔴 Pronos Live
+        </button>
+        <button id="btn-matchs-avenir" onclick="ouvrirMatchsAvenir()" style="display:none; width:100%; padding:11px; background:#0d1a2a; color:#93c5fd; border:2px solid #93c5fd; border-radius:8px; font-weight:bold; cursor:pointer; margin:3px 0; transition:0.2s;">
+            📅 Matchs à venir
+        </button>
+        <button id="btn-historique" onclick="ouvrirHistoriquePronos()" style="display:none; width:100%; padding:11px; background:#111; color:#aaa; border:2px solid #444; border-radius:8px; font-weight:bold; cursor:pointer; margin:3px 0 6px 0; transition:0.2s;">
+            📜 Historique
         </button>
 
         <button onclick="sauvegarderPronos()" style="display:block; width:100%; padding:11px; background:#1a3a1a; color:#4ade80; border:2px solid #4ade80; border-radius:8px; font-weight:bold; cursor:pointer; margin:6px 0; transition:0.2s;">
@@ -5246,10 +5423,10 @@
 <div id="pronos-live-overlay"
     style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:10002; overflow-y:auto; padding:20px 10px;"
     onclick="if(event.target===this) this.style.display='none'">
-    <div style="max-width:560px; margin:0 auto; background:#0d0d0d; border:1px solid #e74c3c; border-radius:14px; padding:20px; color:#ddd; position:relative;">
+    <div id="pronos-live-inner" style="max-width:560px; margin:0 auto; background:#0d0d0d; border:1px solid #e74c3c; border-radius:14px; padding:20px; color:#ddd; position:relative;">
         <button onclick="document.getElementById('pronos-live-overlay').style.display='none'"
             style="position:absolute; top:12px; right:14px; background:none; border:none; color:#666; font-size:1.3rem; cursor:pointer;">✕</button>
-        <h3 style="color:#e74c3c; margin-top:0; font-size:1rem; text-align:center;">
+        <h3 id="pronos-live-titre" style="color:#e74c3c; margin-top:0; font-size:1rem; text-align:center;">
             🔴 Pronos en Direct
         </h3>
         <div id="pronos-live-content"></div>
