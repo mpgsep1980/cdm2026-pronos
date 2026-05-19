@@ -1390,10 +1390,11 @@
                             Gains : <span style="${s1}">${p1}</span> | <span style="${sN}">${pN}</span> | <span style="${s2}">${p2}</span> pts
                         </div>`;
                 } else if (typeof PHASE_FINALE !== 'undefined') {
-                    // Fallback : cotes de qualification (bracket Phase 1/2, si pas de cotes KO)
+                    // Phase 1 : gains potentiels du toggle = cotes_phase_finale × 10
+                    // champField = stade actuel (tu sélectionnes qui sera EN 1/16e, EN 1/8e, etc.)
                     const champField = {
-                        '16': 'qualif_1_8', '8': 'qualif_1_4', '4': 'qualif_1_2',
-                        '2': 'finaliste', 'pf': 'vainqueur', 'f': 'vainqueur'
+                        '16': 'qualif_1_16', '8': 'qualif_1_8', '4': 'qualif_1_4',
+                        '2': 'qualif_1_2', 'pf': 'finaliste', 'f': 'vainqueur'
                     }[phaseId] || 'vainqueur';
                     const findV = (nom) => {
                         if (!nom || nom.startsWith("En attente") || nom.includes("Gr.") || nom.startsWith("Match")) return null;
@@ -2018,14 +2019,16 @@
     }
 
     async function handleConnexion() {
-        const u = document.getElementById('login-user').value.trim();
+        const u = document.getElementById('login-user').value.trim().normalize('NFC');
         const p = document.getElementById('login-pass').value;
 
         await loadUsersFromSupabase(); // récupérer la liste à jour depuis Supabase
         let users = JSON.parse(localStorage.getItem('liste_utilisateurs_2026')) || {};
+        // Recherche insensible à la normalisation Unicode (é, ô, etc.)
+        const uReal = Object.keys(users).find(k => k.normalize('NFC') === u) || u;
 
         // Compte existant sans mot de passe → setup guidé inline (pas de prompt() bloqué)
-        if (users[u] && !users[u].password) {
+        if (users[uReal] && !users[uReal].password) {
             if (!p) {
                 // Champ vide : afficher les instructions dans la page
                 let msg = document.getElementById('login-setup-msg');
@@ -2042,14 +2045,14 @@
                 return;
             }
             // Mot de passe saisi → on le définit et on connecte
-            users[u].password = p;
+            users[uReal].password = p;
             localStorage.setItem('liste_utilisateurs_2026', JSON.stringify(users));
             await syncUsersToSupabase();
             document.getElementById('login-setup-msg')?.remove();
         }
 
-        if (users[u] && users[u].password === p) {
-            localStorage.setItem('current_user', u);
+        if (users[uReal] && users[uReal].password === p) {
+            localStorage.setItem('current_user', uReal);
 
             // Migration complète invite → compte pour toutes les clés de session
             const cleUserPronos = `${u}_mes_pronos_2026`;
