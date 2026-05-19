@@ -1336,9 +1336,10 @@
         const clean = (str) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() : "";
 
         if (typeof COTES_MATCHS !== 'undefined' && nomA && nomB) {
-            // COTES_MATCHS uniquement pour les poules (évite les faux positifs en KO via recherche par nom)
+            // COTES_MATCHS : poules toujours + KO uniquement en Phase 3
+            // (Phase 1/2 KO → PHASE_FINALE × 10, 2 valeurs seulement)
             let odds = null;
-            if (isPoule) {
+            if (isPoule || state === 'PHASE_FINALE') {
                 odds = COTES_MATCHS.find(c => c.id && String(c.id) === String(m.id));
                 if (!odds) {
                     const tA = clean(nomA);
