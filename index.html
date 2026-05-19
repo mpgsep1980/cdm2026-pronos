@@ -2024,15 +2024,28 @@
         await loadUsersFromSupabase(); // récupérer la liste à jour depuis Supabase
         let users = JSON.parse(localStorage.getItem('liste_utilisateurs_2026')) || {};
 
-        // Compte existant sans mot de passe → premier setup ou mot de passe perdu
+        // Compte existant sans mot de passe → setup guidé inline (pas de prompt() bloqué)
         if (users[u] && !users[u].password) {
-            const nouveau = prompt(`Le compte "${u}" n'a pas de mot de passe défini.\nChoisissez un mot de passe pour continuer :`);
-            if (!nouveau) return;
-            users[u].password = nouveau;
+            if (!p) {
+                // Champ vide : afficher les instructions dans la page
+                let msg = document.getElementById('login-setup-msg');
+                if (!msg) {
+                    msg = document.createElement('div');
+                    msg.id = 'login-setup-msg';
+                    const passInput = document.getElementById('login-pass');
+                    if (passInput) passInput.parentNode.insertBefore(msg, passInput.nextSibling);
+                }
+                msg.innerHTML = `<div style="margin:8px 0;padding:10px 12px;background:#1a2a1a;border:1px solid #4ade80;border-radius:8px;font-size:0.85rem;color:#4ade80;">
+                    ✅ Compte trouvé — saisissez le mot de passe souhaité ci-dessus puis cliquez à nouveau sur <strong>Se connecter</strong>.
+                </div>`;
+                document.getElementById('login-pass')?.focus();
+                return;
+            }
+            // Mot de passe saisi → on le définit et on connecte
+            users[u].password = p;
             localStorage.setItem('liste_utilisateurs_2026', JSON.stringify(users));
             await syncUsersToSupabase();
-            alert(`✅ Mot de passe défini pour "${u}". Connectez-vous maintenant.`);
-            return;
+            document.getElementById('login-setup-msg')?.remove();
         }
 
         if (users[u] && users[u].password === p) {
