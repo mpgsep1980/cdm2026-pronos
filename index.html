@@ -1336,14 +1336,18 @@
         const clean = (str) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim() : "";
 
         if (typeof COTES_MATCHS !== 'undefined' && nomA && nomB) {
-            let odds = COTES_MATCHS.find(c => c.id && String(c.id) === String(m.id));
-            if (!odds) {
-                const tA = clean(nomA);
-                const tB = clean(nomB);
-                odds = COTES_MATCHS.find(c => {
-                    const mLabel = clean(c.match || "");
-                    return mLabel.includes(tA) && mLabel.includes(tB);
-                });
+            // COTES_MATCHS uniquement pour les poules (évite les faux positifs en KO via recherche par nom)
+            let odds = null;
+            if (isPoule) {
+                odds = COTES_MATCHS.find(c => c.id && String(c.id) === String(m.id));
+                if (!odds) {
+                    const tA = clean(nomA);
+                    const tB = clean(nomB);
+                    odds = COTES_MATCHS.find(c => {
+                        const mLabel = clean(c.match || "");
+                        return mLabel.includes(tA) && mLabel.includes(tB);
+                    });
+                }
             }
 
             if (odds && odds.details) {
