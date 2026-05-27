@@ -254,6 +254,15 @@ def ts_vers_minutes(ts: str) -> int | None:
         return None
 
 
+def trouver_match_local_par_mpp_id(mpp_id: str, calendrier: list,
+                                    deja_assigne: set) -> dict | None:
+    """Cherche le match local ayant déjà été ancré à cet ID MPP."""
+    for m in calendrier:
+        if m.get("mpp_id") == mpp_id and m.get("id") not in deja_assigne:
+            return m
+    return None
+
+
 def trouver_match_local_par_date(ts_paris: str, calendrier: list,
                                   deja_assigne: set) -> dict | None:
     """
@@ -417,14 +426,23 @@ def main():
             nb_sans_prono += 1
             continue
 
-        # Matcher par date UTC → Paris (tolérance ±90 min, sans doublons)
-        ts_paris = ts_mpp_vers_local(summary.get("date", ""))
-        local_m  = trouver_match_local_par_date(ts_paris, calendrier, deja_assigne)
+        # 1. Priorité : ancrage mpp_id stocké lors d'un run précédent
+        local_m = trouver_match_local_par_mpp_id(match_id, calendrier, deja_assigne)
+
+        # 2. Fallback : correspondance par date (±90 min)
+        if local_m is None:
+            ts_paris = ts_mpp_vers_local(summary.get("date", ""))
+            local_m  = trouver_match_local_par_date(ts_paris, calendrier, deja_assigne)
 
         if local_m is None:
+            ts_paris = ts_mpp_vers_local(summary.get("date", ""))
             non_trouves.append(f"{ts_paris} (id={match_id})")
             continue
         deja_assigne.add(local_m.get("id"))
+
+        # Ancrer l'ID MPP pour les prochains runs (évite le swap sur matchs simultanés)
+        if not args.dry_run and local_m.get("mpp_id") != match_id:
+            local_m["mpp_id"] = match_id
 
         pts_h = str(pronos["pts_home"])
         pts_n = str(pronos["pts_draw"]) if pronos["pts_draw"] is not None else "0"
