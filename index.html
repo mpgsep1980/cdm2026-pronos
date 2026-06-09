@@ -4051,8 +4051,12 @@
             let rows = '';
 
             for (let matchId = debut; matchId <= fin; matchId++) {
-                const nomA = verrou[`team_${phaseId}_${matchId}_A`] || '';
-                const nomB = verrou[`team_${phaseId}_${matchId}_B`] || '';
+                const nomA = verrou[`team_${phaseId}_${matchId}_A`]
+                    || tiroirData[`team_${phaseId}_${matchId}_A`]
+                    || pronos[`team_${phaseId}_${matchId}_A`] || '';
+                const nomB = verrou[`team_${phaseId}_${matchId}_B`]
+                    || tiroirData[`team_${phaseId}_${matchId}_B`]
+                    || pronos[`team_${phaseId}_${matchId}_B`] || '';
                 if (!nomA && !nomB) continue;
 
                 const scoreA = tiroirData[`score_${phaseId}_${matchId}_A`] ?? pronos[`score_${phaseId}_${matchId}_A`] ?? '';
