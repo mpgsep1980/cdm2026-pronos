@@ -2528,13 +2528,23 @@
                     const val = parseInt(inp.value);
                     if (!isNaN(val)) { savedData[inp.id] = val; CACHE_PRONOS = savedData; }
                 });
-                savePronosGlobal();
 
                 const projections = localStorage.getItem(keyFantomes);
                 if (projections) {
                     localStorage.setItem(keyVerrou, projections);
                 }
             }
+
+            // Synchronise le bracket (équipes projetées en 1/16e, 1/8e, etc.) vers Supabase,
+            // pour que l'admin et les autres appareils voient la phase finale de ce joueur.
+            const bracketRaw = localStorage.getItem(keyVerrou) || localStorage.getItem(keyFantomes);
+            if (bracketRaw) {
+                try {
+                    const bracket = JSON.parse(bracketRaw);
+                    Object.assign(CACHE_PRONOS, bracket);
+                } catch {}
+            }
+            savePronosGlobal();
         } else {
             // Si on revient en mode "AVANT", on libère le verrou
             if (localStorage.getItem(keyVerrou)) {
