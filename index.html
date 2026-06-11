@@ -841,6 +841,7 @@
             data.forEach(row => {
                 if (!row.username || !row.data) return;
                 if (!users[row.username]) return; // joueur supprimé → on ignore
+                if (row.username === CURRENT_USER) return; // nos propres données locales sont la référence
                 const cleLocal = `${row.username}_mes_pronos_2026`;
                 const local = JSON.parse(localStorage.getItem(cleLocal) || '{}');
                 const fusionne = Object.assign({}, local, row.data);
@@ -5506,6 +5507,13 @@
             migrerPronos();
             updateAll();
             majBadgeLive();
+            // Récupère les pronos/bracket à jour des autres joueurs (ex: phase finale verrouillée à l'instant)
+            if (_sb) {
+                fetchAllFromSupabase().then(() => {
+                    CACHE_PRONOS = null;
+                    updateAll();
+                });
+            }
         };
         document.head.appendChild(scriptTag);
     }
