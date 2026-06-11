@@ -4078,17 +4078,22 @@
                     || tiroirData[`team_${phaseId}_${matchId}_B`]
                     || tiroirDataAlt[`team_${phaseId}_${matchId}_B`]
                     || pronos[`team_${phaseId}_${matchId}_B`] || '';
-                if (!nomA && !nomB) continue;
+                const winner = pronos[`winner_${phaseId}_${matchId}`] || '';
+                // Si le joueur n'a jamais ouvert l'écran bracket, les noms d'équipes ne sont pas connus
+                // mais son pronostic (vainqueur A/B) existe quand même : on l'affiche avec des noms génériques.
+                if (!nomA && !nomB && !winner) continue;
 
                 const scoreA = tiroirData[`score_${phaseId}_${matchId}_A`] ?? tiroirDataAlt[`score_${phaseId}_${matchId}_A`] ?? pronos[`score_${phaseId}_${matchId}_A`] ?? '';
                 const scoreB = tiroirData[`score_${phaseId}_${matchId}_B`] ?? tiroirDataAlt[`score_${phaseId}_${matchId}_B`] ?? pronos[`score_${phaseId}_${matchId}_B`] ?? '';
-                const winner = pronos[`winner_${phaseId}_${matchId}`] || '';
+
+                const labelA = nomA || 'Équipe A';
+                const labelB = nomB || 'Équipe B';
 
                 const btnA = `padding:3px 8px;border-radius:4px;cursor:pointer;font-size:0.72em;font-weight:bold;border:1px solid #555;background:${winner==='A'?'#1a3a1a':'#111'};color:${winner==='A'?'#4ade80':'#555'};`;
                 const btnB = `padding:3px 8px;border-radius:4px;cursor:pointer;font-size:0.72em;font-weight:bold;border:1px solid #555;background:${winner==='B'?'#1a3a1a':'#111'};color:${winner==='B'?'#4ade80':'#555'};`;
 
                 rows += `<tr style="border-bottom:1px solid #1a1a1a;">
-                    <td style="font-size:0.78em;color:#ddd;padding:5px 6px;">${nomA || '?'}</td>
+                    <td style="font-size:0.78em;color:#ddd;padding:5px 6px;">${labelA}</td>
                     <td><input type="number" value="${scoreA}" min="0" max="20"
                         class="admin-prono-ko" data-phase="${phaseId}" data-match="${matchId}" data-side="A" data-tiroir="${tiroir}"
                         style="width:32px;background:#1a1a1a;color:white;border:1px solid #333;border-radius:3px;text-align:center;font-size:0.82em;"
@@ -4098,10 +4103,10 @@
                         class="admin-prono-ko" data-phase="${phaseId}" data-match="${matchId}" data-side="B" data-tiroir="${tiroir}"
                         style="width:32px;background:#1a1a1a;color:white;border:1px solid #333;border-radius:3px;text-align:center;font-size:0.82em;"
                         onchange="adminSetPronoKO('${username}','${phaseId}',${matchId},'B','${tiroir}',this.value)"></td>
-                    <td style="font-size:0.78em;color:#ddd;padding:5px 6px;">${nomB || '?'}</td>
+                    <td style="font-size:0.78em;color:#ddd;padding:5px 6px;">${labelB}</td>
                     <td style="padding:4px 6px;white-space:nowrap;">
-                        <button style="${btnA}" onclick="adminToggleWinner('${username}','${phaseId}',${matchId},'A')">${nomA || 'A'} ✓</button>
-                        <button style="${btnB}" onclick="adminToggleWinner('${username}','${phaseId}',${matchId},'B')">${nomB || 'B'} ✓</button>
+                        <button style="${btnA}" onclick="adminToggleWinner('${username}','${phaseId}',${matchId},'A')">${labelA} ✓</button>
+                        <button style="${btnB}" onclick="adminToggleWinner('${username}','${phaseId}',${matchId},'B')">${labelB} ✓</button>
                     </td>
                 </tr>`;
             }
