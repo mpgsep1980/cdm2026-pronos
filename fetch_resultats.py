@@ -15,6 +15,7 @@ Usage :
 import argparse
 import json
 import re
+import subprocess
 import time
 import unicodedata
 from datetime import datetime
@@ -381,6 +382,30 @@ def sauvegarder_etat(etat: dict):
     FICHIER_ETAT.write_text(json.dumps(etat, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def commit_et_pousser_resultats():
+    """Commit + push resultats.js si modifié. Erreurs non bloquantes (watch continue)."""
+    try:
+        diff = subprocess.run(
+            ["git", "status", "--porcelain", "--", FICHIER_OUT.name],
+            cwd=DOSSIER, capture_output=True, text=True, check=True
+        )
+        if not diff.stdout.strip():
+            return  # rien à pousser
+
+        heure = datetime.now().strftime("%H:%M")
+        subprocess.run(["git", "add", FICHIER_OUT.name], cwd=DOSSIER, check=True)
+        subprocess.run(
+            ["git", "commit", "-m", f"Live resultats {heure}"],
+            cwd=DOSSIER, check=True, capture_output=True, text=True
+        )
+        subprocess.run(["git", "push"], cwd=DOSSIER, check=True, capture_output=True, text=True)
+        print(f"   📤 resultats.js poussé sur GitHub ({heure})")
+    except subprocess.CalledProcessError as e:
+        print(f"   ⚠️  Push git échoué : {e.stderr or e}")
+    except Exception as e:
+        print(f"   ⚠️  Push git échoué : {e}")
+
+
 def run_once(debug=False):
     print(f"\n[{datetime.now().strftime('%H:%M:%S')}] Lancement de la mise à jour…")
 
@@ -436,6 +461,10 @@ def run_once(debug=False):
 
     sauvegarder_etat(etat_final)
     ecrire_resultats_js(etat_final)
+
+    # Push GitHub Pages (uniquement si resultats.js a changé)
+    if etat_final != etat_precedent:
+        commit_et_pousser_resultats()
 
     # Notifications WhatsApp
     if WA_DISPONIBLE and not getattr(run_once, "_no_wa", False):
