@@ -3994,7 +3994,13 @@
         adminRenderOnglet('joueurs');
     }
 
-    function adminVoirPronos(username) {
+    async function adminVoirPronos(username, refreshFromSupabase = true) {
+        // Données fraîches depuis Supabase (la liste locale peut ne pas avoir le bracket des autres joueurs)
+        if (_sb && refreshFromSupabase) {
+            document.getElementById('admin-content').innerHTML = '<p style="color:#888;text-align:center;margin-top:30px;">⏳ Chargement…</p>';
+            await syncFromSupabase(username);
+        }
+
         const raw = localStorage.getItem(`${username}_mes_pronos_2026`);
         let pronos = {};
         try { pronos = raw ? JSON.parse(raw) : {}; } catch {}
@@ -4047,20 +4053,24 @@
         let htmlBracket = '';
         KO_PHASES.forEach(({ id: phaseId, debut, fin, label }) => {
             const tiroir = CONFIG_PHASES[phaseId]?.tiroir || '';
+            const tiroirAlt = getTiroirFromPhase(phaseId) || '';
             const tiroirData = (tiroir && pronos[tiroir]) ? pronos[tiroir] : {};
+            const tiroirDataAlt = (tiroirAlt && tiroirAlt !== tiroir && pronos[tiroirAlt]) ? pronos[tiroirAlt] : {};
             let rows = '';
 
             for (let matchId = debut; matchId <= fin; matchId++) {
                 const nomA = verrou[`team_${phaseId}_${matchId}_A`]
                     || tiroirData[`team_${phaseId}_${matchId}_A`]
+                    || tiroirDataAlt[`team_${phaseId}_${matchId}_A`]
                     || pronos[`team_${phaseId}_${matchId}_A`] || '';
                 const nomB = verrou[`team_${phaseId}_${matchId}_B`]
                     || tiroirData[`team_${phaseId}_${matchId}_B`]
+                    || tiroirDataAlt[`team_${phaseId}_${matchId}_B`]
                     || pronos[`team_${phaseId}_${matchId}_B`] || '';
                 if (!nomA && !nomB) continue;
 
-                const scoreA = tiroirData[`score_${phaseId}_${matchId}_A`] ?? pronos[`score_${phaseId}_${matchId}_A`] ?? '';
-                const scoreB = tiroirData[`score_${phaseId}_${matchId}_B`] ?? pronos[`score_${phaseId}_${matchId}_B`] ?? '';
+                const scoreA = tiroirData[`score_${phaseId}_${matchId}_A`] ?? tiroirDataAlt[`score_${phaseId}_${matchId}_A`] ?? pronos[`score_${phaseId}_${matchId}_A`] ?? '';
+                const scoreB = tiroirData[`score_${phaseId}_${matchId}_B`] ?? tiroirDataAlt[`score_${phaseId}_${matchId}_B`] ?? pronos[`score_${phaseId}_${matchId}_B`] ?? '';
                 const winner = pronos[`winner_${phaseId}_${matchId}`] || '';
 
                 const btnA = `padding:3px 8px;border-radius:4px;cursor:pointer;font-size:0.72em;font-weight:bold;border:1px solid #555;background:${winner==='A'?'#1a3a1a':'#111'};color:${winner==='A'?'#4ade80':'#555'};`;
@@ -4145,7 +4155,7 @@
         localStorage.setItem(storageKey, JSON.stringify(pronos));
         if (username === CURRENT_USER) CACHE_PRONOS = null;
         syncToSupabase(username, pronos);
-        adminVoirPronos(username);
+        adminVoirPronos(username, false);
     }
 
     function adminSauvegarderPronos(username) {
@@ -4188,7 +4198,7 @@
         localStorage.setItem(storageKey, JSON.stringify(data));
         if (username === CURRENT_USER) { CACHE_PRONOS = null; }
         syncToSupabase(username, data);
-        adminVoirPronos(username); // refresh
+        adminVoirPronos(username, false); // refresh
     }
 
     function adminResetJoueur(username) {
