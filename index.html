@@ -1143,6 +1143,45 @@
         return "En attente";
     }
 
+    // Reconstruit les 16 affiches du 1/16e à partir des pronos de poules d'un joueur quelconque
+    // (utilisé par l'admin pour afficher les vrais noms d'équipes même si le joueur
+    // n'a jamais ouvert l'écran bracket).
+    function calculerAffiches16FromPronos(pronos) {
+        const groupesProv = {};
+        CALENDRIER_CDM.forEach(m => {
+            if (!m.groupe || m.groupe.toLowerCase().includes("finale")) return;
+            const gCode = m.groupe.replace("Groupe ", "").trim();
+            if (!groupesProv[gCode]) groupesProv[gCode] = {};
+            [m.equipeA, m.equipeB].forEach(e => {
+                if (!groupesProv[gCode][e]) groupesProv[gCode][e] = { nom: e, pts: 0, bp: 0, bc: 0, diff: 0, mj: 0 };
+            });
+
+            const sA = pronos[`scoreA_${m.id}`];
+            const sB = pronos[`scoreB_${m.id}`];
+            if (sA === undefined || sA === null || sA === "" || sB === undefined || sB === null || sB === "") return;
+            const numA = parseInt(sA), numB = parseInt(sB);
+            if (isNaN(numA) || isNaN(numB)) return;
+
+            const tA = groupesProv[gCode][m.equipeA], tB = groupesProv[gCode][m.equipeB];
+            tA.mj++; tB.mj++; tA.bp += numA; tA.bc += numB; tB.bp += numB; tB.bc += numA;
+            if (numA > numB) tA.pts += 3;
+            else if (numB > numA) tB.pts += 3;
+            else { tA.pts += 1; tB.pts += 1; }
+            tA.diff = tA.bp - tA.bc; tB.diff = tB.bp - tB.bc;
+        });
+
+        const resGroupesTries = {};
+        let troisiemes = [];
+        Object.keys(groupesProv).sort().forEach(g => {
+            const tri = Object.values(groupesProv[g]).sort((a, b) => b.pts - a.pts || b.diff - a.diff || b.bp - a.bp);
+            resGroupesTries[g] = tri;
+            if (tri[2]) troisiemes.push({ ...tri[2], groupe: g });
+        });
+        const top8 = troisiemes.sort((a, b) => b.pts - a.pts || b.diff - a.diff || b.bp - a.bp).slice(0, 8);
+
+        return genererAffiches16emes(resGroupesTries, top8);
+    }
+
     function renderMatchCard(m, phaseId, labelPhase, color) {
         const state = getAppState();
         const maintenant = getCurrentDate();
@@ -4058,6 +4097,12 @@
             { id:'f',  debut:687076, fin:687076, label:'Finale'           },
         ];
 
+        // Reconstruction des affiches du 1/16e depuis les pronos de poules,
+        // pour afficher les vrais noms même si le joueur n'a jamais ouvert le bracket
+        let affiches16 = null;
+        try { affiches16 = calculerAffiches16FromPronos(pronos); } catch(e) { console.warn('Reconstruction 1/16e échouée:', e); }
+        const estPlaceholder = (n) => !n || n.includes('Gr.') || n === 'En attente';
+
         let htmlBracket = '';
         KO_PHASES.forEach(({ id: phaseId, debut, fin, label }) => {
             const tiroir = CONFIG_PHASES[phaseId]?.tiroir || '';
@@ -4067,14 +4112,24 @@
             let rows = '';
 
             for (let matchId = debut; matchId <= fin; matchId++) {
-                const nomA = verrou[`team_${phaseId}_${matchId}_A`]
+                let nomA = verrou[`team_${phaseId}_${matchId}_A`]
                     || tiroirData[`team_${phaseId}_${matchId}_A`]
                     || tiroirDataAlt[`team_${phaseId}_${matchId}_A`]
                     || pronos[`team_${phaseId}_${matchId}_A`] || '';
-                const nomB = verrou[`team_${phaseId}_${matchId}_B`]
+                let nomB = verrou[`team_${phaseId}_${matchId}_B`]
                     || tiroirData[`team_${phaseId}_${matchId}_B`]
                     || tiroirDataAlt[`team_${phaseId}_${matchId}_B`]
                     || pronos[`team_${phaseId}_${matchId}_B`] || '';
+
+                // Repli sur les affiches reconstruites depuis les pronos de poules (1/16e uniquement)
+                if (!nomA && !nomB && phaseId === '16' && affiches16) {
+                    const aff = affiches16.find(a => a.id === matchId);
+                    if (aff) {
+                        if (!estPlaceholder(aff.t1.nom)) nomA = aff.t1.nom;
+                        if (!estPlaceholder(aff.t2.nom)) nomB = aff.t2.nom;
+                    }
+                }
+
                 const winner = pronos[`winner_${phaseId}_${matchId}`] || '';
                 // Si le joueur n'a jamais ouvert l'écran bracket, les noms d'équipes ne sont pas connus
                 // mais son pronostic (vainqueur A/B) existe quand même : on l'affiche avec des noms génériques.
