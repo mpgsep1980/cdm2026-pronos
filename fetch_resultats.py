@@ -38,6 +38,10 @@ CALENDRIER_JS = DOSSIER / "liste_matches.js"
 # URL de la page des directs lequipe.fr (matchs en cours + récents)
 URL_CDM = "https://www.lequipe.fr/Directs"
 
+# URL du calendrier général CDM 2026 (tous les matchs, scores finaux inclus)
+# Utile pour récupérer un résultat a posteriori sans laisser tourner le watch live
+URL_CALENDRIER = "https://www.lequipe.fr/Football/coupe-du-monde/page-calendrier-general"
+
 # Intervalle en minutes entre deux passes en mode --watch
 INTERVALLE_MIN = 2
 
@@ -109,6 +113,9 @@ SEL_NOM       = ".TeamScore__nameshort > span:first-child, .EventCard__teamName,
 SEL_SCORE_A   = ".TeamScore__score--home"
 SEL_SCORE_B   = ".TeamScore__score--away"
 SEL_STATUT    = ".TeamScore__status, .EventCard__status, .LiveCard__status"
+
+# Sélecteur des cartes de match sur la page calendrier général
+SEL_CARTE_CALENDRIER = ".CalendarGeneral__match"
 
 # ── UTILITAIRES ──────────────────────────────────────────────────────────────
 
@@ -231,6 +238,93 @@ def scraper_resultats(page, debug=False) -> list:
                 "statut":  statut,
                 "href":    href,
             })
+
+        except Exception as e:
+            print(f"  ⚠️  Erreur sur une carte : {e}")
+            continue
+
+    return resultats
+
+
+# ── SCRAPING (calendrier général — résultats finaux a posteriori) ────────────
+
+def scraper_calendrier(page, debug=False) -> list:
+    """
+    Scrape la page calendrier général CDM 2026 (tous les matchs, scores finaux
+    inclus pour les matchs déjà joués). Permet de récupérer un résultat sans
+    avoir besoin de laisser tourner le programme en --watch pendant le match.
+
+    Retourne la même structure que scraper_resultats(), mais uniquement pour
+    les matchs terminés (les matchs à venir, sans score, sont ignorés).
+    """
+    resultats = []
+
+    if debug:
+        FICHIER_DEBUG.write_text(page.content(), encoding="utf-8")
+        print(f"📄 HTML sauvegardé → {FICHIER_DEBUG.name}")
+
+    try:
+        page.wait_for_selector(SEL_CARTE_CALENDRIER, timeout=10_000)
+    except PWTimeout:
+        print("⚠️  Aucune carte de match trouvée sur le calendrier général.")
+        if not debug:
+            print("   → Relancer avec --debug pour sauvegarder le HTML et inspecter.")
+        return resultats
+
+    cartes = page.query_selector_all(SEL_CARTE_CALENDRIER)
+    print(f"   {len(cartes)} carte(s) de match trouvée(s) sur le calendrier")
+
+    for carte in cartes:
+        try:
+            classes = carte.get_attribute("class") or ""
+            if "TeamScore--before" in classes:
+                continue  # match pas encore joué, pas de score
+
+            # ID du match : lien/bouton vers /match-direct/.../<id> dans .TeamScore__data
+            lien = carte.query_selector(".TeamScore__data a[href], .TeamScore__data button")
+            href = ""
+            if lien:
+                href = lien.get_attribute("href") or lien.get_attribute("data-href") or ""
+            id_match = re.search(r'/(\d{5,})(?:[^/]*)?$', href.rstrip('/'))
+            if not id_match:
+                continue
+            match_id = id_match.group(1)
+
+            # Noms des équipes
+            noms = carte.query_selector_all(".TeamScore__nameshort span")
+            noms_txt = [n.inner_text().strip() for n in noms if n.inner_text().strip()]
+            nomA = noms_txt[0] if len(noms_txt) > 0 else "?"
+            nomB = noms_txt[1] if len(noms_txt) > 1 else "?"
+
+            # Score : .TeamScore__score--ended (terminé) ou .TeamScore__score (en cours)
+            score_el = carte.query_selector(".TeamScore__score--ended") or carte.query_selector(".TeamScore__score")
+            if not score_el:
+                continue
+            est_termine = "TeamScore__score--ended" in (score_el.get_attribute("class") or "")
+
+            spans = [s for s in score_el.query_selector_all("span")
+                     if "split" not in (s.get_attribute("class") or "")]
+            if len(spans) < 2:
+                continue
+            sA_txt = spans[0].inner_text().strip()
+            sB_txt = spans[1].inner_text().strip()
+            if not (sA_txt.isdigit() and sB_txt.isdigit()):
+                continue
+
+            resultats.append({
+                "id":      match_id,
+                "equipeA": nomA,
+                "equipeB": nomB,
+                "sA": int(sA_txt),
+                "sB": int(sB_txt),
+                "termine": est_termine,
+                "live":    not est_termine,
+                "statut":  "" if est_termine else "live",
+                "href":    href,
+            })
+
+            flag = "✅ Terminé" if est_termine else "🔴 LIVE"
+            print(f"   {flag} [{match_id}] {nomA} {sA_txt}-{sB_txt} {nomB}")
 
         except Exception as e:
             print(f"  ⚠️  Erreur sur une carte : {e}")
@@ -406,7 +500,7 @@ def commit_et_pousser_resultats():
         print(f"   ⚠️  Push git échoué : {e}")
 
 
-def run_once(debug=False):
+def run_once(debug=False, calendrier_general=False):
     print(f"\n[{datetime.now().strftime('%H:%M:%S')}] Lancement de la mise à jour…")
 
     calendrier = charger_calendrier()
@@ -417,20 +511,24 @@ def run_once(debug=False):
     # Chargement de l'état précédent
     etat_precedent = charger_etat()
 
+    url = URL_CALENDRIER if calendrier_general else URL_CDM
     with sync_playwright() as pw:
         browser = pw.chromium.launch(headless=True)
         page = browser.new_page()
         page.set_extra_http_headers({"Accept-Language": "fr-FR,fr;q=0.9"})
-        print(f"🌐 Chargement : {URL_CDM}")
+        print(f"🌐 Chargement : {url}")
         try:
-            page.goto(URL_CDM, timeout=30_000)
+            page.goto(url, timeout=30_000)
             page.wait_for_load_state("networkidle", timeout=20_000)
         except Exception as e:
             print(f"❌ Impossible de charger la page : {e}")
             browser.close()
             return
 
-        resultats = scraper_resultats(page, debug=debug)
+        if calendrier_general:
+            resultats = scraper_calendrier(page, debug=debug)
+        else:
+            resultats = scraper_resultats(page, debug=debug)
         browser.close()
 
     print(f"📋 {len(resultats)} match(es) trouvé(s) sur la page")
@@ -497,8 +595,18 @@ def main():
         "--no-wa", action="store_true",
         help="Désactive les notifications WhatsApp (tests locaux)"
     )
+    parser.add_argument(
+        "--calendrier", action="store_true",
+        help=f"Une seule passe via {URL_CALENDRIER} : récupère les scores finaux déjà publiés "
+             "sans suivi live (utile pour rattraper un match de nuit le lendemain matin)"
+    )
     args = parser.parse_args()
     run_once._no_wa = args.no_wa
+
+    # --calendrier : une seule passe via le calendrier général (résultats a posteriori)
+    if args.calendrier:
+        run_once(debug=args.debug, calendrier_general=True)
+        return
 
     # --test-in : démarrage dans N minutes (test sans modifier les données)
     if args.test_in is not None:
