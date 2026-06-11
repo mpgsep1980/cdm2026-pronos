@@ -2115,7 +2115,7 @@
     // Fonction CLASSEMENT
     //########################################################################################################//
 
-    function calculerDetailsPoints(username, pronosOverride = null, verrouOverride = null) {
+    function calculerDetailsPoints(username, pronosOverride = null) {
         // Aucun point en Phase 1 : les résultats réels n'existent pas encore
         const etat = getAppState();
         if (etat === "AVANT") {
@@ -2125,13 +2125,6 @@
         const prefix = username + "_";
         const pronos = pronosOverride !== null ? pronosOverride
             : (JSON.parse(localStorage.getItem(prefix + 'mes_pronos_2026')) || {});
-        // Verrou = snapshot figé à la transition Phase 1→2.
-        // Si l'utilisateur n'a pas encore rechargé la page en Phase 2, le verrou n'existe pas :
-        // on utilise alors ses projections fantômes (contenu identique au moment du gel).
-        const verrou = verrouOverride !== null ? verrouOverride
-            : (JSON.parse(localStorage.getItem(prefix + 'mes_fantomes_verrouilles'))
-               || JSON.parse(localStorage.getItem(prefix + 'mes_projections_fantomes'))
-               || {});
 
         let details = {
             poules:  0,   // points en dur : matchs de poules
@@ -2196,61 +2189,66 @@
                        'poules', `${m.equipeA} - ${m.equipeB}`);
         });
 
-        // ── 2. QUALIFICATIONS 1/16e (verrou Phase 1) ───────────────────────
+        // ── 2. QUALIFICATIONS 1/16e ─────────────────────────────────────────
         const qualifsReels    = OFFICIEL_2026.qualifies || {};
         const toutesEquipesKO = new Set(Object.values(qualifsReels));
         const qualifiesConnus = Object.keys(qualifsReels).length > 0;
 
-        // Classements provisoires depuis les scores réels (quand qualifies pas encore défini)
-        // groupesProv  : classement basé sur les PRONOS du joueur
+        // Classements des groupes — toujours calculés (pas seulement si qualifies inconnu) :
+        // groupesProv  : classement basé sur les PRONOS du joueur (sert à déterminer ses 32 qualifiés prédits,
+        //                indépendamment de team_16_* qui peut être absent si le joueur n'a jamais ouvert
+        //                l'écran "Phase Finale")
         // groupesReels : classement basé sur les résultats OFFICIELS (pour la double vérification)
         const groupesProv  = {};
         const groupesReels = {};
-        if (!qualifiesConnus) {
-            CALENDRIER_CDM.forEach(m => {
-                if (!m.groupe || m.groupe.toLowerCase().includes("finale") || m.groupe.startsWith("1/")) return;
-                if (!m.equipeA || !m.equipeB) return;
-                if (!groupesProv[m.groupe])  groupesProv[m.groupe]  = {};
-                if (!groupesReels[m.groupe]) groupesReels[m.groupe] = {};
-                [m.equipeA, m.equipeB].forEach(e => {
-                    if (!groupesProv[m.groupe][e])
-                        groupesProv[m.groupe][e]  = { pts: 0, bp: 0, bc: 0 };
-                    if (!groupesReels[m.groupe][e])
-                        groupesReels[m.groupe][e] = { pts: 0, bp: 0, bc: 0, mj: 0 };
-                });
+        CALENDRIER_CDM.forEach(m => {
+            if (!m.groupe || m.groupe.toLowerCase().includes("finale") || m.groupe.startsWith("1/")) return;
+            if (!m.equipeA || !m.equipeB) return;
+            if (!groupesProv[m.groupe])  groupesProv[m.groupe]  = {};
+            if (!groupesReels[m.groupe]) groupesReels[m.groupe] = {};
+            [m.equipeA, m.equipeB].forEach(e => {
+                if (!groupesProv[m.groupe][e])
+                    groupesProv[m.groupe][e]  = { pts: 0, bp: 0, bc: 0 };
+                if (!groupesReels[m.groupe][e])
+                    groupesReels[m.groupe][e] = { pts: 0, bp: 0, bc: 0, mj: 0 };
             });
-            CALENDRIER_CDM.forEach(m => {
-                if (!m.groupe || m.groupe.toLowerCase().includes("finale") || m.groupe.startsWith("1/")) return;
-                const tAp = groupesProv[m.groupe]?.[m.equipeA];
-                const tBp = groupesProv[m.groupe]?.[m.equipeB];
-                const tAr = groupesReels[m.groupe]?.[m.equipeA];
-                const tBr = groupesReels[m.groupe]?.[m.equipeB];
+        });
+        CALENDRIER_CDM.forEach(m => {
+            if (!m.groupe || m.groupe.toLowerCase().includes("finale") || m.groupe.startsWith("1/")) return;
+            const tAp = groupesProv[m.groupe]?.[m.equipeA];
+            const tBp = groupesProv[m.groupe]?.[m.equipeB];
+            const tAr = groupesReels[m.groupe]?.[m.equipeA];
+            const tBr = groupesReels[m.groupe]?.[m.equipeB];
 
-                // Classement depuis les PRONOS
-                if (tAp && tBp) {
-                    const pA = parseInt(pronos[`scoreA_${m.id}`]);
-                    const pB = parseInt(pronos[`scoreB_${m.id}`]);
-                    if (!isNaN(pA) && !isNaN(pB)) {
-                        tAp.bp += pA; tAp.bc += pB; tBp.bp += pB; tBp.bc += pA;
-                        if (pA > pB) tAp.pts += 3;
-                        else if (pB > pA) tBp.pts += 3;
-                        else { tAp.pts++; tBp.pts++; }
-                    }
+            // Classement depuis les PRONOS
+            if (tAp && tBp) {
+                const pA = parseInt(pronos[`scoreA_${m.id}`]);
+                const pB = parseInt(pronos[`scoreB_${m.id}`]);
+                if (!isNaN(pA) && !isNaN(pB)) {
+                    tAp.bp += pA; tAp.bc += pB; tBp.bp += pB; tBp.bc += pA;
+                    if (pA > pB) tAp.pts += 3;
+                    else if (pB > pA) tBp.pts += 3;
+                    else { tAp.pts++; tBp.pts++; }
                 }
-                // Classement depuis les résultats OFFICIELS
-                if (tAr && tBr) {
-                    const off = OFFICIEL_2026.scores[m.id];
-                    if (off && (off.termine || off.live)) {
-                        tAr.mj++; tBr.mj++;
-                        tAr.bp += off.sA; tAr.bc += off.sB;
-                        tBr.bp += off.sB; tBr.bc += off.sA;
-                        if (off.sA > off.sB) tAr.pts += 3;
-                        else if (off.sB > off.sA) tBr.pts += 3;
-                        else { tAr.pts++; tBr.pts++; }
-                    }
+            }
+            // Classement depuis les résultats OFFICIELS
+            if (tAr && tBr) {
+                const off = OFFICIEL_2026.scores[m.id];
+                if (off && (off.termine || off.live)) {
+                    tAr.mj++; tBr.mj++;
+                    tAr.bp += off.sA; tAr.bc += off.sB;
+                    tBr.bp += off.sB; tBr.bc += off.sA;
+                    if (off.sA > off.sB) tAr.pts += 3;
+                    else if (off.sB > off.sA) tBr.pts += 3;
+                    else { tAr.pts++; tBr.pts++; }
                 }
-            });
-        }
+            }
+        });
+
+        // Trie les équipes d'un groupe par classement (pts, diff, buts marqués)
+        const trierGroupe = (teams) => Object.entries(teams)
+            .map(([n, s]) => ({ nom: n, pts: s.pts, diff: s.bp - s.bc, bp: s.bp }))
+            .sort((a, b) => b.pts - a.pts || b.diff - a.diff || b.bp - a.bp);
 
         // Retourne le rang prono + rang réel d'une équipe dans son groupe
         // Conditions pour avoir des pts provisoires :
@@ -2258,13 +2256,10 @@
         //   - l'équipe est top 2 dans les résultats RÉELS (au moins 1 match joué)
         const rangProvisoire = (nomEquipe) => {
             const nom = nomEquipe.toLowerCase().trim();
-            const trier = (teams) => Object.entries(teams)
-                .map(([n, s]) => ({ nom: n, pts: s.pts, diff: s.bp - s.bc, bp: s.bp }))
-                .sort((a, b) => b.pts - a.pts || b.diff - a.diff || b.bp - a.bp);
 
             for (const groupe of Object.keys(groupesProv)) {
                 // Rang dans les PRONOS
-                const listeP = trier(groupesProv[groupe]);
+                const listeP = trierGroupe(groupesProv[groupe]);
                 const idxP = listeP.findIndex(t => t.nom.toLowerCase().trim() === nom);
                 if (idxP < 0) continue;
 
@@ -2273,7 +2268,7 @@
                 const entryR = Object.entries(teamsR).find(([n]) => n.toLowerCase().trim() === nom);
                 if (!entryR || entryR[1].mj === 0) return null; // 0 vrai match joué → pas de pts
 
-                const listeR = trier(teamsR);
+                const listeR = trierGroupe(teamsR);
                 const idxR = listeR.findIndex(t => t.nom.toLowerCase().trim() === nom);
 
                 return { rang: idxP + 1, rangReel: idxR + 1, groupe };
@@ -2282,79 +2277,82 @@
         };
 
         // Gate pour les 3es : toutes les équipes ont joué ≥1 vrai match
-        const toutesOntJoue = !qualifiesConnus && Object.values(groupesReels).every(teams =>
+        const toutesOntJoue = Object.values(groupesReels).every(teams =>
             Object.values(teams).every(t => t.mj >= 1)
         );
 
-        // Top 8 meilleurs 3es selon pronos et selon réel (calculé une seule fois)
+        // Top 8 meilleurs 3es d'un classement de groupes
         const trier3 = (tableauGroupes) => Object.entries(tableauGroupes).map(([g, teams]) => {
-            const liste = Object.entries(teams)
-                .map(([n, s]) => ({ nom: n, pts: s.pts, diff: s.bp - s.bc, bp: s.bp }))
-                .sort((a, b) => b.pts - a.pts || b.diff - a.diff || b.bp - a.bp);
+            const liste = trierGroupe(teams);
             return liste[2] ? { ...liste[2], groupe: g } : null;
         }).filter(Boolean).sort((a, b) => b.pts - a.pts || b.diff - a.diff || b.bp - a.bp);
 
-        const top8PronoNoms = toutesOntJoue
-            ? new Set(trier3(groupesProv).slice(0, 8).map(t => t.nom.toLowerCase().trim()))
-            : new Set();
+        // Top 8 des 3es selon les pronos — toujours calculé (sert à la liste des 32 qualifiés prédits)
+        const top8Prono3es = trier3(groupesProv).slice(0, 8);
+        const top8PronoNoms = new Set(top8Prono3es.map(t => t.nom.toLowerCase().trim()));
         const top8ReelNoms = toutesOntJoue
             ? new Set(trier3(groupesReels).slice(0, 8).map(t => t.nom.toLowerCase().trim()))
             : new Set();
 
+        // Liste des 32 qualifiés prédits par le joueur (top 2 par groupe + 8 meilleurs 3es),
+        // calculée depuis ses pronos de poules — fonctionne même si team_16_* est absent du verrou
+        const equipesPredites = [];
+        Object.values(groupesProv).forEach(teams => {
+            const liste = trierGroupe(teams);
+            if (liste[0]) equipesPredites.push(liste[0].nom);
+            if (liste[1]) equipesPredites.push(liste[1].nom);
+        });
+        top8Prono3es.forEach(t => equipesPredites.push(t.nom));
+
         const deja = new Set();
 
-        Object.keys(verrou)
-            .filter(k => k.startsWith("team_16_"))
-            .forEach(key => {
-                const equipe = verrou[key];
-                if (!equipe || deja.has(equipe)) return;
-                deja.add(equipe);
+        equipesPredites.forEach(equipe => {
+            if (!equipe || deja.has(equipe)) return;
+            deja.add(equipe);
 
-                const info = typeof PHASE_FINALE !== 'undefined'
-                    ? PHASE_FINALE.find(f => f.selection.toLowerCase().trim() === equipe.toLowerCase().trim())
-                    : null;
-                if (!info) return;
+            const info = typeof PHASE_FINALE !== 'undefined'
+                ? PHASE_FINALE.find(f => f.selection.toLowerCase().trim() === equipe.toLowerCase().trim())
+                : null;
+            if (!info) return;
 
-                const cote = parseFloat(String(info.cotes_qualifs.qualif_1_16).replace(',', '.'));
-                const base = Math.round(cote * 10);
+            const cote = parseFloat(String(info.cotes_qualifs.qualif_1_16).replace(',', '.'));
+            const base = Math.round(cote * 10);
 
-                let pts = 0, labelQualif = '';
+            let pts = 0, labelQualif = '';
 
-                if (qualifiesConnus) {
-                    // Bracket officiel connu : comparaison exacte
-                    if (qualifsReels[key] === equipe) {
-                        pts = base * 2;
-                        labelQualif = `${equipe} qualifié(e) — position exacte ✓`;
-                    } else if (toutesEquipesKO.has(equipe)) {
+            if (qualifiesConnus) {
+                // Bracket officiel connu : on vérifie juste que l'équipe prédite a bien été qualifiée
+                // (le bonus "position exacte" nécessiterait team_16_*, indisponible pour tous les joueurs)
+                if (toutesEquipesKO.has(equipe)) {
+                    pts = base;
+                    labelQualif = `${equipe} qualifié(e) en 1/16e ✓`;
+                }
+            } else {
+                // Bracket pas encore défini : double vérification prono + réel
+                const r = rangProvisoire(equipe);
+                if (r && r.rang <= 2 && r.rang === r.rangReel) {
+                    // Top 2 : rang exact identique dans pronos et réel
+                    pts = base;
+                    const ord = r.rang === 1 ? 'er' : 'e';
+                    labelQualif = `${equipe} · prévu ${r.rang}${ord} & prov. ${r.rang}${ord} en réel (${r.groupe})`;
+                } else if (r && r.rang === 3 && r.rangReel === 3 && toutesOntJoue) {
+                    // 3e : toutes les équipes ont joué ≥1 match, équipe dans top 8 des 3es dans les deux classements
+                    const nom = equipe.toLowerCase().trim();
+                    if (top8PronoNoms.has(nom) && top8ReelNoms.has(nom)) {
                         pts = base;
-                        labelQualif = `${equipe} qualifié(e) en 1/16e ✓`;
-                    }
-                } else {
-                    // Bracket pas encore défini : double vérification prono + réel
-                    const r = rangProvisoire(equipe);
-                    if (r && r.rang <= 2 && r.rang === r.rangReel) {
-                        // Top 2 : rang exact identique dans pronos et réel
-                        pts = base;
-                        const ord = r.rang === 1 ? 'er' : 'e';
-                        labelQualif = `${equipe} · prévu ${r.rang}${ord} & prov. ${r.rang}${ord} en réel (${r.groupe})`;
-                    } else if (r && r.rang === 3 && r.rangReel === 3 && toutesOntJoue) {
-                        // 3e : toutes les équipes ont joué ≥1 match, équipe dans top 8 des 3es dans les deux classements
-                        const nom = equipe.toLowerCase().trim();
-                        if (top8PronoNoms.has(nom) && top8ReelNoms.has(nom)) {
-                            pts = base;
-                            labelQualif = `${equipe} · 3e qualifié (meilleur 3e selon pronos & réel, ${r.groupe})`;
-                        }
+                        labelQualif = `${equipe} · 3e qualifié (meilleur 3e selon pronos & réel, ${r.groupe})`;
                     }
                 }
+            }
 
-                if (pts > 0) {
-                    details.bracket += pts;
-                    details.bracket_list.push({ label: labelQualif, pts, exact: false });
-                    if (pts > details.meilleurProno.pts) {
-                        details.meilleurProno = { match: labelQualif, pts };
-                    }
+            if (pts > 0) {
+                details.bracket += pts;
+                details.bracket_list.push({ label: labelQualif, pts, exact: false });
+                if (pts > details.meilleurProno.pts) {
+                    details.meilleurProno = { match: labelQualif, pts };
                 }
-            });
+            }
+        });
 
         // ── 3. MATCHS PHASE ÉLIMINATOIRE (pronos réels Phase 3) ────────────
         const phasesKO = [
@@ -3032,8 +3030,7 @@
             }
 
             const sessionPronos = getPronos();
-            const sessionVerrou = JSON.parse(localStorage.getItem(getKey('mes_fantomes_verrouilles'))) || {};
-            const earned = calculerDetailsPoints(CURRENT_USER, sessionPronos, sessionVerrou);
+            const earned = calculerDetailsPoints(CURRENT_USER, sessionPronos);
             _earnedResult = earned;
 
             // Delta bracket : compare avec la valeur enregistrée à l'ouverture de session
