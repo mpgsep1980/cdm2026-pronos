@@ -2146,20 +2146,17 @@
                 }
             });
 
-            // Sauvegarder les pronos locaux AVANT le sync Supabase
+            // Pas de fusion automatique entre local et Supabase : avec deux copies qui peuvent
+            // diverger (plusieurs appareils/navigateurs), aucune direction n'est sûre à 100%
+            // et chaque reconnexion finissait par écraser la "bonne" copie par l'autre.
             const pronosLocaux = JSON.parse(localStorage.getItem(cleUserPronos) || '{}');
-
-            await syncFromSupabase(u); // récupérer les pronos depuis Supabase
-
-            // Fusionner : le local est la source de vérité, Supabase ne comble que les clés absentes en local
-            // (ex: première connexion sur un nouvel appareil/navigateur). Si Supabase contient une copie
-            // périmée ou corrompue (ex: 0 au lieu du vrai prono), elle ne doit jamais écraser le local.
-            const pronosSupa = JSON.parse(localStorage.getItem(cleUserPronos) || '{}');
-            const pronosFusion = Object.assign({}, pronosSupa, pronosLocaux); // Le local gagne les conflits
-            localStorage.setItem(cleUserPronos, JSON.stringify(pronosFusion));
-            // On repousse systématiquement le résultat : comble les manques côté Supabase
-            // et corrige une éventuelle copie corrompue avec les données locales fiables.
-            syncToSupabase(u, pronosFusion);
+            if (Object.keys(pronosLocaux).length === 0) {
+                // Aucune donnée locale sur cet appareil/navigateur : 1ère connexion ici,
+                // on récupère les pronos existants depuis Supabase.
+                await syncFromSupabase(u);
+            }
+            // Si des pronos existent déjà en local, on les garde tels quels (référence pour
+            // cet appareil) et on ne touche pas à Supabase à la connexion.
 
             CACHE_PRONOS = null;
             location.reload();
