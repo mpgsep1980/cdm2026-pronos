@@ -835,11 +835,11 @@
     const _sb = typeof supabase !== 'undefined'
         ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
 
-    let _syncTimer = null;
+    const _syncTimers = {};
     function syncToSupabase(username, data) {
         if (!_sb || !username) return;
-        clearTimeout(_syncTimer);
-        _syncTimer = setTimeout(async () => {
+        clearTimeout(_syncTimers[username]);
+        _syncTimers[username] = setTimeout(async () => {
             try {
                 await _sb.from('pronos').upsert(
                     { username, data, updated_at: new Date().toISOString() },
