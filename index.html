@@ -5076,8 +5076,10 @@
     // ── SAUVEGARDE / EXPORT ──────────────────────────────────────────────────
 
     function sauvegarderPronos() {
-        // 1. Scanne tous les inputs visibles et force leur valeur dans le cache
-        document.querySelectorAll('input[type="number"]').forEach(inp => {
+        // 1. Scanne tous les inputs actifs (les champs désactivés affichent le score
+        // officiel ou 0 pour les matchs verrouillés : il ne faut pas écraser le
+        // pronostic du joueur avec ces valeurs d'affichage)
+        document.querySelectorAll('input[type="number"]:not([disabled])').forEach(inp => {
             if (!inp.id || inp.value === '') return;
             const val = parseInt(inp.value);
             if (!isNaN(val)) {
