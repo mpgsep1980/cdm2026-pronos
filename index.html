@@ -2151,15 +2151,15 @@
 
             await syncFromSupabase(u); // récupérer les pronos depuis Supabase
 
-            // Fusionner : Supabase est référence, mais les pronos locaux absents de Supabase sont conservés
-            // Garantit que les pronos saisis localement (y compris hors connexion) ne sont jamais perdus
+            // Fusionner : le local est la source de vérité, Supabase ne comble que les clés absentes en local
+            // (ex: première connexion sur un nouvel appareil/navigateur). Si Supabase contient une copie
+            // périmée ou corrompue (ex: 0 au lieu du vrai prono), elle ne doit jamais écraser le local.
             const pronosSupa = JSON.parse(localStorage.getItem(cleUserPronos) || '{}');
-            const pronosFusion = Object.assign({}, pronosLocaux, pronosSupa); // Supabase gagne les conflits
+            const pronosFusion = Object.assign({}, pronosSupa, pronosLocaux); // Le local gagne les conflits
             localStorage.setItem(cleUserPronos, JSON.stringify(pronosFusion));
-            // Si la fusion a ajouté des clés absentes de Supabase, on les repousse
-            if (Object.keys(pronosFusion).length > Object.keys(pronosSupa).length) {
-                syncToSupabase(u, pronosFusion);
-            }
+            // On repousse systématiquement le résultat : comble les manques côté Supabase
+            // et corrige une éventuelle copie corrompue avec les données locales fiables.
+            syncToSupabase(u, pronosFusion);
 
             CACHE_PRONOS = null;
             location.reload();
