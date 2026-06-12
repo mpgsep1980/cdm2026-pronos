@@ -493,6 +493,25 @@
 
         @media (max-width: 600px) {
             .auth-flex { justify-content: center; }
+
+            /* Bouton réduire/agrandir la nav : sorti du flux et placé en bas à droite,
+               à l'opposé du résumé des points (en haut) qui le masquait sinon */
+            .nav-toggle-btn {
+                position: fixed;
+                top: auto;
+                bottom: 20px;
+                right: 20px;
+                align-self: auto;
+                z-index: 1001;
+                background: rgba(30, 30, 30, 0.9);
+                border: 1px solid var(--gold);
+                border-radius: 50%;
+                width: 38px;
+                height: 38px;
+                font-size: 1.1rem;
+                opacity: 0.9;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.6);
+            }
         }
 
         @keyframes aura-pulse {
