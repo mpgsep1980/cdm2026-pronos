@@ -2744,7 +2744,8 @@
                 couleurTexte = "var(--gold)";
                 inputBorderColor = "#fbbf24";
             } else if (isLocked) {
-                affichageA = 0; affichageB = 0;
+                affichageA = valA !== "" ? valA : 0;
+                affichageB = valB !== "" ? valB : 0;
                 couleurTexte = "#666"; opacite = "0.5";
             }
 
