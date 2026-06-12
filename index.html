@@ -503,6 +503,11 @@
                 transform: none;
                 max-height: calc(100vh - 210px);
                 overflow-y: auto;
+                /* backdrop-filter crée un containing block pour les éléments
+                   "position: fixed" enfants (comme le bouton ◀/▶) : on le
+                   désactive ici pour que ce bouton se positionne par rapport
+                   à l'écran et non par rapport à la nav */
+                backdrop-filter: none;
             }
 
             /* Bouton réduire/agrandir la nav : sorti du flux et placé en bas à droite,
