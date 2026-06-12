@@ -4508,11 +4508,32 @@
         return `
         <div class="admin-section-title">Export pronos (tous les joueurs)</div>
         <button class="admin-btn admin-btn-info" onclick="navigator.clipboard.writeText(document.getElementById('export-json').value).then(()=>alert('Copié!'))" style="margin-bottom:8px;">📋 Copier JSON</button>
+        <button class="admin-btn" style="background:#1a3a1a;color:#4ade80;border-color:#4ade80;margin-bottom:8px;" onclick="adminTelechargerBackup()">💾 Télécharger backup JSON</button>
         <textarea id="export-json" readonly style="width:100%;height:120px;background:#0d0d0d;color:#4ade80;border:1px solid #333;border-radius:4px;font-family:monospace;font-size:0.7em;padding:8px;">${JSON.stringify(allData, null, 2)}</textarea>
 
         <div class="admin-section-title" style="margin-top:16px;">Contenu resultats.js (à copier dans le fichier)</div>
         <button class="admin-btn admin-btn-info" onclick="navigator.clipboard.writeText(document.getElementById('export-resultats').value).then(()=>alert('Copié!'))" style="margin-bottom:8px;">📋 Copier resultats.js</button>
         <textarea id="export-resultats" readonly style="width:100%;height:150px;background:#0d0d0d;color:#fbbf24;border:1px solid #333;border-radius:4px;font-family:monospace;font-size:0.7em;padding:8px;">${resultatsJs}</textarea>`;
+    }
+
+    // Télécharge un fichier JSON avec les pronos de tous les joueurs (snapshot de secours)
+    function adminTelechargerBackup() {
+        const users = JSON.parse(localStorage.getItem('liste_utilisateurs_2026')) || {};
+        const allData = {};
+        Object.keys(users).forEach(u => {
+            try { allData[u] = JSON.parse(localStorage.getItem(`${u}_mes_pronos_2026`) || '{}'); } catch {}
+        });
+
+        const horodatage = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '').replace(/(\d{8})(\d{4})/, '$1_$2');
+        const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `pronos_backup_${horodatage}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
     }
 
     // ══════════════════════════════════════════════════════════════════════
