@@ -4509,6 +4509,8 @@
         <div class="admin-section-title">Export pronos (tous les joueurs)</div>
         <button class="admin-btn admin-btn-info" onclick="navigator.clipboard.writeText(document.getElementById('export-json').value).then(()=>alert('Copié!'))" style="margin-bottom:8px;">📋 Copier JSON</button>
         <button class="admin-btn" style="background:#1a3a1a;color:#4ade80;border-color:#4ade80;margin-bottom:8px;" onclick="adminTelechargerBackup()">💾 Télécharger backup JSON</button>
+        <input type="file" id="import-backup-file" accept="application/json" style="display:none" onchange="adminImporterBackup(this)">
+        <button class="admin-btn" style="background:#1a1a3a;color:#93c5fd;border-color:#93c5fd;margin-bottom:8px;" onclick="document.getElementById('import-backup-file').click()">📂 Importer backup JSON</button>
         <textarea id="export-json" readonly style="width:100%;height:120px;background:#0d0d0d;color:#4ade80;border:1px solid #333;border-radius:4px;font-family:monospace;font-size:0.7em;padding:8px;">${JSON.stringify(allData, null, 2)}</textarea>
 
         <div class="admin-section-title" style="margin-top:16px;">Contenu resultats.js (à copier dans le fichier)</div>
@@ -4534,6 +4536,40 @@
         a.click();
         a.remove();
         URL.revokeObjectURL(url);
+    }
+
+    // Restaure les pronos de tous les joueurs présents dans un fichier de backup JSON
+    function adminImporterBackup(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            let data;
+            try { data = JSON.parse(e.target.result); } catch { alert('⚠ Fichier JSON invalide.'); input.value = ''; return; }
+
+            const users = JSON.parse(localStorage.getItem('liste_utilisateurs_2026')) || {};
+            const noms = Object.keys(data).filter(u => users[u]);
+            if (!noms.length) { alert('⚠ Aucun joueur connu trouvé dans ce fichier.'); input.value = ''; return; }
+
+            if (!confirm(`Restaurer les pronos de ${noms.length} joueur(s) :\n${noms.join(', ')}\n\nCela écrasera leurs pronos actuels (local + Supabase). Continuer ?`)) {
+                input.value = '';
+                return;
+            }
+
+            noms.forEach(u => {
+                const pronos = data[u];
+                localStorage.setItem(`${u}_mes_pronos_2026`, JSON.stringify(pronos));
+                if (u === CURRENT_USER) CACHE_PRONOS = null;
+                syncToSupabase(u, pronos);
+            });
+
+            alert(`✅ Pronos restaurés pour : ${noms.join(', ')}`);
+            input.value = '';
+            updateAll();
+            adminRenderOnglet('export');
+        };
+        reader.readAsText(file);
     }
 
     // ══════════════════════════════════════════════════════════════════════
