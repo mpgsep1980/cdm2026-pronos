@@ -494,6 +494,17 @@
         @media (max-width: 600px) {
             .auth-flex { justify-content: center; }
 
+            /* La nav reste cantonnée entre le résumé des points (en haut) et le bas
+               de l'écran : son contenu défile à l'intérieur plutôt que de passer
+               derrière le résumé des points */
+            .side-nav {
+                top: 140px;
+                bottom: 70px;
+                transform: none;
+                max-height: calc(100vh - 210px);
+                overflow-y: auto;
+            }
+
             /* Bouton réduire/agrandir la nav : sorti du flux et placé en bas à droite,
                à l'opposé du résumé des points (en haut) qui le masquait sinon */
             .nav-toggle-btn {
