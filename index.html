@@ -4093,10 +4093,16 @@
         try { verrou = verrouRaw ? JSON.parse(verrouRaw) : {}; } catch {}
 
         // ── POULES ────────────────────────────────────────────────────────────
+        // On liste TOUS les matchs de poules du calendrier (et pas seulement ceux
+        // déjà présents dans les pronos du joueur), afin que l'admin puisse aussi
+        // ressaisir des pronos manquants/perdus.
         const pouleMap = {};
-        Object.entries(pronos).forEach(([k, v]) => {
-            if (k.startsWith('scoreA_')) { const id = k.slice(7); if (!pouleMap[id]) pouleMap[id] = {}; pouleMap[id].A = v; }
-            else if (k.startsWith('scoreB_')) { const id = k.slice(7); if (!pouleMap[id]) pouleMap[id] = {}; pouleMap[id].B = v; }
+        CALENDRIER_CDM.forEach(m => {
+            if (!m.groupe || m.groupe.toLowerCase().includes('finale') || m.groupe.startsWith('1/')) return;
+            pouleMap[m.id] = {
+                A: pronos[`scoreA_${m.id}`] ?? '',
+                B: pronos[`scoreB_${m.id}`] ?? ''
+            };
         });
 
         const rowsPoules = Object.entries(pouleMap)
