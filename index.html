@@ -850,6 +850,20 @@
         }, 2000);
     }
 
+    // Variante immédiate (sans debounce) : utilisée quand on doit être sûr que Supabase
+    // est à jour avant un prochain fetchAllFromSupabase (ex: import d'un backup), pour
+    // éviter qu'une copie Supabase pas encore à jour n'écrase les données qu'on vient de restaurer.
+    async function syncToSupabaseNow(username, data) {
+        if (!_sb || !username) return;
+        clearTimeout(_syncTimers[username]);
+        try {
+            await _sb.from('pronos').upsert(
+                { username, data, updated_at: new Date().toISOString() },
+                { onConflict: 'username' }
+            );
+        } catch(e) { console.warn('Supabase push failed:', e); }
+    }
+
     async function syncFromSupabase(username) {
         if (!_sb || !username) return false;
         try {
@@ -4542,7 +4556,7 @@
         if (!file) return;
 
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
             let data;
             try { data = JSON.parse(e.target.result); } catch { alert('⚠ Fichier JSON invalide.'); input.value = ''; return; }
 
@@ -4555,12 +4569,14 @@
                 return;
             }
 
-            noms.forEach(u => {
+            for (const u of noms) {
                 const pronos = data[u];
                 localStorage.setItem(`${u}_mes_pronos_2026`, JSON.stringify(pronos));
                 if (u === CURRENT_USER) CACHE_PRONOS = null;
-                syncToSupabase(u, pronos);
-            });
+                // Push immédiat (sans debounce) : Supabase doit être à jour avant le prochain
+                // fetchAllFromSupabase (toutes les 60s), sinon il écraserait la restauration.
+                await syncToSupabaseNow(u, pronos);
+            }
 
             alert(`✅ Pronos restaurés pour : ${noms.join(', ')}`);
             input.value = '';
