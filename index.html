@@ -4238,7 +4238,13 @@
             ${htmlBracket ? `<div class="admin-section-title" style="margin-top:20px;color:var(--gold);">⚔️ Phase Finale — ${username}</div>${htmlBracket}` : ''}`;
     }
 
-    function adminSetProno(username, key, value) {
+    // Note : ces fonctions admin éditent les pronos d'AUTRES joueurs. Le polling
+    // fetchAllFromSupabase (toutes les 60s) écrase le localStorage de ces joueurs
+    // avec la copie Supabase ("Supabase gagne"). Avec un push debouncé (2s), une
+    // édition admin pouvait être annulée par ce polling avant même d'avoir atteint
+    // Supabase. On utilise donc syncToSupabaseNow (push immédiat, sans debounce)
+    // pour réduire cette fenêtre de course au minimum.
+    async function adminSetProno(username, key, value) {
         const storageKey = `${username}_mes_pronos_2026`;
         const raw = localStorage.getItem(storageKey);
         let data = {};
@@ -4247,10 +4253,10 @@
         data[key] = isNaN(n) ? '' : n;
         localStorage.setItem(storageKey, JSON.stringify(data));
         if (username === CURRENT_USER) { CACHE_PRONOS = null; }
-        syncToSupabase(username, data);
+        await syncToSupabaseNow(username, data);
     }
 
-    function adminSetPronoKO(username, phaseId, matchId, side, tiroir, value) {
+    async function adminSetPronoKO(username, phaseId, matchId, side, tiroir, value) {
         const storageKey = `${username}_mes_pronos_2026`;
         let pronos = {};
         try { pronos = JSON.parse(localStorage.getItem(storageKey) || '{}'); } catch {}
@@ -4264,10 +4270,10 @@
         }
         localStorage.setItem(storageKey, JSON.stringify(pronos));
         if (username === CURRENT_USER) CACHE_PRONOS = null;
-        syncToSupabase(username, pronos);
+        await syncToSupabaseNow(username, pronos);
     }
 
-    function adminToggleWinner(username, phaseId, matchId, side) {
+    async function adminToggleWinner(username, phaseId, matchId, side) {
         const storageKey = `${username}_mes_pronos_2026`;
         let pronos = {};
         try { pronos = JSON.parse(localStorage.getItem(storageKey) || '{}'); } catch {}
@@ -4275,11 +4281,11 @@
         pronos[key] = (pronos[key] === side) ? '' : side;
         localStorage.setItem(storageKey, JSON.stringify(pronos));
         if (username === CURRENT_USER) CACHE_PRONOS = null;
-        syncToSupabase(username, pronos);
+        await syncToSupabaseNow(username, pronos);
         adminVoirPronos(username, false);
     }
 
-    function adminSauvegarderPronos(username) {
+    async function adminSauvegarderPronos(username) {
         const storageKey = `${username}_mes_pronos_2026`;
         let pronos = {};
         try { pronos = JSON.parse(localStorage.getItem(storageKey) || '{}'); } catch {}
@@ -4302,13 +4308,13 @@
 
         localStorage.setItem(storageKey, JSON.stringify(pronos));
         if (username === CURRENT_USER) CACHE_PRONOS = null;
-        syncToSupabase(username, pronos);
+        await syncToSupabaseNow(username, pronos);
 
         const btn = document.getElementById('btn-admin-save-pronos');
         if (btn) { btn.textContent = '✅ Sauvegardé !'; setTimeout(() => { btn.textContent = '💾 Sauvegarder'; }, 2000); }
     }
 
-    function adminSupprimerProno(username, matchId) {
+    async function adminSupprimerProno(username, matchId) {
         if (!confirm(`Supprimer le prono de ${username} pour le match ${matchId} ?`)) return;
         const storageKey = `${username}_mes_pronos_2026`;
         const raw = localStorage.getItem(storageKey);
@@ -4318,7 +4324,7 @@
         delete data[`scoreB_${matchId}`];
         localStorage.setItem(storageKey, JSON.stringify(data));
         if (username === CURRENT_USER) { CACHE_PRONOS = null; }
-        syncToSupabase(username, data);
+        await syncToSupabaseNow(username, data);
         adminVoirPronos(username, false); // refresh
     }
 
