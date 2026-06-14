@@ -864,6 +864,20 @@
         } catch(e) { console.warn('Supabase push failed:', e); }
     }
 
+    // Enregistre une correction admin pour un joueur : marque la version avec
+    // __admin_sync__ (timestamp), écrit en local, puis pousse vers Supabase.
+    // Le marqueur permet à l'appareil de ce joueur de détecter qu'une correction
+    // admin plus récente que sa copie locale existe, et de l'adopter en intégralité
+    // (une seule fois) lors de son prochain fetchAllFromSupabase — sans quoi ses
+    // propres données locales (potentiellement incomplètes) écraseraient
+    // systématiquement la correction de l'admin à chaque sauvegarde de son côté.
+    async function adminPushPronos(username, data) {
+        data.__admin_sync__ = Date.now();
+        localStorage.setItem(`${username}_mes_pronos_2026`, JSON.stringify(data));
+        if (username === CURRENT_USER) CACHE_PRONOS = null;
+        await syncToSupabaseNow(username, data);
+    }
+
     async function syncFromSupabase(username) {
         if (!_sb || !username) return false;
         try {
@@ -894,7 +908,19 @@
                 const local = JSON.parse(localStorage.getItem(cleLocal) || '{}');
 
                 if (row.username === CURRENT_USER) {
-                    // Nos propres données locales restent la référence : on ne les écrase
+                    // Si l'admin a poussé une correction plus récente que notre dernière
+                    // version connue (__admin_sync__), on adopte sa copie en intégralité
+                    // une seule fois — sinon nos données locales (potentiellement
+                    // incomplètes) écraseraient systématiquement sa correction à la
+                    // prochaine sauvegarde de notre côté.
+                    const remoteSync = row.data.__admin_sync__ || 0;
+                    const localSync  = local.__admin_sync__ || 0;
+                    if (remoteSync > localSync) {
+                        localStorage.setItem(cleLocal, JSON.stringify(row.data));
+                        return;
+                    }
+
+                    // Sinon, nos données locales restent la référence : on ne les écrase
                     // jamais. Mais on récupère en complément les clés ABSENTES en local
                     // (ex: pronos saisis par l'admin pour ce joueur, ou pour un tiroir KO,
                     // via Supabase) — fusion purement additive, sans risque d'écraser une
@@ -1677,8 +1703,8 @@
         let aEteNettoye = false;
 
         Object.keys(data).forEach(key => {
-            // --- SÉCURITÉ 1 : On garde toujours les tiroirs (objets) ---
-            if (typeof data[key] === 'object' && data[key] !== null) {
+            // --- SÉCURITÉ 1 : On garde toujours les tiroirs (objets) et le marqueur de sync admin ---
+            if ((typeof data[key] === 'object' && data[key] !== null) || key === '__admin_sync__') {
                 propre[key] = data[key];
                 return;
             }
@@ -4271,9 +4297,7 @@
         try { data = raw ? JSON.parse(raw) : {}; } catch {}
         const n = parseInt(value);
         data[key] = isNaN(n) ? '' : n;
-        localStorage.setItem(storageKey, JSON.stringify(data));
-        if (username === CURRENT_USER) { CACHE_PRONOS = null; }
-        await syncToSupabaseNow(username, data);
+        await adminPushPronos(username, data);
     }
 
     async function adminSetPronoKO(username, phaseId, matchId, side, tiroir, value) {
@@ -4288,9 +4312,7 @@
         } else {
             pronos[key] = isNaN(n) ? '' : n;
         }
-        localStorage.setItem(storageKey, JSON.stringify(pronos));
-        if (username === CURRENT_USER) CACHE_PRONOS = null;
-        await syncToSupabaseNow(username, pronos);
+        await adminPushPronos(username, pronos);
     }
 
     async function adminToggleWinner(username, phaseId, matchId, side) {
@@ -4299,9 +4321,7 @@
         try { pronos = JSON.parse(localStorage.getItem(storageKey) || '{}'); } catch {}
         const key = `winner_${phaseId}_${matchId}`;
         pronos[key] = (pronos[key] === side) ? '' : side;
-        localStorage.setItem(storageKey, JSON.stringify(pronos));
-        if (username === CURRENT_USER) CACHE_PRONOS = null;
-        await syncToSupabaseNow(username, pronos);
+        await adminPushPronos(username, pronos);
         adminVoirPronos(username, false);
     }
 
@@ -4326,9 +4346,7 @@
             }
         });
 
-        localStorage.setItem(storageKey, JSON.stringify(pronos));
-        if (username === CURRENT_USER) CACHE_PRONOS = null;
-        await syncToSupabaseNow(username, pronos);
+        await adminPushPronos(username, pronos);
 
         const btn = document.getElementById('btn-admin-save-pronos');
         if (btn) { btn.textContent = '✅ Sauvegardé !'; setTimeout(() => { btn.textContent = '💾 Sauvegarder'; }, 2000); }
@@ -4342,9 +4360,7 @@
         try { data = raw ? JSON.parse(raw) : {}; } catch {}
         delete data[`scoreA_${matchId}`];
         delete data[`scoreB_${matchId}`];
-        localStorage.setItem(storageKey, JSON.stringify(data));
-        if (username === CURRENT_USER) { CACHE_PRONOS = null; }
-        await syncToSupabaseNow(username, data);
+        await adminPushPronos(username, data);
         adminVoirPronos(username, false); // refresh
     }
 
@@ -4596,12 +4612,10 @@
             }
 
             for (const u of noms) {
-                const pronos = data[u];
-                localStorage.setItem(`${u}_mes_pronos_2026`, JSON.stringify(pronos));
-                if (u === CURRENT_USER) CACHE_PRONOS = null;
-                // Push immédiat (sans debounce) : Supabase doit être à jour avant le prochain
-                // fetchAllFromSupabase (toutes les 60s), sinon il écraserait la restauration.
-                await syncToSupabaseNow(u, pronos);
+                // adminPushPronos : marque la restauration (__admin_sync__), écrit en local
+                // et pousse immédiatement vers Supabase (avant le prochain fetchAllFromSupabase
+                // toutes les 60s, qui sinon écraserait la restauration).
+                await adminPushPronos(u, data[u]);
             }
 
             alert(`✅ Pronos restaurés pour : ${noms.join(', ')}`);
