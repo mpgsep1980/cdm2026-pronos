@@ -890,9 +890,29 @@
             data.forEach(row => {
                 if (!row.username || !row.data) return;
                 if (!users[row.username]) return; // joueur supprimé → on ignore
-                if (row.username === CURRENT_USER) return; // nos propres données locales sont la référence
                 const cleLocal = `${row.username}_mes_pronos_2026`;
                 const local = JSON.parse(localStorage.getItem(cleLocal) || '{}');
+
+                if (row.username === CURRENT_USER) {
+                    // Nos propres données locales restent la référence : on ne les écrase
+                    // jamais. Mais on récupère en complément les clés ABSENTES en local
+                    // (ex: pronos saisis par l'admin pour ce joueur, ou pour un tiroir KO,
+                    // via Supabase) — fusion purement additive, sans risque d'écraser une
+                    // saisie locale récente.
+                    let ajoute = false;
+                    for (const [k, v] of Object.entries(row.data)) {
+                        if (local[k] === undefined) {
+                            local[k] = v; ajoute = true;
+                        } else if (v && typeof v === 'object' && local[k] && typeof local[k] === 'object') {
+                            for (const [k2, v2] of Object.entries(v)) {
+                                if (local[k][k2] === undefined) { local[k][k2] = v2; ajoute = true; }
+                            }
+                        }
+                    }
+                    if (ajoute) localStorage.setItem(cleLocal, JSON.stringify(local));
+                    return;
+                }
+
                 const fusionne = Object.assign({}, local, row.data);
                 localStorage.setItem(cleLocal, JSON.stringify(fusionne));
             });
