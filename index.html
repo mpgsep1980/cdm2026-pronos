@@ -871,11 +871,18 @@
     // (une seule fois) lors de son prochain fetchAllFromSupabase — sans quoi ses
     // propres données locales (potentiellement incomplètes) écraseraient
     // systématiquement la correction de l'admin à chaque sauvegarde de son côté.
+    // File d'attente : garantit que les push Supabase s'exécutent dans l'ordre des
+    // appels. Sans ça, deux modifications rapprochées (ex: scoreA puis scoreB) partent
+    // en parallèle et peuvent répondre dans le désordre — la requête du 1er score
+    // (qui ne contient pas encore le 2e) répondrait après celle du 2e et écraserait
+    // Supabase avec une copie incomplète.
+    let _adminPushChain = Promise.resolve();
     async function adminPushPronos(username, data) {
         data.__admin_sync__ = Date.now();
         localStorage.setItem(`${username}_mes_pronos_2026`, JSON.stringify(data));
         if (username === CURRENT_USER) CACHE_PRONOS = null;
-        await syncToSupabaseNow(username, data);
+        _adminPushChain = _adminPushChain.then(() => syncToSupabaseNow(username, data));
+        await _adminPushChain;
     }
 
     async function syncFromSupabase(username) {
