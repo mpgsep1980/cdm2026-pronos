@@ -3988,10 +3988,18 @@
 
     function adminRenderOnglet(onglet) {
         const zone = document.getElementById('admin-content');
-        if (onglet === 'joueurs')    zone.innerHTML = adminHtmlJoueurs();
-        if (onglet === 'controle')   zone.innerHTML = adminHtmlControle();
-        if (onglet === 'resultats')  zone.innerHTML = adminHtmlResultats();
-        if (onglet === 'export')     zone.innerHTML = adminHtmlExport();
+        if (onglet === 'joueurs')    { zone.innerHTML = adminHtmlJoueurs(); return; }
+        if (onglet === 'controle')   { zone.innerHTML = adminHtmlControle(); return; }
+        // Résultats/Export : affichage immédiat d'un message de chargement, puis rendu
+        // différé au tick suivant — évite un écran blanc pendant le calcul/affichage.
+        if (onglet === 'resultats' || onglet === 'export') {
+            zone.innerHTML = '<p style="color:#888;text-align:center;margin-top:30px;">⏳ Chargement…</p>';
+            setTimeout(() => {
+                if (_adminOnglet !== onglet) return; // l'admin a changé d'onglet pendant le délai
+                if (onglet === 'resultats') zone.innerHTML = adminHtmlResultats();
+                if (onglet === 'export')    zone.innerHTML = adminHtmlExport();
+            }, 0);
+        }
     }
 
     // ── ONGLET JOUEURS ────────────────────────────────────────────────────
@@ -4547,13 +4555,36 @@
     }
 
     // ── ONGLET EXPORT ─────────────────────────────────────────────────────
+    // Les dumps JSON (pronos de tous les joueurs, resultats.js) ne sont générés
+    // qu'à la demande (bouton "Générer") : avec ~25 joueurs, les calculer et les
+    // injecter dans des <textarea> à chaque ouverture de l'onglet rendait
+    // l'affichage très lent.
     function adminHtmlExport() {
+        return `
+        <div class="admin-section-title">Export pronos (tous les joueurs)</div>
+        <button class="admin-btn" style="background:#1a3a1a;color:#4ade80;border-color:#4ade80;margin-bottom:8px;" onclick="adminTelechargerBackup()">💾 Télécharger backup JSON</button>
+        <input type="file" id="import-backup-file" accept="application/json" style="display:none" onchange="adminImporterBackup(this)">
+        <button class="admin-btn" style="background:#1a1a3a;color:#93c5fd;border-color:#93c5fd;margin-bottom:8px;" onclick="document.getElementById('import-backup-file').click()">📂 Importer backup JSON</button>
+        <button class="admin-btn admin-btn-info" onclick="adminGenererExportJson()" style="margin-bottom:8px;">📋 Générer + copier JSON</button>
+        <textarea id="export-json" readonly placeholder="Clique sur « Générer + copier JSON » pour afficher les données." style="width:100%;height:120px;background:#0d0d0d;color:#4ade80;border:1px solid #333;border-radius:4px;font-family:monospace;font-size:0.7em;padding:8px;"></textarea>
+
+        <div class="admin-section-title" style="margin-top:16px;">Contenu resultats.js (à copier dans le fichier)</div>
+        <button class="admin-btn admin-btn-info" onclick="adminGenererExportResultats()" style="margin-bottom:8px;">📋 Générer + copier resultats.js</button>
+        <textarea id="export-resultats" readonly placeholder="Clique sur « Générer + copier resultats.js » pour afficher le contenu." style="width:100%;height:150px;background:#0d0d0d;color:#fbbf24;border:1px solid #333;border-radius:4px;font-family:monospace;font-size:0.7em;padding:8px;"></textarea>`;
+    }
+
+    function adminGenererExportJson() {
         const users = JSON.parse(localStorage.getItem('liste_utilisateurs_2026')) || {};
         const allData = {};
         Object.keys(users).forEach(u => {
             try { allData[u] = JSON.parse(localStorage.getItem(`${u}_mes_pronos_2026`) || '{}'); } catch {}
         });
+        const ta = document.getElementById('export-json');
+        ta.value = JSON.stringify(allData, null, 2);
+        navigator.clipboard.writeText(ta.value).then(() => alert('Copié !'));
+    }
 
+    function adminGenererExportResultats() {
         const scoresJs = Object.entries(OFFICIEL_2026.scores).map(([id, s]) => {
             const t = s.termine ? 'true' : 'false';
             const l = s.live ? 'true' : 'false';
@@ -4564,19 +4595,9 @@
         const qualifJs = Object.entries(OFFICIEL_2026.qualifies || {}).map(([k,v]) =>
             `OFFICIEL_2026.qualifies["${k}"] = "${v}";`).join('\n');
 
-        const resultatsJs = `// resultats.js\n\n// === PHASE DE GROUPES ===\n${scoresJs}\n\n// === QUALIFIÉS 1/16e ===\n${qualifJs || '// (vide)'}`;
-
-        return `
-        <div class="admin-section-title">Export pronos (tous les joueurs)</div>
-        <button class="admin-btn admin-btn-info" onclick="navigator.clipboard.writeText(document.getElementById('export-json').value).then(()=>alert('Copié!'))" style="margin-bottom:8px;">📋 Copier JSON</button>
-        <button class="admin-btn" style="background:#1a3a1a;color:#4ade80;border-color:#4ade80;margin-bottom:8px;" onclick="adminTelechargerBackup()">💾 Télécharger backup JSON</button>
-        <input type="file" id="import-backup-file" accept="application/json" style="display:none" onchange="adminImporterBackup(this)">
-        <button class="admin-btn" style="background:#1a1a3a;color:#93c5fd;border-color:#93c5fd;margin-bottom:8px;" onclick="document.getElementById('import-backup-file').click()">📂 Importer backup JSON</button>
-        <textarea id="export-json" readonly style="width:100%;height:120px;background:#0d0d0d;color:#4ade80;border:1px solid #333;border-radius:4px;font-family:monospace;font-size:0.7em;padding:8px;">${JSON.stringify(allData, null, 2)}</textarea>
-
-        <div class="admin-section-title" style="margin-top:16px;">Contenu resultats.js (à copier dans le fichier)</div>
-        <button class="admin-btn admin-btn-info" onclick="navigator.clipboard.writeText(document.getElementById('export-resultats').value).then(()=>alert('Copié!'))" style="margin-bottom:8px;">📋 Copier resultats.js</button>
-        <textarea id="export-resultats" readonly style="width:100%;height:150px;background:#0d0d0d;color:#fbbf24;border:1px solid #333;border-radius:4px;font-family:monospace;font-size:0.7em;padding:8px;">${resultatsJs}</textarea>`;
+        const ta = document.getElementById('export-resultats');
+        ta.value = `// resultats.js\n\n// === PHASE DE GROUPES ===\n${scoresJs}\n\n// === QUALIFIÉS 1/16e ===\n${qualifJs || '// (vide)'}`;
+        navigator.clipboard.writeText(ta.value).then(() => alert('Copié !'));
     }
 
     // Télécharge un fichier JSON avec les pronos de tous les joueurs (snapshot de secours)
