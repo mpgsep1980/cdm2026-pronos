@@ -4518,13 +4518,24 @@
             </tr>`;
         }).join('');
 
+        // Sélecteur : matchs sans score officiel, triés par date (les plus récents en premier)
+        const matchsSansScore = CALENDRIER_CDM
+            .filter(m => !scores[m.id])
+            .sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+        const optionsSelect = matchsSansScore.map(m =>
+            `<option value="${m.id}">${m.equipeA} - ${m.equipeB} (${m.date || m.groupe})</option>`
+        ).join('');
+
         const addForm = `
-        <div class="admin-section-title">Ajouter / modifier un score</div>
+        <div class="admin-section-title">Ajouter un score manquant</div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
-            <input id="adm-score-id" placeholder="ID match" style="width:90px;background:#1a1a1a;color:#ddd;border:1px solid #444;border-radius:4px;padding:4px 6px;font-size:0.8em;">
-            <input id="adm-score-a" type="number" placeholder="sA" min="0" max="20" style="width:48px;background:#1a1a1a;color:#ddd;border:1px solid #444;border-radius:4px;padding:4px 6px;font-size:0.8em;">
+            <select id="adm-score-id" style="background:#1a1a1a;color:#ddd;border:1px solid #444;border-radius:4px;padding:4px 6px;font-size:0.8em;max-width:220px;">
+                <option value="">— choisir un match —</option>
+                ${optionsSelect}
+            </select>
+            <input id="adm-score-a" type="number" placeholder="But A" min="0" max="20" style="width:54px;background:#1a1a1a;color:#ddd;border:1px solid #444;border-radius:4px;padding:4px 6px;font-size:0.8em;">
             <span style="color:#666">-</span>
-            <input id="adm-score-b" type="number" placeholder="sB" min="0" max="20" style="width:48px;background:#1a1a1a;color:#ddd;border:1px solid #444;border-radius:4px;padding:4px 6px;font-size:0.8em;">
+            <input id="adm-score-b" type="number" placeholder="But B" min="0" max="20" style="width:54px;background:#1a1a1a;color:#ddd;border:1px solid #444;border-radius:4px;padding:4px 6px;font-size:0.8em;">
             <label style="color:#888;font-size:0.78em;display:flex;align-items:center;gap:3px;">
                 <input type="checkbox" id="adm-score-termine" checked> Terminé
             </label>
