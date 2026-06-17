@@ -1,0 +1,59 @@
+name: Mise à jour résultats CDM 2026
+
+on:
+  schedule:
+    # Toutes les 5 minutes (minimum GitHub Actions)
+    - cron: '*/5 * * * *'
+  # Déclenchement manuel depuis l'onglet Actions sur GitHub
+  workflow_dispatch:
+
+# Empêche deux runs simultanés (si un job prend > 5 min)
+concurrency:
+  group: update-resultats
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        # GITHUB_TOKEN par défaut : permet le git push dans le script
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-playwright-${{ runner.os }}
+
+      - name: Install playwright
+        run: pip install playwright
+
+      - name: Cache Playwright Chromium
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-v1
+
+      - name: Install Chromium (+ dépendances système)
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: playwright install --with-deps chromium
+
+      - name: Install system deps only (cache hit)
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: playwright install-deps chromium
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch et mise à jour résultats
+        run: python fetch_resultats.py --no-wa
