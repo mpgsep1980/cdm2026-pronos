@@ -910,6 +910,15 @@
             const users = JSON.parse(localStorage.getItem('liste_utilisateurs_2026') || '{}');
             data.forEach(row => {
                 if (!row.username || !row.data) return;
+
+                // Ligne spéciale : corrections de scores saisies manuellement par l'admin
+                if (row.username === '__resultats__') {
+                    _adminScoreOverrides = Object.assign({}, row.data);
+                    localStorage.setItem('admin_scores_overrides_2026', JSON.stringify(_adminScoreOverrides));
+                    Object.assign(OFFICIEL_2026.scores, _adminScoreOverrides);
+                    return;
+                }
+
                 if (!users[row.username]) return; // joueur supprimé → on ignore
                 const cleLocal = `${row.username}_mes_pronos_2026`;
                 const local = JSON.parse(localStorage.getItem(cleLocal) || '{}');
@@ -4531,14 +4540,33 @@
         ${addForm}`;
     }
 
+    // Corrections manuelles de l'admin : persistent via localStorage + Supabase
+    // (__resultats__) pour survivre au rechargement de resultats.js (60s) et se
+    // propager aux autres clients via fetchAllFromSupabase.
+    let _adminScoreOverrides = JSON.parse(localStorage.getItem('admin_scores_overrides_2026') || '{}');
+
+    function _sauvegarderScoresAdmin() {
+        localStorage.setItem('admin_scores_overrides_2026', JSON.stringify(_adminScoreOverrides));
+        if (_sb) {
+            _sb.from('pronos').upsert(
+                { username: '__resultats__', data: _adminScoreOverrides, updated_at: new Date().toISOString() },
+                { onConflict: 'username' }
+            ).catch(e => console.warn('admin scores push failed:', e));
+        }
+    }
+
     function adminSetScore(id, champ, val) {
         if (!OFFICIEL_2026.scores[id]) OFFICIEL_2026.scores[id] = { sA:0, sB:0, termine:true };
         OFFICIEL_2026.scores[id][champ] = parseInt(val) || 0;
+        _adminScoreOverrides[id] = { ...OFFICIEL_2026.scores[id] };
+        _sauvegarderScoresAdmin();
         updateAll();
     }
 
     function adminSupprimerScore(id) {
         delete OFFICIEL_2026.scores[id];
+        delete _adminScoreOverrides[id];
+        _sauvegarderScoresAdmin();
         updateAll();
         adminRenderOnglet('resultats');
     }
@@ -4550,6 +4578,8 @@
         const termine = document.getElementById('adm-score-termine').checked;
         if (!id || isNaN(sA) || isNaN(sB)) { alert('ID et scores requis.'); return; }
         OFFICIEL_2026.scores[id] = { sA, sB, termine, live: false };
+        _adminScoreOverrides[id] = { sA, sB, termine, live: false };
+        _sauvegarderScoresAdmin();
         updateAll();
         adminRenderOnglet('resultats');
     }
@@ -5743,6 +5773,10 @@
         scriptTag = document.createElement('script');
         scriptTag.src = 'resultats.js?t=' + Date.now();
         scriptTag.onload = () => {
+            // Réapplique les corrections manuelles de l'admin par-dessus resultats.js
+            if (typeof _adminScoreOverrides !== 'undefined') {
+                Object.assign(OFFICIEL_2026.scores, _adminScoreOverrides);
+            }
             migrerPronos();
             updateAll();
             majBadgeLive();
