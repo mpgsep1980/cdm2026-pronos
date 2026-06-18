@@ -1,10 +1,10 @@
-// resultats.js — Généré le 18/06/2026 18:22 par fetch_resultats.py
+// resultats.js — Généré le 18/06/2026 18:23 par fetch_resultats.py
 // NE PAS ÉDITER MANUELLEMENT
 
 // === PHASE DE GROUPES ===
 OFFICIEL_2026.scores["686902"] = { sA: 2, sB: 0, termine: true, live: false };
 OFFICIEL_2026.scores["686903"] = { sA: 2, sB: 1, termine: true, live: false };
-OFFICIEL_2026.scores["686904"] = { sA: 1, sB: 0, termine: false, live: true, statut: "21'" };
+OFFICIEL_2026.scores["686904"] = { sA: 1, sB: 0, termine: true, live: false, statut: "Terminé" };
 OFFICIEL_2026.scores["686908"] = { sA: 1, sB: 1, termine: true, live: false };
 OFFICIEL_2026.scores["686909"] = { sA: 1, sB: 1, termine: true, live: false };
 OFFICIEL_2026.scores["686914"] = { sA: 1, sB: 1, termine: true, live: false };
@@ -24,7 +24,9 @@ OFFICIEL_2026.scores["686951"] = { sA: 3, sB: 1, termine: true, live: false };
 OFFICIEL_2026.scores["686956"] = { sA: 3, sB: 1, termine: true, live: false };
 OFFICIEL_2026.scores["686957"] = { sA: 3, sB: 0, termine: true, live: false };
 OFFICIEL_2026.scores["686962"] = { sA: 1, sB: 1, termine: true, live: false };
+OFFICIEL_2026.scores["686963"] = { sA: 1, sB: 3, termine: true, live: false };
 OFFICIEL_2026.scores["686968"] = { sA: 4, sB: 2, termine: true, live: false };
+OFFICIEL_2026.scores["686969"] = { sA: 1, sB: 0, termine: true, live: false };
 
 // === TABLEAU 1/16e (alimenté manuellement après les groupes) ===
 // OFFICIEL_2026.qualifies["team_16_687045_A"] = "Mexique";
