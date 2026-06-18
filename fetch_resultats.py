@@ -40,7 +40,7 @@ URL_CDM = "https://www.lequipe.fr/Directs"
 
 # URL du calendrier général CDM 2026 (tous les matchs, scores finaux inclus)
 # Utile pour récupérer un résultat a posteriori sans laisser tourner le watch live
-URL_CALENDRIER = "https://www.lequipe.fr/Football/coupe-du-monde/page-calendrier-general"
+URL_CALENDRIER = "https://www.lequipe.fr/Football/coupe-du-monde/page-calendrier-resultats"
 
 # Intervalle en minutes entre deux passes en mode --watch
 INTERVALLE_MIN = 2
@@ -114,8 +114,8 @@ SEL_SCORE_A   = ".TeamScore__score--home"
 SEL_SCORE_B   = ".TeamScore__score--away"
 SEL_STATUT    = ".TeamScore__status, .EventCard__status, .LiveCard__status"
 
-# Sélecteur des cartes de match sur la page calendrier général
-SEL_CARTE_CALENDRIER = ".CalendarGeneral__match"
+# Sélecteur des cartes de match sur la page calendrier-résultats
+SEL_CARTE_CALENDRIER = ".TeamScore"
 
 # ── UTILITAIRES ──────────────────────────────────────────────────────────────
 
