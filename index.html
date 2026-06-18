@@ -4032,6 +4032,7 @@
                     <button class="admin-btn admin-btn-info" onclick="adminVoirPronos('${u}')">👁 Pronos</button>
                     <button class="admin-btn" style="background:#1a1a2a;color:#93c5fd;border-color:#93c5fd;" onclick="adminChangerMotDePasse('${u}')" title="${!users[u]?.password ? '⚠ Aucun mot de passe' : 'Changer le mot de passe'}">🔑${!users[u]?.password ? ' ⚠' : ''}</button>
                     <button class="admin-btn" style="background:#1a3a1a;color:#4ade80;" onclick="adminResetJoueur('${u}')">🔄 Reset phase</button>
+                    <button class="admin-btn" style="background:#2a2a1a;color:#fbbf24;border-color:#fbbf24;" onclick="adminRenommerJoueur('${u}')">✏️ Pseudo</button>
                     ${u !== CURRENT_USER ? `<button class="admin-btn admin-btn-del" onclick="adminSupprimerJoueur('${u}')">🗑 Supprimer</button>` : ''}
                 </td>
             </tr>`;
@@ -4058,6 +4059,49 @@
         await syncUsersToSupabase();
         adminRenderOnglet('joueurs');
         alert(`✅ Mot de passe de "${username}" mis à jour.`);
+    }
+
+    async function adminRenommerJoueur(oldName) {
+        const newName = prompt(`Nouveau pseudo pour "${oldName}" :`);
+        if (!newName || !newName.trim()) return;
+        const trimmed = newName.trim();
+
+        const users = JSON.parse(localStorage.getItem('liste_utilisateurs_2026') || '{}');
+        if (users[trimmed]) { alert(`Le pseudo "${trimmed}" est déjà pris.`); return; }
+        if (!confirm(`Renommer "${oldName}" en "${trimmed}" ?\nTous les pronos et données seront transférés.`)) return;
+
+        // 1. liste_utilisateurs_2026
+        users[trimmed] = users[oldName];
+        delete users[oldName];
+        localStorage.setItem('liste_utilisateurs_2026', JSON.stringify(users));
+
+        // 2. Clés localStorage liées au joueur
+        const suffixes = ['mes_pronos_2026', 'mes_projections_fantomes', 'mes_fantomes_verrouilles', 'bracket_session_start'];
+        for (const s of suffixes) {
+            const val = localStorage.getItem(`${oldName}_${s}`);
+            if (val !== null) {
+                localStorage.setItem(`${trimmed}_${s}`, val);
+                localStorage.removeItem(`${oldName}_${s}`);
+            }
+        }
+
+        // 3. Si c'est l'utilisateur connecté, mettre à jour la session
+        if (CURRENT_USER === oldName) {
+            CURRENT_USER = trimmed;
+            localStorage.setItem('current_user', trimmed);
+            CACHE_PRONOS = null;
+        }
+
+        // 4. Supabase : renommer la ligne pronos + mettre à jour la liste users
+        if (_sb) {
+            try {
+                await _sb.from('pronos').update({ username: trimmed }).eq('username', oldName);
+                await syncUsersToSupabase();
+            } catch(e) { console.warn('Supabase rename failed:', e); }
+        }
+
+        alert(`✅ "${oldName}" renommé en "${trimmed}"`);
+        adminRenderOnglet('joueurs');
     }
 
     async function adminRecupererProfils() {
