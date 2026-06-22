@@ -2613,7 +2613,7 @@
                             <span style="font-weight:bold; font-size:${isPodium ? '1.05rem' : '0.95rem'}; color:${isMe ? '#4ade80' : '#eee'};">
                                 ${s.name}${isMe ? ' <span style="font-size:0.7rem;color:#4ade80;font-weight:normal;">(moi)</span>' : ''}
                             </span>
-                            ${s.meilleurProno.pts > 0 ? `<span style="font-size:0.7rem;color:#888;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;" title="Meilleur prono : ${s.meilleurProno.match}">⭐ +${s.meilleurProno.pts} pts</span>` : ''}
+                            ${s.meilleurProno.pts > 0 ? `<span style="font-size:0.7rem;color:#888;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;" title="Meilleur prono : ${s.meilleurProno.match}">⭐ best ${s.meilleurProno.pts} pts</span>` : ''}
                         </div>
 
                         <!-- Barre composite -->
