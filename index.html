@@ -3616,12 +3616,18 @@
             return ts(a).localeCompare(ts(b));
         });
 
-        // Journées pour le calcul des remontées/descentes
-        const journees = ['1re journée', '2e journée', '3e journée'];
+        // Jours calendaires ayant au moins un match terminé (pour Jésus / Fers)
+        const datesUniques = [...new Set(matchsTermines.map(m => {
+            const ts = m.timestamp || '';
+            return ts.split(' ')[0]; // "11/06/2026"
+        }))].filter(Boolean).sort((a, b) => {
+            const [dA, mA, yA] = a.split('/'); const [dB, mB, yB] = b.split('/');
+            return (yA + mA + dA).localeCompare(yB + mB + dB);
+        });
 
         // ── Collecte des stats par joueur ────────────────────────────────────
         const stats = {};
-        const ptsCumulParJournee = {}; // u -> [ptsJ1, ptsJ1+J2, ptsJ1+J2+J3]
+        const ptsCumulParDate = {}; // u -> [ptsCumul_date1, ptsCumul_date2, ...]
 
         userList.forEach(u => {
             const pronos = JSON.parse(localStorage.getItem(u + '_mes_pronos_2026')) || {};
@@ -3632,12 +3638,12 @@
             let kamikazes = 0, senateurs = 0;
             let meilleurGain = 0, plusPetitGain = Infinity;
 
-            // Cumul par journée (pour Jesus / Fers)
+            // Cumul par jour calendaire (pour Jésus / Fers)
             let cumulJ = 0;
-            const cumulParJournee = journees.map(jour => {
-                const matchsJour = matchsTermines.filter(m => (m.date || '').includes(
-                    jour === '1re journée' ? '1re' : jour === '2e journée' ? '2e' : '3e'
-                ));
+            const cumulParDate = datesUniques.map(dateStr => {
+                const matchsJour = matchsTermines.filter(m =>
+                    (m.timestamp || '').startsWith(dateStr)
+                );
                 matchsJour.forEach(m => {
                     const off = OFFICIEL_2026.scores[m.id];
                     const pA = parseInt(pronos[`scoreA_${m.id}`]);
@@ -3653,7 +3659,7 @@
                 });
                 return cumulJ;
             });
-            ptsCumulParJournee[u] = cumulParJournee;
+            ptsCumulParDate[u] = cumulParDate;
 
             matchsTermines.forEach(m => {
                 const off = OFFICIEL_2026.scores[m.id];
@@ -3710,28 +3716,27 @@
             };
         });
 
-        // ── Remontées / Descentes par journée (en PLACES au classement) ────────
-        // Rang de chaque joueur à la fin de chaque journée
-        const rangsParJournee = {}; // u -> [rangJ1, rangJ2, rangJ3]
-        userList.forEach(u => { rangsParJournee[u] = []; });
+        // ── Remontées / Descentes par jour calendaire (en PLACES au classement) ──
+        const rangsParDate = {}; // u -> [rang_date1, rang_date2, ...]
+        userList.forEach(u => { rangsParDate[u] = []; });
 
-        journees.forEach((_, jIdx) => {
+        datesUniques.forEach((_, dIdx) => {
             const sorted = [...userList].sort((a, b) =>
-                (ptsCumulParJournee[b]?.[jIdx] ?? 0) - (ptsCumulParJournee[a]?.[jIdx] ?? 0)
+                (ptsCumulParDate[b]?.[dIdx] ?? 0) - (ptsCumulParDate[a]?.[dIdx] ?? 0)
             );
-            sorted.forEach((u, rankIdx) => { rangsParJournee[u][jIdx] = rankIdx + 1; });
+            sorted.forEach((u, rankIdx) => { rangsParDate[u][dIdx] = rankIdx + 1; });
         });
 
-        const maxRemontee = {}; // u -> max places gagnées en une journée
-        const maxDescente = {}; // u -> max places perdues en une journée
+        const maxRemontee = {};
+        const maxDescente = {};
         userList.forEach(u => { maxRemontee[u] = 0; maxDescente[u] = 0; });
 
-        journees.forEach((_, jIdx) => {
-            if (jIdx === 0) return;
+        datesUniques.forEach((_, dIdx) => {
+            if (dIdx === 0) return;
             userList.forEach(u => {
-                const rangAvant = rangsParJournee[u][jIdx - 1] ?? userList.length;
-                const rangApres = rangsParJournee[u][jIdx]     ?? userList.length;
-                const delta = rangAvant - rangApres; // positif = montée (rang plus petit = mieux)
+                const rangAvant = rangsParDate[u][dIdx - 1] ?? userList.length;
+                const rangApres = rangsParDate[u][dIdx]     ?? userList.length;
+                const delta = rangAvant - rangApres;
                 if (delta > maxRemontee[u]) maxRemontee[u] =  delta;
                 if (delta < 0 && -delta > maxDescente[u]) maxDescente[u] = -delta;
             });
