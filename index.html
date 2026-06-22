@@ -2568,6 +2568,22 @@
 
         scores.sort((a, b) => b.total - a.total);
 
+        // ── Delta points : évolution depuis la dernière mise à jour de resultats.js ──
+        const _fp = Object.entries(OFFICIEL_2026.scores || {})
+            .filter(([_, s]) => s && (s.termine || s.live))
+            .map(([id, s]) => `${id}:${s.sA}-${s.sB}${s.termine ? 'T' : 'L'}`)
+            .sort().join('|');
+        const _snap = JSON.parse(localStorage.getItem('classement_pts_snapshot_2026') || '{}');
+        let _refPts = _snap.reference || {};
+        if (_fp !== (_snap.fingerprint || '')) {
+            _refPts = _snap.current || {};
+            _snap.reference = _refPts;
+            _snap.current = {};
+            scores.forEach(s => { _snap.current[s.name] = s.total; });
+            _snap.fingerprint = _fp;
+            localStorage.setItem('classement_pts_snapshot_2026', JSON.stringify(_snap));
+        }
+
         const maxPts = Math.max(...scores.map(s => s.total), 1);
         const podiumStyle = ['🥇','🥈','🥉'];
         const podiumBg    = [
@@ -2627,10 +2643,18 @@
                         </div>
                     </div>
 
-                    <!-- Total + bouton stats -->
+                    <!-- Total + delta + bouton stats -->
                     <div style="text-align:right; flex-shrink:0; display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
                         <div style="font-size:${isPodium ? '1.5rem' : '1.25rem'}; font-weight:bold; color:${isPodium ? podiumBorder[i] : (isMe ? '#4ade80' : '#ddd')}; font-family:monospace; line-height:1;">
-                            ${s.total}
+                            ${s.total}${(() => {
+                                const prev = _refPts[s.name];
+                                if (prev === undefined) return '';
+                                const dt = s.total - prev;
+                                if (dt === 0) return '';
+                                return dt > 0
+                                    ? ` <span style="color:#4ade80;font-size:0.7rem;">+${dt}</span>`
+                                    : ` <span style="color:#f87171;font-size:0.7rem;">${dt}</span>`;
+                            })()}
                         </div>
                         <div style="font-size:0.65rem; color:#555;">pts</div>
                         <button onclick="ouvrirStatsJoueur('${s.name.replace(/'/g,"\\'")}', ${i})"
