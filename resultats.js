@@ -1,4 +1,4 @@
-// resultats.js — Généré le 23/06/2026 20:56 par fetch_resultats.py
+// resultats.js — Généré le 23/06/2026 20:58 par fetch_resultats.py
 // NE PAS ÉDITER MANUELLEMENT
 
 // === PHASE DE GROUPES ===
@@ -44,7 +44,7 @@ OFFICIEL_2026.scores["686958"] = { sA: 2, sB: 0, termine: true, live: false };
 OFFICIEL_2026.scores["686959"] = { sA: 1, sB: 2, termine: true, live: false };
 OFFICIEL_2026.scores["686962"] = { sA: 1, sB: 1, termine: true, live: false };
 OFFICIEL_2026.scores["686963"] = { sA: 1, sB: 3, termine: true, live: false };
-OFFICIEL_2026.scores["686964"] = { sA: 5, sB: 0, termine: false, live: true, statut: "90' + 1" };
+OFFICIEL_2026.scores["686964"] = { sA: 5, sB: 0, termine: false, live: true, statut: "90' + 3" };
 OFFICIEL_2026.scores["686968"] = { sA: 4, sB: 2, termine: true, live: false };
 OFFICIEL_2026.scores["686969"] = { sA: 1, sB: 0, termine: true, live: false };
 
