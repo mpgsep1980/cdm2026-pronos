@@ -1254,6 +1254,91 @@
         return "En attente";
     }
 
+    // Reconstruit le bracket KO réel depuis les résultats officiels (OFFICIEL_2026.scores).
+    // Retourne un map matchId → { realA, realB } pour tous les matchs KO.
+    function calculerBracketReel() {
+        const groupesReels = {};
+        CALENDRIER_CDM.forEach(m => {
+            if (!m.groupe || m.groupe.toLowerCase().includes("finale") || m.groupe.startsWith("1/")) return;
+            const gCode = m.groupe.replace("Groupe ", "").trim();
+            if (!groupesReels[gCode]) groupesReels[gCode] = {};
+            [m.equipeA, m.equipeB].forEach(e => {
+                if (!groupesReels[gCode][e]) groupesReels[gCode][e] = { nom: e, pts: 0, bp: 0, bc: 0, diff: 0, mj: 0 };
+            });
+            const off = OFFICIEL_2026.scores[m.id];
+            if (off && (off.termine || off.live)) {
+                const tA = groupesReels[gCode][m.equipeA], tB = groupesReels[gCode][m.equipeB];
+                tA.mj++; tB.mj++;
+                tA.bp += off.sA; tA.bc += off.sB; tB.bp += off.sB; tB.bc += off.sA;
+                if (off.sA > off.sB) tA.pts += 3;
+                else if (off.sB > off.sA) tB.pts += 3;
+                else { tA.pts++; tB.pts++; }
+                tA.diff = tA.bp - tA.bc; tB.diff = tB.bp - tB.bc;
+            }
+        });
+        const resTries = {};
+        let troisiemes = [];
+        Object.keys(groupesReels).sort().forEach(g => {
+            const tri = Object.values(groupesReels[g]).sort((a, b) => b.pts - a.pts || b.diff - a.diff || b.bp - a.bp);
+            resTries[g] = tri;
+            if (tri[2]) troisiemes.push({ ...tri[2], groupe: g });
+        });
+        const top8 = troisiemes.sort((a, b) => b.pts - a.pts || b.diff - a.diff || b.bp - a.bp).slice(0, 8);
+        const affiches16 = genererAffiches16emes(resTries, top8);
+
+        const reel = {};
+        affiches16.forEach(a => { reel[a.id] = { realA: a.t1.nom, realB: a.t2.nom }; });
+
+        const winnerOf = (mid) => {
+            const r = reel[mid];
+            if (!r) return null;
+            const off = OFFICIEL_2026.scores[String(mid)];
+            if (!off || !off.termine) return null;
+            if (off.vainqueur === 'A') return r.realA;
+            if (off.vainqueur === 'B') return r.realB;
+            if (off.sA > off.sB) return r.realA;
+            if (off.sB > off.sA) return r.realB;
+            return null;
+        };
+        const loserOf = (mid) => {
+            const r = reel[mid];
+            if (!r) return null;
+            const w = winnerOf(mid);
+            if (!w) return null;
+            return w === r.realA ? r.realB : r.realA;
+        };
+
+        const cascadeMaps = [
+            { src: [687045,687060], map: MAP_16_VERS_8 },
+            { src: [687061,687068], map: MAP_8_VERS_4 },
+            { src: [687069,687072], map: MAP_4_VERS_2 },
+        ];
+        cascadeMaps.forEach(({ map }) => {
+            Object.entries(map).forEach(([srcId, { nextId, nextSide }]) => {
+                const w = winnerOf(parseInt(srcId));
+                if (!w) return;
+                if (!reel[nextId]) reel[nextId] = { realA: '', realB: '' };
+                if (nextSide === 't1') reel[nextId].realA = w;
+                else reel[nextId].realB = w;
+            });
+        });
+        // Petite finale + Finale (perdants/vainqueurs des demies)
+        [687073, 687074].forEach(demiId => {
+            const w = winnerOf(demiId);
+            const l = loserOf(demiId);
+            if (w) {
+                if (!reel[687076]) reel[687076] = { realA: '', realB: '' };
+                if (demiId === 687073) reel[687076].realA = w; else reel[687076].realB = w;
+            }
+            if (l) {
+                if (!reel[687075]) reel[687075] = { realA: '', realB: '' };
+                if (demiId === 687073) reel[687075].realA = l; else reel[687075].realB = l;
+            }
+        });
+
+        return reel;
+    }
+
     // Reconstruit les 16 affiches du 1/16e à partir des pronos de poules d'un joueur quelconque
     // (utilisé par l'admin pour afficher les vrais noms d'équipes même si le joueur
     // n'a jamais ouvert l'écran bracket).
@@ -4296,6 +4381,10 @@
             { id:'f',  debut:687076, fin:687076, label:'Finale'           },
         ];
 
+        // Bracket réel depuis les résultats officiels
+        let bracketReel = {};
+        try { bracketReel = calculerBracketReel(); } catch(e) { console.warn('Bracket réel échoué:', e); }
+
         // Reconstruction des affiches du 1/16e depuis les pronos de poules,
         // pour afficher les vrais noms même si le joueur n'a jamais ouvert le bracket
         let affiches16 = null;
@@ -4330,8 +4419,6 @@
                 }
 
                 const winner = pronos[`winner_${phaseId}_${matchId}`] || '';
-                // Si le joueur n'a jamais ouvert l'écran bracket, les noms d'équipes ne sont pas connus
-                // mais son pronostic (vainqueur A/B) existe quand même : on l'affiche avec des noms génériques.
                 if (!nomA && !nomB && !winner) continue;
 
                 const scoreA = tiroirData[`score_${phaseId}_${matchId}_A`] ?? tiroirDataAlt[`score_${phaseId}_${matchId}_A`] ?? pronos[`score_${phaseId}_${matchId}_A`] ?? '';
@@ -4340,11 +4427,29 @@
                 const labelA = nomA || 'Équipe A';
                 const labelB = nomB || 'Équipe B';
 
+                // Match réel (depuis les résultats officiels)
+                const reel = bracketReel[matchId];
+                const reelA = reel?.realA || '?';
+                const reelB = reel?.realB || '?';
+                const reelEstConnu = reel && !estPlaceholder(reelA) && !estPlaceholder(reelB);
+
+                // Vainqueur officiel (score ou TAB)
+                const offMatch = OFFICIEL_2026.scores[String(matchId)];
+                let reelWinner = '';
+                if (offMatch && offMatch.termine && reelEstConnu) {
+                    if (offMatch.sA > offMatch.sB) reelWinner = 'A';
+                    else if (offMatch.sB > offMatch.sA) reelWinner = 'B';
+                    else if (offMatch.vainqueur) reelWinner = offMatch.vainqueur;
+                }
+                const colorReelA = reelWinner === 'A' ? '#4ade80;font-weight:bold' : reelEstConnu ? '#00d4ff' : '#555';
+                const colorReelB = reelWinner === 'B' ? '#4ade80;font-weight:bold' : reelEstConnu ? '#00d4ff' : '#555';
+                const tabLabel = (offMatch && offMatch.termine && offMatch.sA === offMatch.sB && offMatch.vainqueur) ? ' <span style="color:#fbbf24;font-size:0.65em;">(TAB)</span>' : '';
+
                 const btnA = `padding:3px 8px;border-radius:4px;cursor:pointer;font-size:0.72em;font-weight:bold;border:1px solid #555;background:${winner==='A'?'#1a3a1a':'#111'};color:${winner==='A'?'#4ade80':'#555'};`;
                 const btnB = `padding:3px 8px;border-radius:4px;cursor:pointer;font-size:0.72em;font-weight:bold;border:1px solid #555;background:${winner==='B'?'#1a3a1a':'#111'};color:${winner==='B'?'#4ade80':'#555'};`;
 
                 rows += `<tr style="border-bottom:1px solid #1a1a1a;">
-                    <td style="font-size:0.78em;color:#ddd;padding:5px 6px;">${labelA}</td>
+                    <td style="font-size:0.75em;color:${colorReelA};padding:5px 4px;white-space:nowrap;">${reelA}</td>
                     <td><input type="number" value="${scoreA}" min="0" max="20"
                         class="admin-prono-ko" data-phase="${phaseId}" data-match="${matchId}" data-side="A" data-tiroir="${tiroir}"
                         style="width:32px;background:#1a1a1a;color:white;border:1px solid #333;border-radius:3px;text-align:center;font-size:0.82em;"
@@ -4354,7 +4459,7 @@
                         class="admin-prono-ko" data-phase="${phaseId}" data-match="${matchId}" data-side="B" data-tiroir="${tiroir}"
                         style="width:32px;background:#1a1a1a;color:white;border:1px solid #333;border-radius:3px;text-align:center;font-size:0.82em;"
                         onchange="adminSetPronoKO('${username}','${phaseId}',${matchId},'B','${tiroir}',this.value)"></td>
-                    <td style="font-size:0.78em;color:#ddd;padding:5px 6px;">${labelB}</td>
+                    <td style="font-size:0.75em;color:${colorReelB};padding:5px 4px;white-space:nowrap;">${reelB}${tabLabel}</td>
                     <td style="padding:4px 6px;white-space:nowrap;">
                         <button style="${btnA}" onclick="adminToggleWinner('${username}','${phaseId}',${matchId},'A')">${labelA} ✓</button>
                         <button style="${btnB}" onclick="adminToggleWinner('${username}','${phaseId}',${matchId},'B')">${labelB} ✓</button>
@@ -4365,7 +4470,10 @@
             if (rows) htmlBracket += `
                 <div class="admin-section-title" style="margin-top:14px;">${label}</div>
                 <table class="admin-table">
-                    <thead><tr><th>Éq. A</th><th>S.A</th><th></th><th>S.B</th><th>Éq. B</th><th>Vainqueur sélectionné</th></tr></thead>
+                    <thead><tr>
+                        <th style="color:#00d4ff;">Match réel</th><th>S.A</th><th></th><th>S.B</th><th style="color:#00d4ff;">Match réel</th>
+                        <th>Pronostic bracket du joueur</th>
+                    </tr></thead>
                     <tbody>${rows}</tbody>
                 </table>`;
         });
