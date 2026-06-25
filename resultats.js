@@ -1,4 +1,4 @@
-// resultats.js — Généré le 24/06/2026 23:00 par fetch_resultats.py
+// resultats.js — Généré le 25/06/2026 06:58 par fetch_resultats.py
 // NE PAS ÉDITER MANUELLEMENT
 
 // === PHASE DE GROUPES ===
@@ -6,6 +6,8 @@ OFFICIEL_2026.scores["686902"] = { sA: 2, sB: 0, termine: true, live: false };
 OFFICIEL_2026.scores["686903"] = { sA: 2, sB: 1, termine: true, live: false };
 OFFICIEL_2026.scores["686904"] = { sA: 1, sB: 1, termine: true, live: false };
 OFFICIEL_2026.scores["686905"] = { sA: 1, sB: 0, termine: true, live: false };
+OFFICIEL_2026.scores["686906"] = { sA: 0, sB: 3, termine: true, live: false };
+OFFICIEL_2026.scores["686907"] = { sA: 1, sB: 0, termine: true, live: false };
 OFFICIEL_2026.scores["686908"] = { sA: 1, sB: 1, termine: true, live: false };
 OFFICIEL_2026.scores["686909"] = { sA: 1, sB: 1, termine: true, live: false };
 OFFICIEL_2026.scores["686910"] = { sA: 4, sB: 1, termine: true, live: false };
@@ -16,6 +18,8 @@ OFFICIEL_2026.scores["686914"] = { sA: 1, sB: 1, termine: true, live: false };
 OFFICIEL_2026.scores["686915"] = { sA: 0, sB: 1, termine: true, live: false };
 OFFICIEL_2026.scores["686916"] = { sA: 0, sB: 1, termine: true, live: false };
 OFFICIEL_2026.scores["686917"] = { sA: 3, sB: 0, termine: true, live: false };
+OFFICIEL_2026.scores["686918"] = { sA: 0, sB: 3, termine: true, live: false };
+OFFICIEL_2026.scores["686919"] = { sA: 4, sB: 2, termine: true, live: false };
 OFFICIEL_2026.scores["686920"] = { sA: 4, sB: 1, termine: true, live: false };
 OFFICIEL_2026.scores["686921"] = { sA: 2, sB: 0, termine: true, live: false };
 OFFICIEL_2026.scores["686922"] = { sA: 0, sB: 1, termine: true, live: false };
