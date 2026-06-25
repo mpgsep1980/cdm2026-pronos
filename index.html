@@ -4391,6 +4391,64 @@
         try { affiches16 = calculerAffiches16FromPronos(pronos); } catch(e) { console.warn('Reconstruction 1/16e échouée:', e); }
         const estPlaceholder = (n) => !n || n.includes('Gr.') || n === 'En attente';
 
+        // ── Cascade du bracket joueur : propage les vainqueurs prédits vers les tours suivants ──
+        const playerTeams = {}; // matchId → { teamA, teamB }
+        const getPlayerTeam = (phaseId, matchId, side) => {
+            const t = CONFIG_PHASES[phaseId]?.tiroir || '';
+            const tAlt = getTiroirFromPhase(phaseId) || '';
+            const td = (t && pronos[t]) ? pronos[t] : {};
+            const tdAlt = (tAlt && tAlt !== t && pronos[tAlt]) ? pronos[tAlt] : {};
+            const key = `team_${phaseId}_${matchId}_${side}`;
+            return verrou[key] || td[key] || tdAlt[key] || pronos[key] || '';
+        };
+        const getPlayerWinner = (phaseId, matchId, teamA, teamB) => {
+            const w = pronos[`winner_${phaseId}_${matchId}`];
+            if (w === 'A' && teamA) return teamA;
+            if (w === 'B' && teamB) return teamB;
+            return null;
+        };
+        // 1/16e : remplir depuis pronos ou affiches reconstruites
+        for (let mid = 687045; mid <= 687060; mid++) {
+            let tA = getPlayerTeam('16', mid, 'A'), tB = getPlayerTeam('16', mid, 'B');
+            if (!tA && !tB && affiches16) {
+                const aff = affiches16.find(a => a.id === mid);
+                if (aff) {
+                    if (!estPlaceholder(aff.t1.nom)) tA = aff.t1.nom;
+                    if (!estPlaceholder(aff.t2.nom)) tB = aff.t2.nom;
+                }
+            }
+            playerTeams[mid] = { teamA: tA, teamB: tB };
+        }
+        // Cascade générique : phase → MAP → phase suivante
+        const doCascade = (startId, endId, phaseId, map) => {
+            for (let mid = startId; mid <= endId; mid++) {
+                const pt = playerTeams[mid];
+                if (!pt) continue;
+                const w = getPlayerWinner(phaseId, mid, pt.teamA, pt.teamB);
+                if (!w || !map) continue;
+                const entry = map[mid];
+                if (!entry) continue;
+                if (!playerTeams[entry.nextId]) playerTeams[entry.nextId] = { teamA: '', teamB: '' };
+                if (entry.nextSide === 't1') playerTeams[entry.nextId].teamA = w;
+                else playerTeams[entry.nextId].teamB = w;
+            }
+        };
+        doCascade(687045, 687060, '16', MAP_16_VERS_8);
+        doCascade(687061, 687068, '8',  MAP_8_VERS_4);
+        doCascade(687069, 687072, '4',  MAP_4_VERS_2);
+        // Demies → Finale (vainqueurs) + Petite finale (perdants)
+        [687073, 687074].forEach(mid => {
+            const pt = playerTeams[mid];
+            if (!pt) return;
+            const w = getPlayerWinner('2', mid, pt.teamA, pt.teamB);
+            if (!w) return;
+            const l = (w === pt.teamA) ? pt.teamB : pt.teamA;
+            if (!playerTeams[687076]) playerTeams[687076] = { teamA: '', teamB: '' };
+            if (!playerTeams[687075]) playerTeams[687075] = { teamA: '', teamB: '' };
+            if (mid === 687073) { playerTeams[687076].teamA = w; playerTeams[687075].teamA = l; }
+            else { playerTeams[687076].teamB = w; playerTeams[687075].teamB = l; }
+        });
+
         let htmlBracket = '';
         KO_PHASES.forEach(({ id: phaseId, debut, fin, label }) => {
             const tiroir = CONFIG_PHASES[phaseId]?.tiroir || '';
@@ -4400,14 +4458,10 @@
             let rows = '';
 
             for (let matchId = debut; matchId <= fin; matchId++) {
-                let nomA = verrou[`team_${phaseId}_${matchId}_A`]
-                    || tiroirData[`team_${phaseId}_${matchId}_A`]
-                    || tiroirDataAlt[`team_${phaseId}_${matchId}_A`]
-                    || pronos[`team_${phaseId}_${matchId}_A`] || '';
-                let nomB = verrou[`team_${phaseId}_${matchId}_B`]
-                    || tiroirData[`team_${phaseId}_${matchId}_B`]
-                    || tiroirDataAlt[`team_${phaseId}_${matchId}_B`]
-                    || pronos[`team_${phaseId}_${matchId}_B`] || '';
+                // Noms d'équipes du joueur : depuis le stockage direct OU la cascade
+                const cascade = playerTeams[matchId];
+                let nomA = getPlayerTeam(phaseId, matchId, 'A') || cascade?.teamA || '';
+                let nomB = getPlayerTeam(phaseId, matchId, 'B') || cascade?.teamB || '';
 
                 // Repli sur les affiches reconstruites depuis les pronos de poules (1/16e uniquement)
                 if (!nomA && !nomB && phaseId === '16' && affiches16) {
@@ -4419,10 +4473,23 @@
                 }
 
                 const winner = pronos[`winner_${phaseId}_${matchId}`] || '';
-                if (!nomA && !nomB && !winner) continue;
+                // Phase 3 : le joueur peut avoir un score nul + sélection TAB (p3tab_)
+                const p3tab = tiroirData[`p3tab_${phaseId}_${matchId}`] || tiroirDataAlt[`p3tab_${phaseId}_${matchId}`] || pronos[`p3tab_${phaseId}_${matchId}`] || '';
+                if (!nomA && !nomB && !winner && !p3tab) continue;
 
                 const scoreA = tiroirData[`score_${phaseId}_${matchId}_A`] ?? tiroirDataAlt[`score_${phaseId}_${matchId}_A`] ?? pronos[`score_${phaseId}_${matchId}_A`] ?? '';
                 const scoreB = tiroirData[`score_${phaseId}_${matchId}_B`] ?? tiroirDataAlt[`score_${phaseId}_${matchId}_B`] ?? pronos[`score_${phaseId}_${matchId}_B`] ?? '';
+
+                // Vainqueur du joueur : score direct OU TAB (p3tab) OU bracket Phase 1 (winner)
+                let playerWin = '';
+                const pA = parseInt(scoreA), pB = parseInt(scoreB);
+                if (!isNaN(pA) && !isNaN(pB)) {
+                    if (pA > pB) playerWin = 'A';
+                    else if (pB > pA) playerWin = 'B';
+                    else if (p3tab) playerWin = p3tab;
+                }
+                if (!playerWin && winner) playerWin = winner;
+                const isPlayerTAB = (!isNaN(pA) && !isNaN(pB) && pA === pB && p3tab);
 
                 const labelA = nomA || 'Équipe A';
                 const labelB = nomB || 'Équipe B';
@@ -4445,8 +4512,10 @@
                 const colorReelB = reelWinner === 'B' ? '#4ade80;font-weight:bold' : reelEstConnu ? '#00d4ff' : '#555';
                 const tabLabel = (offMatch && offMatch.termine && offMatch.sA === offMatch.sB && offMatch.vainqueur) ? ' <span style="color:#fbbf24;font-size:0.65em;">(TAB)</span>' : '';
 
-                const btnA = `padding:3px 8px;border-radius:4px;cursor:pointer;font-size:0.72em;font-weight:bold;border:1px solid #555;background:${winner==='A'?'#1a3a1a':'#111'};color:${winner==='A'?'#4ade80':'#555'};`;
-                const btnB = `padding:3px 8px;border-radius:4px;cursor:pointer;font-size:0.72em;font-weight:bold;border:1px solid #555;background:${winner==='B'?'#1a3a1a':'#111'};color:${winner==='B'?'#4ade80':'#555'};`;
+                // Boutons joueur : surbrillance Phase 3 (score + TAB) ou Phase 1 (bracket)
+                const playerTabSuffix = isPlayerTAB ? ' <span style="color:#fbbf24;font-size:0.7em;">(TAB)</span>' : '';
+                const btnA = `padding:3px 8px;border-radius:4px;cursor:pointer;font-size:0.72em;font-weight:bold;border:1px solid #555;background:${playerWin==='A'?'#1a3a1a':'#111'};color:${playerWin==='A'?'#4ade80':'#555'};`;
+                const btnB = `padding:3px 8px;border-radius:4px;cursor:pointer;font-size:0.72em;font-weight:bold;border:1px solid #555;background:${playerWin==='B'?'#1a3a1a':'#111'};color:${playerWin==='B'?'#4ade80':'#555'};`;
 
                 rows += `<tr style="border-bottom:1px solid #1a1a1a;">
                     <td style="font-size:0.75em;color:${colorReelA};padding:5px 4px;white-space:nowrap;">${reelA}</td>
@@ -4461,8 +4530,8 @@
                         onchange="adminSetPronoKO('${username}','${phaseId}',${matchId},'B','${tiroir}',this.value)"></td>
                     <td style="font-size:0.75em;color:${colorReelB};padding:5px 4px;white-space:nowrap;">${reelB}${tabLabel}</td>
                     <td style="padding:4px 6px;white-space:nowrap;">
-                        <button style="${btnA}" onclick="adminToggleWinner('${username}','${phaseId}',${matchId},'A')">${labelA} ✓</button>
-                        <button style="${btnB}" onclick="adminToggleWinner('${username}','${phaseId}',${matchId},'B')">${labelB} ✓</button>
+                        <button style="${btnA}" onclick="adminToggleWinner('${username}','${phaseId}',${matchId},'A')">${labelA} ✓${playerWin==='A'?playerTabSuffix:''}</button>
+                        <button style="${btnB}" onclick="adminToggleWinner('${username}','${phaseId}',${matchId},'B')">${labelB} ✓${playerWin==='B'?playerTabSuffix:''}</button>
                     </td>
                 </tr>`;
             }
