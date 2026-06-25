@@ -1504,7 +1504,8 @@
 
             if (odds && odds.details) {
                 const parseOdds = (val) => val ? parseFloat(val.toString().replace(',', '.')) : 0;
-                const _mul = odds.mpp ? 1 : 10;
+                const minCote = Math.min(parseOdds(odds.details.domicile.value), parseOdds(odds.details.nul.value), parseOdds(odds.details.exterieur.value));
+                const _mul = (odds.mpp || minCote >= 10) ? 1 : 10;
                 const p1 = Math.round(parseOdds(odds.details.domicile.value) * _mul);
                 const pN = Math.round(parseOdds(odds.details.nul.value) * _mul);
                 const p2 = Math.round(parseOdds(odds.details.exterieur.value) * _mul);
@@ -1531,7 +1532,8 @@
                     ? COTES_MATCHS_KO.find(c => String(c.id) === String(m.id)) : null;
                 if (koEntry && koEntry.details) {
                     const parseOdds = (val) => val ? parseFloat(String(val).replace(',', '.')) : 0;
-                    const _mul = koEntry.mpp ? 1 : 10;
+                    const minCote = Math.min(parseOdds(koEntry.details.domicile.value), parseOdds(koEntry.details.nul.value), parseOdds(koEntry.details.exterieur.value));
+                    const _mul = (koEntry.mpp || minCote >= 10) ? 1 : 10;
                     const p1 = Math.round(parseOdds(koEntry.details.domicile.value) * _mul);
                     const pN = Math.round(parseOdds(koEntry.details.nul.value) * _mul);
                     const p2 = Math.round(parseOdds(koEntry.details.exterieur.value) * _mul);
@@ -2850,7 +2852,8 @@
                 let odds = COTES_MATCHS.find(c => c.id && String(c.id) === String(m.id));
                 if (odds && odds.details) {
                     const parseOdds = (v) => v ? parseFloat(v.toString().replace(',', '.')) : 0;
-                    const _mul = odds.mpp ? 1 : 10;
+                    const minCote = Math.min(parseOdds(odds.details.domicile.value), parseOdds(odds.details.nul.value), parseOdds(odds.details.exterieur.value));
+                    const _mul = (odds.mpp || minCote >= 10) ? 1 : 10;
                     const p1 = Math.round(parseOdds(odds.details.domicile.value) * _mul);
                     const pN = Math.round(parseOdds(odds.details.nul.value) * _mul);
                     const p2 = Math.round(parseOdds(odds.details.exterieur.value) * _mul);
