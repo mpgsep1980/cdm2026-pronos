@@ -2639,6 +2639,66 @@
             }
         });
 
+        // ── 4. BONUS PROGRESSION KO (cotes_phase_finale × 10) ────────────
+        // Pour chaque match KO terminé, si le joueur a prédit le bon vainqueur,
+        // il gagne les points de qualification du stade suivant.
+        const stadeMap = {
+            '16': 'qualif_1_8', '8': 'qualif_1_4', '4': 'qualif_1_2',
+            '2': 'finaliste', 'f': 'vainqueur'
+        };
+
+        // Reconstruire le bracket réel pour connaître les vrais noms des équipes par match
+        let bracketReelPts = {};
+        try { bracketReelPts = calculerBracketReel(); } catch(e) {}
+
+        phasesKO.forEach(({ id: phaseId, debut, fin }) => {
+            const qualifType = stadeMap[phaseId];
+            if (!qualifType) return; // petite finale : pas de bonus progression
+
+            for (let matchId = debut; matchId <= fin; matchId++) {
+                const officiel = OFFICIEL_2026.scores[String(matchId)];
+                if (!officiel || !officiel.termine) continue;
+
+                const reel = bracketReelPts[matchId];
+                if (!reel || !reel.realA || !reel.realB) continue;
+
+                // Vainqueur officiel
+                let officielWin = '';
+                if (officiel.sA > officiel.sB) officielWin = reel.realA;
+                else if (officiel.sB > officiel.sA) officielWin = reel.realB;
+                else if (officiel.vainqueur === 'A') officielWin = reel.realA;
+                else if (officiel.vainqueur === 'B') officielWin = reel.realB;
+                if (!officielWin) continue;
+
+                // Vainqueur prédit par le joueur (Phase 1 bracket)
+                const playerWinSide = pronos[`winner_${phaseId}_${matchId}`];
+                if (!playerWinSide) continue;
+
+                // Noms d'équipes dans le bracket du joueur
+                const cfg = CONFIG_PHASES[phaseId];
+                const tirKey = cfg?.tiroir || '';
+                const tirData = (tirKey && pronos[tirKey]) ? pronos[tirKey] : {};
+                const pTeamA = tirData[`team_${phaseId}_${matchId}_A`] || pronos[`team_${phaseId}_${matchId}_A`] || '';
+                const pTeamB = tirData[`team_${phaseId}_${matchId}_B`] || pronos[`team_${phaseId}_${matchId}_B`] || '';
+                const playerWinName = playerWinSide === 'A' ? pTeamA : pTeamB;
+
+                if (!playerWinName) continue;
+
+                // Comparaison : le joueur a-t-il prédit le bon vainqueur ?
+                if (playerWinName.toLowerCase().trim() === officielWin.toLowerCase().trim()) {
+                    const cote = getCotePhaseFinale(officielWin, qualifType);
+                    const pts = Math.round(cote * 10);
+                    if (pts > 0) {
+                        details.bracket += pts;
+                        details.bracket_list.push({
+                            label: `${officielWin} → ${qualifType.replace('qualif_', '').replace('_', '/')} ✓`,
+                            pts, exact: false
+                        });
+                    }
+                }
+            }
+        });
+
         details.total = details.poules + details.bracket;
         return details;
     }
