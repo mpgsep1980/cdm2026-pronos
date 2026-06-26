@@ -1693,11 +1693,19 @@
         }
 
         // --- 4. RENDU FINAL ---
+        // 1/16e avec meilleur 3e : grisé tant que les J3 officielles ne sont pas toutes terminées
+        const grps16 = (!isPoule && phaseId === '16') ? GROUPES_PAR_MATCH_16[parseInt(m.id)] : null;
+        const a3eme = grps16 && (grps16 === null || grps16.length > 2);
+        const tousJ3Officiels = a3eme && ['A','B','C','D','E','F','G','H','I','J','K','L'].every(g => groupeJ3Termine(g));
+        const poulesIncompletes = a3eme && !tousJ3Officiels;
+        const wrapperOpacity = poulesIncompletes ? '0.3' : (canEditScore || canClickWinner ? '1' : '0.7');
+        const filterStyle = poulesIncompletes ? 'filter: grayscale(80%);' : '';
+
         return `
-            <div class="match-wrapper" style="margin: 10px auto; max-width: 500px; opacity: ${canEditScore || canClickWinner ? '1' : '0.7'}">
+            <div class="match-wrapper" style="margin: 10px auto; max-width: 500px; opacity: ${wrapperOpacity}; ${filterStyle}">
                 <div class="match-meta" style="font-size: 0.75rem; color: #888; display: flex; justify-content: space-between; padding: 0 5px; margin-bottom: 4px;">
                     <span style="color: ${color}; font-weight:bold;">
-                        ${isPoule ? 'Groupe ' + labelPhase : labelPhase}
+                        ${isPoule ? 'Groupe ' + labelPhase : (poulesIncompletes ? labelPhase + ' · <span style="color:#666;font-size:0.65rem;">3e à déterminer</span>' : labelPhase)}
                     </span>
                     <span>${m.date || m.label || ''}</span>
                 </div>
