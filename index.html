@@ -2378,8 +2378,12 @@
             const v = entry.details[champ] && entry.details[champ].value;
             if (!v) return null;
             const val = parseFloat(String(v).replace(',', '.'));
-            // MPP : valeur = points directs ; sinon cote bookmakeur × 10
-            return entry.mpp ? Math.round(val) : Math.round(val * 10);
+            const minCote = Math.min(
+                parseFloat(String(entry.details.domicile?.value || '0').replace(',', '.')),
+                parseFloat(String(entry.details.nul?.value || '0').replace(',', '.')),
+                parseFloat(String(entry.details.exterieur?.value || '0').replace(',', '.'))
+            );
+            return (entry.mpp || minCote >= 10) ? Math.round(val) : Math.round(val * 10);
         };
 
         const ajouterPts = (base, exact, section, label) => {
@@ -3578,7 +3582,12 @@
                 const rawV = entry?.details?.[champ]?.value;
                 if (!rawV) return null;
                 const f = parseFloat(String(rawV).replace(',', '.'));
-                return entry.mpp ? Math.round(f) : Math.round(f * 10);
+                const minC = Math.min(
+                    parseFloat(String(entry?.details?.domicile?.value || '0').replace(',', '.')),
+                    parseFloat(String(entry?.details?.nul?.value || '0').replace(',', '.')),
+                    parseFloat(String(entry?.details?.exterieur?.value || '0').replace(',', '.'))
+                );
+                return (entry.mpp || minC >= 10) ? Math.round(f) : Math.round(f * 10);
             };
             const p1 = getVal('domicile'), pN = getVal('nul'), p2 = getVal('exterieur');
             const champ = pi === '1' ? 'domicile' : pi === '2' ? 'exterieur' : 'nul';
@@ -3715,7 +3724,12 @@
             const v = entry.details[champ]?.value;
             if (!v) return null;
             const f = parseFloat(String(v).replace(',', '.'));
-            return entry.mpp ? Math.round(f) : Math.round(f * 10);
+            const minC = Math.min(
+                parseFloat(String(entry.details.domicile?.value || '0').replace(',', '.')),
+                parseFloat(String(entry.details.nul?.value || '0').replace(',', '.')),
+                parseFloat(String(entry.details.exterieur?.value || '0').replace(',', '.'))
+            );
+            return (entry.mpp || minC >= 10) ? Math.round(f) : Math.round(f * 10);
         };
 
         // Matchs de poule terminés triés chronologiquement
