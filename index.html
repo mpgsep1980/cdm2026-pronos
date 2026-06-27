@@ -1430,15 +1430,23 @@
         } else {
             const dateOuverturePhase2 = new Date("2026-06-25T06:00:00");
             const koOuvert = matchKOOuvert(m.id); // cascade : groupes J3 pour 1/16e, feeders KO pour le reste
-            if (maintenant >= dateOuverturePhase2 && !officielTermine && koOuvert) canEditScore = true;
+            // Calcul de la date de coup d'envoi depuis le timestamp du match
+            let koKickoff = null;
+            if (m.timestamp) {
+                const [dp, tp] = m.timestamp.split(' ');
+                const [day, month, year] = dp.split('/');
+                koKickoff = new Date(`${year}-${month}-${day}T${tp}`);
+            }
+            const avantCoupDEnvoi = !koKickoff || maintenant < koKickoff;
+            if (maintenant >= dateOuverturePhase2 && !officielTermine && koOuvert && avantCoupDEnvoi) canEditScore = true;
         }
 
         let poulesFinies = isToutesPoulesTerminees();
         let canClickWinner = false;
         if (!isPoule) {
             if (state === "AVANT" && poulesFinies) canClickWinner = true; // Phase 1 : bracket complet libre
-            // Phase 3 : clic possible uniquement si le match est débloqué par la cascade
-            if (state === "PHASE_FINALE" && !officielTermine) {
+            // Phase 3 : clic possible uniquement si le match est débloqué ET avant le coup d'envoi
+            if (state === "PHASE_FINALE" && !officielTermine && canEditScore) {
                 if (matchKOOuvert(m.id)) canClickWinner = true;
             }
         }
