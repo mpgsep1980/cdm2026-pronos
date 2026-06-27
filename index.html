@@ -4668,7 +4668,11 @@
                 <button id="btn-admin-save-pronos" class="admin-btn" style="background:#1a3a1a;color:#4ade80;border-color:#4ade80;"
                     onclick="adminSauvegarderPronos('${username}')">💾 Sauvegarder</button>
                 <button class="admin-btn" style="background:#1a1a3a;color:#93c5fd;border-color:#60a5fa;"
-                    onclick="adminBackupJoueur('${username}')">📥 Backup</button>
+                    onclick="adminBackupJoueur('${username}')">📥 Backup actuel</button>
+                <input type="file" id="extract-joueur-file" accept="application/json" style="display:none"
+                    onchange="adminExtraireDepuisBackup('${username}', this)">
+                <button class="admin-btn" style="background:#1a1a3a;color:#c4b5fd;border-color:#a78bfa;"
+                    onclick="document.getElementById('extract-joueur-file').click()">📤 Extraire depuis backup</button>
                 <input type="file" id="import-joueur-file" accept="application/json" style="display:none"
                     onchange="adminRestaurer1Joueur('${username}', this)">
                 <button class="admin-btn" style="background:#3a1a1a;color:#fca5a5;border-color:#f87171;"
@@ -5084,6 +5088,39 @@
         a.click();
         a.remove();
         URL.revokeObjectURL(url);
+    }
+
+    function adminExtraireDepuisBackup(username, input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            let data;
+            try { data = JSON.parse(e.target.result); } catch { alert('⚠ Fichier JSON invalide.'); input.value = ''; return; }
+
+            if (!data[username]) {
+                const noms = Object.keys(data).filter(k => k !== '__users__');
+                alert(`⚠ "${username}" introuvable dans ce backup.\nJoueurs présents : ${noms.join(', ')}`);
+                input.value = '';
+                return;
+            }
+
+            const payload = {};
+            payload[username] = data[username];
+            const srcDate = file.name.replace(/[^\d]/g, '').slice(0, 12) || 'extrait';
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `pronos_${username}_from_${srcDate}.json`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+            alert(`✅ Pronos de "${username}" extraits du backup → fichier téléchargé`);
+            input.value = '';
+        };
+        reader.readAsText(file);
     }
 
     function adminRestaurer1Joueur(username, input) {
