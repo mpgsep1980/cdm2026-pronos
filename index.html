@@ -4667,6 +4667,12 @@
                 <button class="admin-btn admin-btn-info" onclick="adminRenderOnglet('joueurs')">← Retour</button>
                 <button id="btn-admin-save-pronos" class="admin-btn" style="background:#1a3a1a;color:#4ade80;border-color:#4ade80;"
                     onclick="adminSauvegarderPronos('${username}')">💾 Sauvegarder</button>
+                <button class="admin-btn" style="background:#1a1a3a;color:#93c5fd;border-color:#60a5fa;"
+                    onclick="adminBackupJoueur('${username}')">📥 Backup</button>
+                <input type="file" id="import-joueur-file" accept="application/json" style="display:none"
+                    onchange="adminRestaurer1Joueur('${username}', this)">
+                <button class="admin-btn" style="background:#3a1a1a;color:#fca5a5;border-color:#f87171;"
+                    onclick="document.getElementById('import-joueur-file').click()">📂 Restaurer</button>
             </div>
             <div class="admin-section-title">Pronos poules — ${username} (${Object.keys(pouleMap).length} matchs)</div>
             <table class="admin-table">
@@ -5059,6 +5065,65 @@
             input.value = '';
             updateAll();
             adminRenderOnglet('export');
+        };
+        reader.readAsText(file);
+    }
+
+    function adminBackupJoueur(username) {
+        let data;
+        try { data = JSON.parse(localStorage.getItem(`${username}_mes_pronos_2026`) || '{}'); } catch { data = {}; }
+        const horodatage = new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '').replace(/(\d{8})(\d{4})/, '$1_$2');
+        const payload = {};
+        payload[username] = data;
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `pronos_${username}_${horodatage}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    }
+
+    function adminRestaurer1Joueur(username, input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            let data;
+            try { data = JSON.parse(e.target.result); } catch { alert('⚠ Fichier JSON invalide.'); input.value = ''; return; }
+
+            let pronosJoueur = null;
+            if (data[username]) {
+                pronosJoueur = data[username];
+            } else if (!data.scoreA_686902 && Object.keys(data).length === 1) {
+                pronosJoueur = Object.values(data)[0];
+            } else {
+                const noms = Object.keys(data).filter(k => k !== '__users__');
+                if (noms.length > 0) {
+                    pronosJoueur = data[noms[0]];
+                    if (!confirm(`Le fichier contient les pronos de "${noms[0]}".\nRestaurer sur "${username}" ? Cela écrasera ses pronos actuels.`)) {
+                        input.value = '';
+                        return;
+                    }
+                } else {
+                    alert('⚠ Aucun prono trouvé dans ce fichier.');
+                    input.value = '';
+                    return;
+                }
+            }
+
+            if (!confirm(`Restaurer les pronos de ${username} depuis ce backup ?\nCela écrasera ses pronos actuels (local + Supabase).`)) {
+                input.value = '';
+                return;
+            }
+
+            await adminPushPronos(username, pronosJoueur);
+            alert(`✅ Pronos restaurés pour ${username}`);
+            input.value = '';
+            updateAll();
+            adminAfficherPronos(username);
         };
         reader.readAsText(file);
     }
