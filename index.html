@@ -1562,10 +1562,11 @@
         // --- CALCUL DES COULEURS DE VICTOIRE ---
         const hasScores = (scoreA !== null && scoreB !== null);
 
-        // TAB : égalité sur résultat officiel OU scores saisis par le joueur
-        const isDraw = officielTermine
+        // TAB : égalité uniquement si le match est TERMINÉ (pas en cours)
+        const isMatchFini = !!(officiel && officiel.termine && !officiel.live);
+        const isDraw = isMatchFini
             ? (officiel.sA === officiel.sB)
-            : (hasScores && scoreA === scoreB);
+            : (hasScores && scoreA === scoreB && !(officiel && officiel.live));
 
         // manualWin = pronostic Phase 1 du joueur (bracket) — ne change jamais en Phase 3
         // tabWin    = sélection TAB Phase 3 (clé séparée p3tab_) — n'écrase pas manualWin
@@ -1727,6 +1728,13 @@
                     Mon prono : ${valA_final !== "" && valA_final !== null ? valA_final : "?"} - ${valB_final !== "" && valB_final !== null ? valB_final : "?"}
                 </div>
             `;
+        } else if (officielTermine && !isPoule && valA_final === "" && valB_final === "" && manualWin) {
+            const winnerName = manualWin === 'A' ? nomA : nomB;
+            rappelPronoHtml = `
+                <div style="font-size: 0.72rem; color: #fbbf24; margin-top: 4px; font-style: italic; line-height: 1;">
+                    Mon prono : ${winnerName} qualifié
+                </div>
+            `;
         }
 
         // --- 4. RENDU FINAL ---
@@ -1761,6 +1769,11 @@
                     </div>
 
                     <div style="display: flex; flex-direction: column; align-items: center; min-width: 110px;">
+                        ${officiel && officiel.live && !officiel.termine ? `
+                        <div style="font-size:0.65rem; font-weight:bold; color:#e74c3c; letter-spacing:0.06em; margin-bottom:3px; display:flex; align-items:center; gap:4px;">
+                            <span style="width:6px;height:6px;border-radius:50%;background:#e74c3c;display:inline-block;animation:aura-pulse 1s ease-in-out infinite;"></span>
+                            LIVE${officiel.statut ? ' · ' + officiel.statut : ''}
+                        </div>` : officielTermine ? `<div style="font-size:0.6rem; color:#888; letter-spacing:0.06em; margin-bottom:3px;">✓ FT</div>` : (m.heure ? `<div style="font-size:0.62rem; color:#666; margin-bottom:3px;">${m.heure}</div>` : '')}
                         <div style="display: flex; gap: 4px; align-items: center;">
                             <input type="number"
                                 id="score_${phaseId}_${m.id}_A"
@@ -3572,11 +3585,41 @@
 
             const issueReelle = (avecScore && off) ? issueStr(off.sA, off.sB) : null;
 
+            const isKO = parseInt(m.id) >= 687045;
+            let koPhaseId = '';
+            if (isKO) {
+                const KO_RANGES = [
+                    { id:'16', debut:687045, fin:687060 },
+                    { id:'8',  debut:687061, fin:687068 },
+                    { id:'4',  debut:687069, fin:687072 },
+                    { id:'2',  debut:687073, fin:687074 },
+                    { id:'pf', debut:687075, fin:687075 },
+                    { id:'f',  debut:687076, fin:687076 }
+                ];
+                const range = KO_RANGES.find(r => m.id >= r.debut && m.id <= r.fin);
+                koPhaseId = range ? range.id : '16';
+            }
+
             let lignes = '';
             Object.keys(users).sort().forEach(u => {
                 const pronos = JSON.parse(localStorage.getItem(`${u}_mes_pronos_2026`) || '{}');
-                const pA = pronos[`scoreA_${m.id}`];
-                const pB = pronos[`scoreB_${m.id}`];
+                let pA, pB, winnerLabel = '';
+                if (isKO) {
+                    const tiroir = CONFIG_PHASES[koPhaseId]?.tiroir || '';
+                    const td = (tiroir && pronos[tiroir]) || {};
+                    const tAlt = getTiroirFromPhase(koPhaseId) || '';
+                    const tdAlt = (tAlt && tAlt !== tiroir && pronos[tAlt]) || {};
+                    pA = td[`score_${koPhaseId}_${m.id}_A`] ?? tdAlt[`score_${koPhaseId}_${m.id}_A`] ?? pronos[`score_${koPhaseId}_${m.id}_A`];
+                    pB = td[`score_${koPhaseId}_${m.id}_B`] ?? tdAlt[`score_${koPhaseId}_${m.id}_B`] ?? pronos[`score_${koPhaseId}_${m.id}_B`];
+                    if (pA !== undefined && pB !== undefined && parseInt(pA) === parseInt(pB)) {
+                        const tab = td[`p3tab_${koPhaseId}_${m.id}`] || tdAlt[`p3tab_${koPhaseId}_${m.id}`] || pronos[`p3tab_${koPhaseId}_${m.id}`] || pronos[`winner_${koPhaseId}_${m.id}`] || '';
+                        if (tab === 'A') winnerLabel = ' <span style="color:#fbbf24;font-size:0.7em;">(TAB ' + (m.equipeA||'A') + ')</span>';
+                        else if (tab === 'B') winnerLabel = ' <span style="color:#fbbf24;font-size:0.7em;">(TAB ' + (m.equipeB||'B') + ')</span>';
+                    }
+                } else {
+                    pA = pronos[`scoreA_${m.id}`];
+                    pB = pronos[`scoreB_${m.id}`];
+                }
                 const moi = u === CURRENT_USER;
                 const nomStyle = `padding:5px 6px;color:${moi ? '#4ade80' : '#ddd'};font-weight:${moi ? 'bold' : 'normal'};`;
 
@@ -3595,7 +3638,7 @@
                 }
                 lignes += `<tr style="border-bottom:1px solid #1a1a1a;">
                     <td style="${nomStyle}">${u}</td>
-                    <td style="text-align:center;padding:5px 6px;font-family:monospace;color:#ddd;">${pA}–${pB}</td>
+                    <td style="text-align:center;padding:5px 6px;font-family:monospace;color:#ddd;">${pA}–${pB}${winnerLabel}</td>
                     <td style="text-align:center;padding:5px 6px;color:#888;font-size:0.78rem;">${issueLabel(issuePrédite)}</td>
                     ${icone}</tr>`;
             });
@@ -4725,8 +4768,22 @@
         const storageKey = `${username}_mes_pronos_2026`;
         let pronos = {};
         try { pronos = JSON.parse(localStorage.getItem(storageKey) || '{}'); } catch {}
-        const key = `winner_${phaseId}_${matchId}`;
-        pronos[key] = (pronos[key] === side) ? '' : side;
+
+        const tiroir = CONFIG_PHASES[phaseId]?.tiroir || '';
+        const td = (tiroir && pronos[tiroir]) || {};
+        const tAlt = getTiroirFromPhase(phaseId) || '';
+        const tdAlt = (tAlt && tAlt !== tiroir && pronos[tAlt]) || {};
+        const sA = parseInt(td[`score_${phaseId}_${matchId}_A`] ?? tdAlt[`score_${phaseId}_${matchId}_A`] ?? pronos[`score_${phaseId}_${matchId}_A`] ?? '');
+        const sB = parseInt(td[`score_${phaseId}_${matchId}_B`] ?? tdAlt[`score_${phaseId}_${matchId}_B`] ?? pronos[`score_${phaseId}_${matchId}_B`] ?? '');
+        const isDraw = !isNaN(sA) && !isNaN(sB) && sA === sB;
+
+        if (isDraw) {
+            const tabKey = `p3tab_${phaseId}_${matchId}`;
+            pronos[tabKey] = (pronos[tabKey] === side) ? '' : side;
+        } else {
+            const key = `winner_${phaseId}_${matchId}`;
+            pronos[key] = (pronos[key] === side) ? '' : side;
+        }
         await adminPushPronos(username, pronos);
         adminVoirPronos(username, false);
     }
