@@ -2682,8 +2682,8 @@
                     if (!baseN) continue;
                     const exactTab = pA === officiel.sA && pB === officiel.sB;
                     let pts = exactTab ? baseN * 2 : baseN;
-                    const manualWin = pronos[`winner_${phaseId}_${matchId}`];
-                    if (manualWin === officiel.vainqueur) pts += Math.round(baseN * 0.5);
+                    const tabWin = pronos[`p3tab_${phaseId}_${matchId}`] || pronos[`winner_${phaseId}_${matchId}`] || '';
+                    if (tabWin === officiel.vainqueur) pts += Math.round(baseN * 0.5);
                     details.bracket += pts;
                     details.bracket_list.push({ label, pts, exact: exactTab });
                     if (pts > details.meilleurProno.pts) details.meilleurProno = { match: label, pts };
@@ -5790,7 +5790,7 @@
         // 1. Scanne tous les inputs actifs (les champs désactivés affichent le score
         // officiel ou 0 pour les matchs verrouillés : il ne faut pas écraser le
         // pronostic du joueur avec ces valeurs d'affichage)
-        document.querySelectorAll('input[type="number"]:not([disabled])').forEach(inp => {
+        document.querySelectorAll('input[type="number"]:not([disabled]):not([readonly])').forEach(inp => {
             if (!inp.id || inp.value === '') return;
             const val = parseInt(inp.value);
             if (!isNaN(val)) {
