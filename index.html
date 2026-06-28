@@ -1240,15 +1240,11 @@
     // Tableau FIFA Annexe C : allocation des meilleurs 3es selon la combinaison qualifiée.
     // Clé = groupes qualifiés triés (ex: "ABDEFGIL"), valeur = [3e pour M74, M77, M79, M80, M82, M81, M85, M87]
     // Ordre des slots = ordre d'appel de P() dans genererAffiches16emes.
+    // Sources vérifiées : BDEFIJKL = tableau officiel FIFA 28/06, ABDEFGIL = CBS Sports
+    // Les autres combinaisons sont extrapolées — à vérifier si elles se produisent
     const FIFA_3E_TABLE = {
-        'BDEFIJKL': ['E','J','B','D','I','F','L','K'],
-        'BDEFGIKL': ['E','G','B','D','I','F','L','K'],
-        'BDEFGIJL': ['E','G','B','D','J','F','L','I'],
-        'BDEFGIJK': ['E','G','B','D','J','F','I','K'],
+        'BDEFIJKL': ['D','F','E','K','I','B','J','L'],
         'ABDEFGIL': ['D','F','E','I','A','B','G','L'],
-        'ABDEFGIK': ['D','F','E','I','A','B','G','K'],
-        'ABDEFGIJ': ['D','F','E','I','A','B','G','J'],
-        'ABCDEFGI': ['C','G','B','D','A','F','E','I'],
     };
 
     function piocher3e(qualifies3es, groupesAdmissibles, dejaPris) {
