@@ -1,4 +1,4 @@
-// resultats.js — Généré le 28/06/2026 22:47 par fetch_resultats.py
+// resultats.js — Généré le 28/06/2026 22:49 par fetch_resultats.py
 // NE PAS ÉDITER MANUELLEMENT
 
 // === PHASE DE GROUPES ===
@@ -74,7 +74,7 @@ OFFICIEL_2026.scores["686970"] = { sA: 0, sB: 0, termine: true, live: false };
 OFFICIEL_2026.scores["686971"] = { sA: 0, sB: 1, termine: true, live: false };
 OFFICIEL_2026.scores["686972"] = { sA: 0, sB: 0, termine: true, live: false, statut: "Terminé" };
 OFFICIEL_2026.scores["686973"] = { sA: 1, sB: 0, termine: true, live: false, statut: "Terminé" };
-OFFICIEL_2026.scores["687045"] = { sA: 0, sB: 0, termine: false, live: true, statut: "86'" };
+OFFICIEL_2026.scores["687045"] = { sA: 0, sB: 0, termine: false, live: true, statut: "88'" };
 
 // === TABLEAU 1/16e (alimenté manuellement après les groupes) ===
 // OFFICIEL_2026.qualifies["team_16_687045_A"] = "Mexique";
