@@ -241,17 +241,28 @@ def scraper_resultats(page, debug=False) -> list:
             if not a_scores and not est_termine and not est_live:
                 continue  # vraiment pas commencé, pas dans notre calendrier
 
-            resultats.append({
+            # Vainqueur TAB : classe --winner sur le nom de l'équipe gagnante
+            vainqueur = ""
+            if est_termine and "tab" in statut.lower():
+                if carte.query_selector(".TeamScore__team--home .TeamScore__team--winner"):
+                    vainqueur = "A"
+                elif carte.query_selector(".TeamScore__team--away .TeamScore__team--winner"):
+                    vainqueur = "B"
+
+            r = {
                 "id":      match_id,
                 "equipeA": nomA,
                 "equipeB": nomB,
-                "sA": int(sA_txt) if a_scores else 0,
-                "sB": int(sB_txt) if a_scores else 0,
+                "sA":      int(sA_txt) if a_scores else 0,
+                "sB":      int(sB_txt) if a_scores else 0,
                 "termine": est_termine,
-                "live":    est_live,  # statut vide = ni live ni terminé → géré par run_once
+                "live":    est_live,
                 "statut":  statut,
                 "href":    href,
-            })
+            }
+            if vainqueur:
+                r["vainqueur"] = vainqueur
+            resultats.append(r)
 
         except Exception as e:
             print(f"  ⚠️  Erreur sur une carte : {e}")
@@ -325,20 +336,39 @@ def scraper_calendrier(page, debug=False) -> list:
             if not (sA_txt.isdigit() and sB_txt.isdigit()):
                 continue
 
-            resultats.append({
-                "id":      match_id,
-                "equipeA": nomA,
-                "equipeB": nomB,
-                "sA": int(sA_txt),
-                "sB": int(sB_txt),
-                "termine": est_termine,
-                "live":    not est_termine,
-                "statut":  "" if est_termine else "live",
-                "href":    href,
-            })
+            # Détection TAB + vainqueur via additionalData et classes --winner/--looser
+            statut_cal = ""
+            vainqueur  = ""
+            add_el = carte.query_selector(".TeamScore__additionalData")
+            if add_el:
+                add_txt = add_el.inner_text().strip()
+                if "t.a.b" in add_txt.lower():
+                    statut_cal = "t.a.b."
+                    cls_a = spans[0].get_attribute("class") or ""
+                    cls_b = spans[1].get_attribute("class") or ""
+                    if "winner" in cls_a:
+                        vainqueur = "A"
+                    elif "winner" in cls_b:
+                        vainqueur = "B"
 
+            r = {
+                "id":       match_id,
+                "equipeA":  nomA,
+                "equipeB":  nomB,
+                "sA":       int(sA_txt),
+                "sB":       int(sB_txt),
+                "termine":  est_termine,
+                "live":     not est_termine,
+                "statut":   statut_cal,
+                "href":     href,
+            }
+            if vainqueur:
+                r["vainqueur"] = vainqueur
+            resultats.append(r)
+
+            tab_info = f" (TAB → {vainqueur})" if vainqueur else (" (t.a.b.)" if statut_cal else "")
             flag = "✅ Terminé" if est_termine else "🔴 LIVE"
-            print(f"   {flag} [{match_id}] {nomA} {sA_txt}-{sB_txt} {nomB}")
+            print(f"   {flag} [{match_id}] {nomA} {sA_txt}-{sB_txt} {nomB}{tab_info}")
 
         except Exception as e:
             print(f"  ⚠️  Erreur sur une carte : {e}")
@@ -372,6 +402,8 @@ def croiser(resultats_lequipe: list, calendrier: list) -> dict:
                 "live":    r["live"],
                 "statut":  r["statut"],
             }
+            if r.get("vainqueur"):
+                scores[mid]["vainqueur"] = r["vainqueur"]
             flag = "🔴 LIVE" if r["live"] else "✅ Terminé"
             print(f"   {flag} [{mid}] {r['equipeA']} {r['sA']}-{r['sB']} {r['equipeB']} ({r['statut']})")
         else:
