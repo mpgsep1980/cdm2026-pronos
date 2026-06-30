@@ -2675,23 +2675,30 @@
                 const matchCal = CALENDRIER_CDM.find(m => String(m.id) === String(matchId));
                 const label = matchCal ? `${matchCal.equipeA} - ${matchCal.equipeB}` : `Match ${matchId}`;
 
-                if (officiel.sA === officiel.sB && officiel.vainqueur) {
-                    // Cas TAB : nul à 90min
+                const estTAB = (officiel.statut || '').toLowerCase() === 't.a.b.' ||
+                               (officiel.sA === officiel.sB && !!officiel.vainqueur);
+
+                if (estTAB) {
+                    // Cas TAB : le joueur doit avoir pronostiqué un nul (sA = sB)
                     if (issueStr(pA, pB) !== 'N') continue;
                     const baseN = getBase(entry, 'N');
                     if (!baseN) continue;
-                    const exactTab = pA === officiel.sA && pB === officiel.sB;
-                    let pts = exactTab ? baseN * 2 : baseN;
-                    const tabWin = pronos[`p3tab_${phaseId}_${matchId}`] || pronos[`winner_${phaseId}_${matchId}`] || '';
-                    if (tabWin === officiel.vainqueur) pts += Math.round(baseN * 0.5);
+                    const exactScore    = pA === officiel.sA && pB === officiel.sB;
+                    const tabWin        = pronos[`p3tab_${phaseId}_${matchId}`] || pronos[`winner_${phaseId}_${matchId}`] || '';
+                    const bonVainqueur  = !!(officiel.vainqueur && tabWin === officiel.vainqueur);
+                    // ×1 base | ×2 score exact OU bon vainqueur TAB | ×3 les deux
+                    const mul = (exactScore && bonVainqueur) ? 3 : (exactScore || bonVainqueur) ? 2 : 1;
+                    const pts = baseN * mul;
                     details.bracket += pts;
-                    details.bracket_list.push({ label, pts, exact: exactTab });
+                    details.bracket_list.push({ label, pts, exact: exactScore || bonVainqueur });
                     if (pts > details.meilleurProno.pts) details.meilleurProno = { match: label, pts };
                 } else {
+                    // Match décidé en 90min (ou AP sans égalité) : domicile / nul / extérieur
                     const pi = issueStr(pA, pB);
                     if (pi !== issueStr(officiel.sA, officiel.sB)) continue;
                     const baseKO = getBase(entry, pi);
                     if (!baseKO) continue;
+                    // ×1 base | ×2 si score exact
                     ajouterPts(baseKO, pA === officiel.sA && pB === officiel.sB, 'bracket', label);
                 }
             }
