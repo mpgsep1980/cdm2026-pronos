@@ -552,7 +552,18 @@ def commit_et_pousser_resultats():
         print(f"   ⚠️  Push git échoué : {e}")
 
 
-def run_once(debug=False, calendrier_general=False):
+def _charger_page(page, url, debug=False):
+    """Navigue vers url et attend le chargement. Retourne False si échec."""
+    try:
+        page.goto(url, timeout=30_000)
+        page.wait_for_load_state("networkidle", timeout=20_000)
+        return True
+    except Exception as e:
+        print(f"❌ Impossible de charger {url} : {e}")
+        return False
+
+
+def run_once(debug=False, calendrier_general=False, mode_all=False):
     print(f"\n[{datetime.now().strftime('%H:%M:%S')}] Lancement de la mise à jour…")
 
     calendrier = charger_calendrier()
@@ -563,27 +574,43 @@ def run_once(debug=False, calendrier_general=False):
     # Chargement de l'état précédent
     etat_precedent = charger_etat()
 
-    url = URL_CALENDRIER if calendrier_general else URL_CDM
     with sync_playwright() as pw:
         browser = pw.chromium.launch(headless=True)
         page = browser.new_page()
         page.set_extra_http_headers({"Accept-Language": "fr-FR,fr;q=0.9"})
-        print(f"🌐 Chargement : {url}")
-        try:
-            page.goto(url, timeout=30_000)
-            page.wait_for_load_state("networkidle", timeout=20_000)
-        except Exception as e:
-            print(f"❌ Impossible de charger la page : {e}")
-            browser.close()
-            return
 
-        if calendrier_general:
+        if mode_all:
+            # 1. Calendrier → résultats terminés et historical
+            print(f"[1/2] Calendrier : {URL_CALENDRIER}")
+            resultats = []
+            if _charger_page(page, URL_CALENDRIER, debug):
+                resultats = scraper_calendrier(page, debug=debug)
+                print(f"   {len(resultats)} match(es) depuis le calendrier")
+
+            # 2. Directs → live overlay (le live écrase le calendrier pour le même match)
+            print(f"[2/2] Directs : {URL_CDM}")
+            if _charger_page(page, URL_CDM, debug):
+                resultats_live = scraper_resultats(page, debug=debug)
+                print(f"   {len(resultats_live)} match(es) depuis les directs")
+                ids_live = {r["id"] for r in resultats_live}
+                # Garder les matchs calendrier non vus en live + tous les live
+                resultats = resultats_live + [r for r in resultats if r["id"] not in ids_live]
+        elif calendrier_general:
+            print(f"Calendrier : {URL_CALENDRIER}")
+            if not _charger_page(page, URL_CALENDRIER, debug):
+                browser.close()
+                return
             resultats = scraper_calendrier(page, debug=debug)
         else:
+            print(f"Directs : {URL_CDM}")
+            if not _charger_page(page, URL_CDM, debug):
+                browser.close()
+                return
             resultats = scraper_resultats(page, debug=debug)
+
         browser.close()
 
-    print(f"📋 {len(resultats)} match(es) trouvé(s) sur la page")
+    print(f"📋 {len(resultats)} match(es) trouvé(s) au total")
 
     # Croisement avec notre calendrier
     scores_nouveaux = croiser(resultats, calendrier)
@@ -661,8 +688,18 @@ def main():
         help=f"Une seule passe via {URL_CALENDRIER} : récupère les scores finaux déjà publiés "
              "sans suivi live (utile pour rattraper un match de nuit le lendemain matin)"
     )
+    parser.add_argument(
+        "--all", action="store_true",
+        help="Une seule passe combinée : calendrier (résultats finaux) + /Directs (live overlay). "
+             "Recommandé pour GitHub Actions."
+    )
     args = parser.parse_args()
     run_once._no_wa = args.no_wa
+
+    # --all : calendrier + live en une seule passe (recommandé CI)
+    if args.all:
+        run_once(debug=args.debug, mode_all=True)
+        return
 
     # --calendrier : une seule passe via le calendrier général (résultats a posteriori)
     if args.calendrier:

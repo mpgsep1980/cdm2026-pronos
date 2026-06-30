@@ -50,4 +50,4 @@ jobs:
       - name: Fetch et mise à jour résultats
         env:
           PYTHONIOENCODING: utf-8
-        run: python fetch_resultats.py --calendrier --no-wa
+        run: python fetch_resultats.py --all --no-wa
