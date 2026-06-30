@@ -12,6 +12,10 @@ concurrency:
   group: update-resultats
   cancel-in-progress: false
 
+# Push résultats.js dans le dépôt
+permissions:
+  contents: write
+
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -19,7 +23,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        # GITHUB_TOKEN par défaut : permet le git push dans le script
 
       - name: Setup Python 3.11
         uses: actions/setup-python@v5
@@ -35,20 +38,9 @@ jobs:
       - name: Install playwright
         run: pip install playwright
 
-      - name: Cache Playwright Chromium
-        uses: actions/cache@v4
-        id: playwright-cache
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-chromium-${{ runner.os }}-v1
-
-      - name: Install Chromium (+ dépendances système)
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
+      - name: Install Chromium
+        # Toujours réinstaller le navigateur (évite les mismatch version/cache)
         run: playwright install --with-deps chromium
-
-      - name: Install system deps only (cache hit)
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: playwright install-deps chromium
 
       - name: Configure git
         run: |
@@ -56,4 +48,6 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Fetch et mise à jour résultats
+        env:
+          PYTHONIOENCODING: utf-8
         run: python fetch_resultats.py --calendrier --no-wa
