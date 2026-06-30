@@ -539,6 +539,25 @@ def commit_et_pousser_resultats():
             return  # rien à pousser
 
         heure = datetime.now().strftime("%H:%M")
+
+        # Mémoriser notre version fraîchement générée
+        notre_contenu = FICHIER_OUT.read_text(encoding="utf-8")
+
+        # Synchroniser sur remote (GitHub Actions a peut-être poussé entre-temps)
+        subprocess.run(["git", "fetch", "origin"], cwd=DOSSIER, check=True, capture_output=True)
+        subprocess.run(["git", "reset", "--hard", "origin/main"], cwd=DOSSIER, check=True, capture_output=True)
+
+        # Réappliquer notre resultats.js sur la base remote à jour
+        FICHIER_OUT.write_text(notre_contenu, encoding="utf-8")
+
+        # Vérifier s'il reste un diff (remote avait déjà ce contenu = pas besoin de pousser)
+        diff2 = subprocess.run(
+            ["git", "status", "--porcelain", "--", FICHIER_OUT.name],
+            cwd=DOSSIER, capture_output=True, text=True, check=True
+        )
+        if not diff2.stdout.strip():
+            return
+
         subprocess.run(["git", "add", FICHIER_OUT.name], cwd=DOSSIER, check=True)
         subprocess.run(
             ["git", "commit", "-m", f"Live resultats {heure}"],
