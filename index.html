@@ -2690,7 +2690,7 @@
                     const mul = (exactScore && bonVainqueur) ? 3 : (exactScore || bonVainqueur) ? 2 : 1;
                     const pts = baseN * mul;
                     details.bracket += pts;
-                    details.bracket_list.push({ label, pts, exact: exactScore || bonVainqueur });
+                    details.bracket_list.push({ label, pts, exact: exactScore || bonVainqueur, triple: exactScore && bonVainqueur });
                     if (pts > details.meilleurProno.pts) details.meilleurProno = { match: label, pts };
                 } else {
                     // Match décidé en 90min (ou AP sans égalité) : domicile / nul / extérieur
@@ -3610,7 +3610,7 @@
             let lignes = '';
             Object.keys(users).sort().forEach(u => {
                 const pronos = JSON.parse(localStorage.getItem(`${u}_mes_pronos_2026`) || '{}');
-                let pA, pB, winnerLabel = '';
+                let pA, pB, winnerLabel = '', playerTab = '';
                 if (isKO) {
                     const tiroir = CONFIG_PHASES[koPhaseId]?.tiroir || '';
                     const td = (tiroir && pronos[tiroir]) || {};
@@ -3618,10 +3618,10 @@
                     const tdAlt = (tAlt && tAlt !== tiroir && pronos[tAlt]) || {};
                     pA = td[`score_${koPhaseId}_${m.id}_A`] ?? tdAlt[`score_${koPhaseId}_${m.id}_A`] ?? pronos[`score_${koPhaseId}_${m.id}_A`];
                     pB = td[`score_${koPhaseId}_${m.id}_B`] ?? tdAlt[`score_${koPhaseId}_${m.id}_B`] ?? pronos[`score_${koPhaseId}_${m.id}_B`];
+                    playerTab = td[`p3tab_${koPhaseId}_${m.id}`] || tdAlt[`p3tab_${koPhaseId}_${m.id}`] || pronos[`p3tab_${koPhaseId}_${m.id}`] || pronos[`winner_${koPhaseId}_${m.id}`] || '';
                     if (pA !== undefined && pB !== undefined && parseInt(pA) === parseInt(pB)) {
-                        const tab = td[`p3tab_${koPhaseId}_${m.id}`] || tdAlt[`p3tab_${koPhaseId}_${m.id}`] || pronos[`p3tab_${koPhaseId}_${m.id}`] || pronos[`winner_${koPhaseId}_${m.id}`] || '';
-                        if (tab === 'A') winnerLabel = ' <span style="color:#fbbf24;font-size:0.7em;">(TAB ' + (m.equipeA||'A') + ')</span>';
-                        else if (tab === 'B') winnerLabel = ' <span style="color:#fbbf24;font-size:0.7em;">(TAB ' + (m.equipeB||'B') + ')</span>';
+                        if (playerTab === 'A') winnerLabel = ' <span style="color:#fbbf24;font-size:0.7em;">(TAB ' + (m.equipeA||'A') + ')</span>';
+                        else if (playerTab === 'B') winnerLabel = ' <span style="color:#fbbf24;font-size:0.7em;">(TAB ' + (m.equipeB||'B') + ')</span>';
                     }
                 } else {
                     pA = pronos[`scoreA_${m.id}`];
@@ -3639,9 +3639,10 @@
                 const issuePrédite = issueStr(parseInt(pA), parseInt(pB));
                 let icone = '';
                 if (avecScore && issueReelle) {
-                    const bon   = issuePrédite === issueReelle;
-                    const exact = bon && parseInt(pA) === off.sA && parseInt(pB) === off.sB;
-                    icone = `<td style="text-align:center;padding:5px 6px;font-size:0.95rem;">${exact ? '⭐' : bon ? '✅' : '❌'}</td>`;
+                    const bon    = issuePrédite === issueReelle;
+                    const exact  = bon && parseInt(pA) === off.sA && parseInt(pB) === off.sB;
+                    const triple = exact && !!(off.vainqueur) && playerTab === off.vainqueur;
+                    icone = `<td style="text-align:center;padding:5px 6px;font-size:0.95rem;">${triple ? '💎' : exact ? '⭐' : bon ? '✅' : '❌'}</td>`;
                 }
                 lignes += `<tr style="border-bottom:1px solid #1a1a1a;">
                     <td style="${nomStyle}">${u}</td>
@@ -3838,7 +3839,7 @@
                 ${d.bracket_list.length > 0 ? `
                 <div style="color:#60a5fa;font-weight:bold;margin:${d.poules_list.length > 0 ? '8px' : '0'} 0 4px;">🔵 Détail Provisoire / KO</div>
                 ${d.bracket_list.map(p => `<div style="display:flex;justify-content:space-between;color:#ccc;padding:3px 0;border-bottom:1px solid #222;">
-                    <span>${p.label}${p.exact ? ' <span style="color:#fbbf24;">⭐</span>' : ''}</span>
+                    <span>${p.label}${p.triple ? ' <span style="color:#a78bfa;">💎</span>' : p.exact ? ' <span style="color:#fbbf24;">⭐</span>' : ''}</span>
                     <span style="color:#60a5fa;white-space:nowrap;margin-left:8px;">+${p.pts} pts</span>
                 </div>`).join('')}
                 ` : ''}
