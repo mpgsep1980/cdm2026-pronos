@@ -400,13 +400,15 @@ def ecrire_resultats_js(scores: dict):
 
     for mid in sorted(scores.keys()):
         s = scores[mid]
-        termine_js = "true" if s.get("termine") else "false"
-        live_js    = "true" if s.get("live")    else "false"
-        statut     = s.get("statut", "")
-        statut_js  = f', statut: "{statut}"' if statut else ""
+        termine_js   = "true" if s.get("termine") else "false"
+        live_js      = "true" if s.get("live")    else "false"
+        statut       = s.get("statut", "")
+        statut_js    = f', statut: "{statut}"' if statut else ""
+        vainqueur    = s.get("vainqueur", "")
+        vainqueur_js = f', vainqueur: "{vainqueur}"' if vainqueur else ""
         lignes.append(
             f'OFFICIEL_2026.scores["{mid}"] = '
-            f'{{ sA: {s["sA"]}, sB: {s["sB"]}, termine: {termine_js}, live: {live_js}{statut_js} }};'
+            f'{{ sA: {s["sA"]}, sB: {s["sB"]}, termine: {termine_js}, live: {live_js}{statut_js}{vainqueur_js} }};'
         )
 
     lignes += [
@@ -471,13 +473,17 @@ def charger_etat() -> dict:
                 r = re.search(rf'{key}\s*:\s*([^,}}]+)', bloc)
                 return r.group(1).strip() if r else None
             try:
-                etat[mid] = {
+                entry = {
                     "sA":      int(val("sA") or 0),
                     "sB":      int(val("sB") or 0),
                     "termine": val("termine") == "true",
                     "live":    val("live")    == "true",
                     "statut":  (val("statut") or "").strip('"'),
                 }
+                v = val("vainqueur")
+                if v:
+                    entry["vainqueur"] = v.strip('"')
+                etat[mid] = entry
             except Exception:
                 pass
         if etat:
@@ -559,6 +565,9 @@ def run_once(debug=False, calendrier_general=False):
         if prec.get("live") and not s.get("live") and not s.get("termine"):
             s = {**s, "termine": True, "live": False, "statut": "Terminé"}
             print(f"   ✅ Terminé (statut vidé) [{mid}] {s['sA']}-{s['sB']}")
+        # Préserver le vainqueur TAB (saisi manuellement) si le scraper ne le fournit pas
+        if "vainqueur" not in s and prec.get("vainqueur"):
+            s = {**s, "vainqueur": prec["vainqueur"]}
         etat_final[mid] = s
 
     # Transition live → terminé : un match qui était live et n'est plus visible
