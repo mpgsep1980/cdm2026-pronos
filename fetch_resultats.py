@@ -16,10 +16,15 @@ import argparse
 import json
 import re
 import subprocess
+import sys
 import time
 import unicodedata
 from datetime import datetime
 from pathlib import Path
+
+# Fix encodage Windows (cp1252 ne supporte pas les emojis)
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
 
@@ -92,6 +97,15 @@ NOMS_MAPPING = {
 ID_TEST = {
     # "673864": "686902",  # ex: Aston Villa → Mexique-AfSud (11 juin)
     # "689405": "686903",  # ex: Chelsea → Corée-RepTch (11 juin)
+}
+
+# ── CORRECTIONS MANUELLES ─────────────────────────────────────────────────────
+# Scores officiels corrigés manuellement (L'Équipe avait des données erronées).
+# Ces valeurs sont prioritaires sur tout ce que scrape le script.
+# Format : "matchId": { sA, sB, termine, live, statut }
+CORRECTIONS_MANUELLES = {
+    "686972": {"sA": 0, "sB": 2, "termine": True, "live": False, "statut": "Terminé"},  # Panama 0-2 Angleterre
+    "686973": {"sA": 2, "sB": 1, "termine": True, "live": False, "statut": "Terminé"},  # Croatie 2-1 Ghana
 }
 
 # Sélecteurs CSS lequipe.fr — page /Directs
@@ -552,6 +566,12 @@ def run_once(debug=False, calendrier_general=False):
         if s_prec.get("live") and mid not in scores_nouveaux:
             print(f"   ✅ Terminé (disparu de /Directs) [{mid}] {s_prec['sA']}-{s_prec['sB']}")
             etat_final[mid] = {**s_prec, "termine": True, "live": False, "statut": "Terminé"}
+
+    # Corrections manuelles prioritaires (scores erronés sur L'Équipe)
+    for mid, correction in CORRECTIONS_MANUELLES.items():
+        if etat_final.get(mid) != correction:
+            print(f"   🔧 Correction manuelle appliquée [{mid}] {correction['sA']}-{correction['sB']}")
+        etat_final[mid] = correction
 
     if not etat_final:
         print("ℹ️  Aucun résultat connu, rien à écrire.")
