@@ -82,7 +82,7 @@ OFFICIEL_2026.scores["687049"] = { sA: 1, sB: 2, termine: true, live: false };
 OFFICIEL_2026.scores["687050"] = { sA: 3, sB: 0, termine: true, live: false };
 OFFICIEL_2026.scores["687051"] = { sA: 2, sB: 0, termine: true, live: false };
 OFFICIEL_2026.scores["687052"] = { sA: 2, sB: 1, termine: true, live: false };
-OFFICIEL_2026.scores["687053"] = { sA: 2, sB: 2, termine: true, live: false, statut: "Terminé" };
+OFFICIEL_2026.scores["687053"] = { sA: 3, sB: 2, termine: true, live: false, statut: "Terminé" };
 OFFICIEL_2026.scores["687054"] = { sA: 2, sB: 0, termine: true, live: false };
 OFFICIEL_2026.scores["687055"] = { sA: 1, sB: 0, termine: false, live: true, statut: "mi-temps" };
 
