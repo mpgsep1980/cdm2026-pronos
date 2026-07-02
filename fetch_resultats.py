@@ -782,9 +782,15 @@ def main():
 
     if args.watch or args.at or args.auto or args.test_in is not None:
         print(f"⏱️  Mode watch actif — intervalle : {INTERVALLE_MIN} min")
+        premier_passage = True
         while True:
             try:
-                run_once(debug=args.debug)
+                # Premier passage : on repasse aussi par le calendrier pour rattraper
+                # les matchs terminés/interrompus pendant que le script était arrêté
+                # (sinon un match live coupé en cours de route resterait figé sur son
+                # dernier score connu au lieu du score final officiel).
+                run_once(debug=args.debug, mode_all=premier_passage)
+                premier_passage = False
             except KeyboardInterrupt:
                 print("\n👋 Arrêt demandé.")
                 break
