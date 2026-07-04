@@ -50,6 +50,10 @@ URL_CALENDRIER = "https://www.lequipe.fr/Football/coupe-du-monde/page-calendrier
 # Intervalle en minutes entre deux passes en mode --watch
 INTERVALLE_MIN = 2
 
+# Premier ID de la phase à élimination directe (1/16e) — en dessous, phase de poules
+# où un score nul est un résultat final normal (pas de vainqueur à désigner).
+PREMIER_MATCH_KO = 687045
+
 # Avance (en minutes) avant le coup d'envoi pour démarrer le scraping
 AVANCE_MIN = 5
 
@@ -665,7 +669,10 @@ def run_once(debug=False, calendrier_general=False, mode_all=False):
     # à la place du nom de l'équipe qualifiée. Le scraper capture normalement ce
     # vainqueur via la classe --winner de L'Équipe, mais ça peut échouer en silence.
     for mid, s in etat_final.items():
-        if s.get("termine") and s.get("sA") == s.get("sB") and not s.get("vainqueur"):
+        # Un score nul est un résultat normal en phase de poules (pas de vainqueur à
+        # désigner) : seule la phase à élimination directe (id >= PREMIER_MATCH_KO) est concernée.
+        if (int(mid) >= PREMIER_MATCH_KO and s.get("termine")
+                and s.get("sA") == s.get("sB") and not s.get("vainqueur")):
             print(f"   ⚠️  ALERTE : match [{mid}] terminé {s['sA']}-{s['sB']} sans vainqueur désigné "
                   f"— ajouter \"vainqueur\": \"A\"/\"B\" manuellement (CORRECTIONS_MANUELLES) sinon "
                   f"le bracket affichera un libellé générique à la place de l'équipe qualifiée.")
