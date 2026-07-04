@@ -660,6 +660,16 @@ def run_once(debug=False, calendrier_general=False, mode_all=False):
             print(f"   🔧 Correction manuelle appliquée [{mid}] {correction['sA']}-{correction['sB']}")
         etat_final[mid] = correction
 
+    # Garde-fou : un match KO terminé sur un score nul doit désigner un vainqueur
+    # (t.a.b.), sinon le bracket de l'appli affiche un libellé générique ("Match XX")
+    # à la place du nom de l'équipe qualifiée. Le scraper capture normalement ce
+    # vainqueur via la classe --winner de L'Équipe, mais ça peut échouer en silence.
+    for mid, s in etat_final.items():
+        if s.get("termine") and s.get("sA") == s.get("sB") and not s.get("vainqueur"):
+            print(f"   ⚠️  ALERTE : match [{mid}] terminé {s['sA']}-{s['sB']} sans vainqueur désigné "
+                  f"— ajouter \"vainqueur\": \"A\"/\"B\" manuellement (CORRECTIONS_MANUELLES) sinon "
+                  f"le bracket affichera un libellé générique à la place de l'équipe qualifiée.")
+
     if not etat_final:
         print("ℹ️  Aucun résultat connu, rien à écrire.")
         return

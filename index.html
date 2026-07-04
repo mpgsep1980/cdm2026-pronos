@@ -2114,7 +2114,11 @@
             if (off.vainqueur === 'B') return nomB;
             if (off.sA > off.sB) return nomA;
             if (off.sB > off.sA) return nomB;
-            return null;
+            // Score nul sur un match terminé (t.a.b.) sans vainqueur désigné :
+            // au lieu de renvoyer null (→ libellé générique "Match XX" silencieux
+            // et trompeur dans le bracket), on signale le problème visiblement.
+            console.warn(`Match ${matchId} terminé ${off.sA}-${off.sB} sans vainqueur désigné (vainqueur "A"/"B" manquant dans OFFICIEL_2026.scores)`);
+            return `⚠️ Vainqueur TAB manquant (Match ${matchId})`;
         }
         const pronos = getPronos();
         const conf = (typeof CONFIG_PHASES !== 'undefined') ? CONFIG_PHASES[phaseId] : null;
