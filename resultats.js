@@ -1,4 +1,4 @@
-// resultats.js — Généré le 06/07/2026 04:40 par fetch_resultats.py
+// resultats.js — Généré le 06/07/2026 09:16 par fetch_resultats.py
 // NE PAS ÉDITER MANUELLEMENT
 
 // === PHASE DE GROUPES ===
