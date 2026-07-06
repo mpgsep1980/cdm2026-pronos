@@ -19,8 +19,10 @@ import json
 import re
 import time
 import argparse
+import subprocess
 import requests
 from pathlib import Path
+from datetime import datetime
 from unicodedata import normalize, category
 
 sys.stdout.reconfigure(encoding="utf-8")
@@ -366,6 +368,49 @@ def ecrire_liste_matches(calendrier: list):
     LISTE_JS.write_text("\n".join(lignes), encoding="utf-8")
 
 
+def commit_et_pousser_calendrier():
+    """Commit + push liste_matches.js si modifié. Erreurs non bloquantes."""
+    try:
+        diff = subprocess.run(
+            ["git", "status", "--porcelain", "--", LISTE_JS.name],
+            cwd=DOSSIER, capture_output=True, text=True, check=True
+        )
+        if not diff.stdout.strip():
+            return  # rien à pousser
+
+        heure = datetime.now().strftime("%H:%M")
+
+        # Mémoriser notre version fraîchement générée
+        notre_contenu = LISTE_JS.read_text(encoding="utf-8")
+
+        # Synchroniser sur remote (un autre script/session a peut-être poussé entre-temps)
+        subprocess.run(["git", "fetch", "origin"], cwd=DOSSIER, check=True, capture_output=True)
+        subprocess.run(["git", "reset", "--hard", "origin/main"], cwd=DOSSIER, check=True, capture_output=True)
+
+        # Réappliquer notre liste_matches.js sur la base remote à jour
+        LISTE_JS.write_text(notre_contenu, encoding="utf-8")
+
+        # Vérifier s'il reste un diff (remote avait déjà ce contenu = pas besoin de pousser)
+        diff2 = subprocess.run(
+            ["git", "status", "--porcelain", "--", LISTE_JS.name],
+            cwd=DOSSIER, capture_output=True, text=True, check=True
+        )
+        if not diff2.stdout.strip():
+            return
+
+        subprocess.run(["git", "add", LISTE_JS.name], cwd=DOSSIER, check=True)
+        subprocess.run(
+            ["git", "commit", "-m", f"Pronos MPP {heure}"],
+            cwd=DOSSIER, check=True, capture_output=True, text=True
+        )
+        subprocess.run(["git", "push"], cwd=DOSSIER, check=True, capture_output=True, text=True)
+        print(f"   📤 liste_matches.js poussé sur GitHub ({heure})")
+    except subprocess.CalledProcessError as e:
+        print(f"   ⚠️  Push git échoué : {e.stderr or e}")
+    except Exception as e:
+        print(f"   ⚠️  Push git échoué : {e}")
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
@@ -485,6 +530,7 @@ def main():
     if not args.dry_run and nb_mis_a_jour > 0:
         ecrire_liste_matches(calendrier)
         print(f"liste_matches.js mis a jour ({len(calendrier)} matchs)")
+        commit_et_pousser_calendrier()
 
 
 if __name__ == "__main__":
