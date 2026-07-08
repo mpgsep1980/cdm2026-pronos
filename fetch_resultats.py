@@ -110,6 +110,11 @@ ID_TEST = {
 CORRECTIONS_MANUELLES = {
     "686972": {"sA": 0, "sB": 2, "termine": True, "live": False, "statut": "Terminé"},  # Panama 0-2 Angleterre
     "686973": {"sA": 2, "sB": 1, "termine": True, "live": False, "statut": "Terminé"},  # Croatie 2-1 Ghana
+    # Vainqueur t.a.b. non détecté par le scraper (classe --winner absente/instable
+    # sur la page calendrier de L'Équipe pour ce match) : sans cette correction, le
+    # workflow GitHub Actions (checkout neuf toutes les 5 min, sans etat_scores.json
+    # persistant) réécrase toute correction manuelle faite ailleurs.
+    "687068": {"sA": 0, "sB": 0, "termine": True, "live": False, "statut": "t.a.b.", "vainqueur": "A"},  # Suisse bat Colombie 4-3 tab
 }
 
 # Sélecteurs CSS lequipe.fr — page /Directs
