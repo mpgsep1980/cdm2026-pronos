@@ -110,11 +110,6 @@ ID_TEST = {
 CORRECTIONS_MANUELLES = {
     "686972": {"sA": 0, "sB": 2, "termine": True, "live": False, "statut": "Terminé"},  # Panama 0-2 Angleterre
     "686973": {"sA": 2, "sB": 1, "termine": True, "live": False, "statut": "Terminé"},  # Croatie 2-1 Ghana
-    # Vainqueur t.a.b. non détecté par le scraper (classe --winner absente/instable
-    # sur la page calendrier de L'Équipe pour ce match) : sans cette correction, le
-    # workflow GitHub Actions (checkout neuf toutes les 5 min, sans etat_scores.json
-    # persistant) réécrase toute correction manuelle faite ailleurs.
-    "687068": {"sA": 0, "sB": 0, "termine": True, "live": False, "statut": "t.a.b.", "vainqueur": "A"},  # Suisse bat Colombie 4-3 tab
 }
 
 # Sélecteurs CSS lequipe.fr — page /Directs
@@ -636,46 +631,61 @@ def run_once(debug=False, calendrier_general=False, mode_all=False):
                 return
             resultats = scraper_resultats(page, debug=debug)
 
+        print(f"📋 {len(resultats)} match(es) trouvé(s) au total")
+
+        # Croisement avec notre calendrier
+        scores_nouveaux = croiser(resultats, calendrier)
+
+        # Fusion avec l'état précédent
+        etat_final = dict(etat_precedent)  # base = tout ce qu'on connaît déjà
+
+        for mid, s in scores_nouveaux.items():
+            prec = etat_precedent.get(mid, {})
+            # Transition live → terminé : était live, statut maintenant vide/non reconnu
+            if prec.get("live") and not s.get("live") and not s.get("termine"):
+                s = {**s, "termine": True, "live": False, "statut": "Terminé"}
+                print(f"   ✅ Terminé (statut vidé) [{mid}] {s['sA']}-{s['sB']}")
+            # Préserver le vainqueur TAB (saisi manuellement) si le scraper ne le fournit pas
+            if "vainqueur" not in s and prec.get("vainqueur"):
+                s = {**s, "vainqueur": prec["vainqueur"]}
+            etat_final[mid] = s
+
+        # Transition live → terminé : un match qui était live et n'est plus visible
+        for mid, s_prec in etat_precedent.items():
+            if s_prec.get("live") and mid not in scores_nouveaux:
+                print(f"   ✅ Terminé (disparu de /Directs) [{mid}] {s_prec['sA']}-{s_prec['sB']}")
+                etat_final[mid] = {**s_prec, "termine": True, "live": False, "statut": "Terminé"}
+
+        # Corrections manuelles prioritaires (scores erronés sur L'Équipe)
+        for mid, correction in CORRECTIONS_MANUELLES.items():
+            if etat_final.get(mid) != correction:
+                print(f"   🔧 Correction manuelle appliquée [{mid}] {correction['sA']}-{correction['sB']}")
+            etat_final[mid] = correction
+
+        # Rattrapage automatique : un match KO qui se termine sur un score nul doit
+        # désigner un vainqueur (t.a.b.), sinon le bracket de l'appli affiche un
+        # libellé générique ("Match XX") à la place du nom de l'équipe qualifiée.
+        # Le direct (/Directs) ne fournit pas toujours cette info avant de disparaître
+        # de la page — on va donc la chercher directement sur le calendrier général,
+        # qui contient l'historique complet avec le bon balisage vainqueur/perdant.
+        a_verifier = [mid for mid, s in etat_final.items()
+                      if int(mid) >= PREMIER_MATCH_KO and s.get("termine")
+                      and s.get("sA") == s.get("sB") and not s.get("vainqueur")]
+        if a_verifier and not calendrier_general and not mode_all:
+            print(f"   🔎 Vainqueur t.a.b. manquant pour {a_verifier} — vérification sur le calendrier général…")
+            if _charger_page(page, URL_CALENDRIER, debug):
+                scores_cal = croiser(scraper_calendrier(page, debug=debug), calendrier)
+                for mid in a_verifier:
+                    v = scores_cal.get(mid, {}).get("vainqueur")
+                    if v:
+                        etat_final[mid]["vainqueur"] = v
+                        print(f"   ✅ Vainqueur t.a.b. trouvé à distance [{mid}] : {v}")
+
         browser.close()
 
-    print(f"📋 {len(resultats)} match(es) trouvé(s) au total")
-
-    # Croisement avec notre calendrier
-    scores_nouveaux = croiser(resultats, calendrier)
-
-    # Fusion avec l'état précédent
-    etat_final = dict(etat_precedent)  # base = tout ce qu'on connaît déjà
-
-    for mid, s in scores_nouveaux.items():
-        prec = etat_precedent.get(mid, {})
-        # Transition live → terminé : était live, statut maintenant vide/non reconnu
-        if prec.get("live") and not s.get("live") and not s.get("termine"):
-            s = {**s, "termine": True, "live": False, "statut": "Terminé"}
-            print(f"   ✅ Terminé (statut vidé) [{mid}] {s['sA']}-{s['sB']}")
-        # Préserver le vainqueur TAB (saisi manuellement) si le scraper ne le fournit pas
-        if "vainqueur" not in s and prec.get("vainqueur"):
-            s = {**s, "vainqueur": prec["vainqueur"]}
-        etat_final[mid] = s
-
-    # Transition live → terminé : un match qui était live et n'est plus visible
-    for mid, s_prec in etat_precedent.items():
-        if s_prec.get("live") and mid not in scores_nouveaux:
-            print(f"   ✅ Terminé (disparu de /Directs) [{mid}] {s_prec['sA']}-{s_prec['sB']}")
-            etat_final[mid] = {**s_prec, "termine": True, "live": False, "statut": "Terminé"}
-
-    # Corrections manuelles prioritaires (scores erronés sur L'Équipe)
-    for mid, correction in CORRECTIONS_MANUELLES.items():
-        if etat_final.get(mid) != correction:
-            print(f"   🔧 Correction manuelle appliquée [{mid}] {correction['sA']}-{correction['sB']}")
-        etat_final[mid] = correction
-
-    # Garde-fou : un match KO terminé sur un score nul doit désigner un vainqueur
-    # (t.a.b.), sinon le bracket de l'appli affiche un libellé générique ("Match XX")
-    # à la place du nom de l'équipe qualifiée. Le scraper capture normalement ce
-    # vainqueur via la classe --winner de L'Équipe, mais ça peut échouer en silence.
+    # Garde-fou final : signale ce qui reste vraiment introuvable même après
+    # la vérification à distance (nécessite alors une correction manuelle).
     for mid, s in etat_final.items():
-        # Un score nul est un résultat normal en phase de poules (pas de vainqueur à
-        # désigner) : seule la phase à élimination directe (id >= PREMIER_MATCH_KO) est concernée.
         if (int(mid) >= PREMIER_MATCH_KO and s.get("termine")
                 and s.get("sA") == s.get("sB") and not s.get("vainqueur")):
             print(f"   ⚠️  ALERTE : match [{mid}] terminé {s['sA']}-{s['sB']} sans vainqueur désigné "
