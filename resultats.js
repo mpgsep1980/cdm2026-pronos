@@ -1,4 +1,4 @@
-// resultats.js — Généré le 07/07/2026 23:35 par fetch_resultats.py
+// resultats.js — Généré le 08/07/2026 21:26 par fetch_resultats.py
 // NE PAS ÉDITER MANUELLEMENT
 
 // === PHASE DE GROUPES ===
@@ -82,13 +82,13 @@ OFFICIEL_2026.scores["687049"] = { sA: 1, sB: 2, termine: true, live: false };
 OFFICIEL_2026.scores["687050"] = { sA: 3, sB: 0, termine: true, live: false };
 OFFICIEL_2026.scores["687051"] = { sA: 2, sB: 0, termine: true, live: false };
 OFFICIEL_2026.scores["687052"] = { sA: 2, sB: 1, termine: true, live: false };
-OFFICIEL_2026.scores["687053"] = { sA: 3, sB: 2, termine: true, live: false, statut: "Terminé" };
+OFFICIEL_2026.scores["687053"] = { sA: 3, sB: 2, termine: true, live: false };
 OFFICIEL_2026.scores["687054"] = { sA: 2, sB: 0, termine: true, live: false };
 OFFICIEL_2026.scores["687055"] = { sA: 3, sB: 0, termine: true, live: false };
 OFFICIEL_2026.scores["687056"] = { sA: 2, sB: 1, termine: true, live: false };
 OFFICIEL_2026.scores["687057"] = { sA: 2, sB: 0, termine: true, live: false };
 OFFICIEL_2026.scores["687058"] = { sA: 1, sB: 1, termine: true, live: false, statut: "t.a.b.", vainqueur: "B" };
-OFFICIEL_2026.scores["687059"] = { sA: 3, sB: 2, termine: true, live: false, statut: "a.p." };
+OFFICIEL_2026.scores["687059"] = { sA: 3, sB: 2, termine: true, live: false };
 OFFICIEL_2026.scores["687060"] = { sA: 1, sB: 0, termine: true, live: false };
 OFFICIEL_2026.scores["687061"] = { sA: 0, sB: 3, termine: true, live: false };
 OFFICIEL_2026.scores["687062"] = { sA: 0, sB: 1, termine: true, live: false };
