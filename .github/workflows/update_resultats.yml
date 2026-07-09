@@ -1,10 +1,10 @@
 name: Mise à jour résultats CDM 2026
 
 on:
-  schedule:
-    # Toutes les 5 minutes (minimum GitHub Actions)
-    - cron: '*/5 * * * *'
-  # Déclenchement manuel depuis l'onglet Actions sur GitHub
+  # Déclenchement externe uniquement (cron GitHub natif abandonné : peu fiable,
+  # peut sauter des passages ou être retardé de plusieurs dizaines de minutes
+  # en période de charge). Un service de cron externe appelle l'API
+  # workflow_dispatch de ce workflow à intervalle régulier.
   workflow_dispatch:
 
 # Empêche deux runs simultanés (si un job prend > 5 min)
